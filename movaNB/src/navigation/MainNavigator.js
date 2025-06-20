@@ -21,7 +21,7 @@ export default function MainNavigator() {
   return (
     <RootStack.Navigator 
       screenOptions={{ headerShown: false }}
-      initialRouteName="AuthStack"
+      initialRouteName="ClientStack"
     >
       <RootStack.Screen name="AuthStack" component={AuthStack} />
       <RootStack.Screen name="ClientStack" component={ClientStack} />

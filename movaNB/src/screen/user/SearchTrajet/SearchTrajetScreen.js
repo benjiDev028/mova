@@ -21,7 +21,7 @@ import 'moment/locale/fr'; // Pour avoir les dates en français
 
 moment.locale('fr');
 
-const SearchTrajetScreen = () => {
+const SearchTrajetScreen = ({navigation}) => {
   const [departure, setDeparture] = useState('');
   const [arrival, setArrival] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -37,7 +37,8 @@ const SearchTrajetScreen = () => {
     }
   };
 
-  const handleFilterApply = (filters) => {
+  
+const handleFilterApply = (filters) => {
     console.log("Filtres appliqués :", filters);
     // Tu peux ensuite utiliser ces données pour faire ta requête de recherche
     setFilterVisible(false);
@@ -176,7 +177,7 @@ const SearchTrajetScreen = () => {
           </TouchableOpacity>
 
           {/* Rechercher */}
-          <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7}   onPress={() => navigation.navigate('ListFound')}>
             <Text style={styles.searchText}>Trouver un trajet</Text>
           </TouchableOpacity>
         </ScrollView>

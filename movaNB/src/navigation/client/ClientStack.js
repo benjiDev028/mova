@@ -8,6 +8,9 @@ import ReviewAndConfirmScreen from '../../screen/conducteur/ReviewAndConfirme/Re
 import PreferencesScreen from '../../screen/conducteur/Preference/PreferenceScreen';
 import RouteSelectionScreen from '../../screen/conducteur/RouteSelection/RouteSelectionScreen';
 import VehicleAndPriceScreen from '../../screen/conducteur/VehiculeAndPrice/VehiculeAndPriceScreen';
+import ListFoundScreen from '../../screen/passager/ListFound/ListFoundScreen';
+import DetailTripScreen from '../../screen/passager/DetailTrip/DetailTripScreen';
+import PayBookingScreen from '../../screen/passager/PayBooking/PayBooking';
 const Stack = createStackNavigator();
 
 export default function ClientStack() {
@@ -21,6 +24,9 @@ export default function ClientStack() {
       <Stack.Screen name="VehicleAndPrice" component={VehicleAndPriceScreen} />
       <Stack.Screen name="Preferences" component={PreferencesScreen} />
       <Stack.Screen name="ReviewAndConfirm" component={ReviewAndConfirmScreen} />
+      <Stack.Screen name="ListFound" component={ListFoundScreen} />
+      <Stack.Screen name="DetailTrip" component={DetailTripScreen} />
+      <Stack.Screen name="PayBooking" component={PayBookingScreen} />
       
     </Stack.Navigator>
   );
