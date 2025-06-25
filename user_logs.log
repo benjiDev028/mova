@@ -1,0 +1,1137 @@
+2025-06-23 00:04:11,143 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 00:04:11,143 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 00:04:57,104 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 00:05:02,048 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 00:05:20,166 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 00:05:20,167 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 00:05:43,329 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 00:05:43,331 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 00:05:43,852 - INFO - Nouvel utilisateur créé avec succès : eee@gmail.com
+2025-06-23 00:05:43,965 - INFO - Message envoyé à RabbitMQ pour activer l'email : eee@gmail.com
+2025-06-23 00:05:43,984 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : eee@gmail.com
+2025-06-23 00:06:09,177 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:06:09,650 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:19:41,835 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:19:42,269 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:19:46,515 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:19:46,939 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:20:04,880 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:20:05,306 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:21:05,520 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:21:05,972 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:21:11,386 - INFO - Tentative de connexion pour l'email: eewe@gmail.com
+2025-06-23 00:21:11,389 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 00:44:14,511 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:44:14,991 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:44:49,811 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-265' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001D9E2A28340>()]>>
+2025-06-23 00:44:49,814 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-267' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001D9E2A28250>()]>>
+2025-06-23 00:44:49,815 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 00:44:49,921 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 00:51:24,743 - INFO - Tentative de connexion pour l'email: eeee@gmail.com
+2025-06-23 00:51:24,762 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 00:52:53,373 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:52:53,376 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 00:52:53,836 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:53:22,332 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:53:22,739 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:53:51,092 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:53:51,507 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:54:14,132 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:54:14,542 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:54:28,902 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:54:29,310 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:54:43,453 - INFO - Tentative de connexion pour l'email: eee@gmail.comc
+2025-06-23 00:54:43,455 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 00:54:49,239 - INFO - Tentative de connexion pour l'email: eee@gmail.comc
+2025-06-23 00:54:49,242 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 00:55:06,856 - INFO - Tentative de connexion pour l'email: eee@gmail.comc
+2025-06-23 00:55:06,858 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 00:55:29,951 - INFO - Tentative de connexion pour l'email: eee@gmail.comc
+2025-06-23 00:55:29,953 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 00:55:45,299 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:55:45,708 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:56:04,939 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:56:05,350 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:56:59,615 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:57:00,023 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:57:26,755 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:57:27,158 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 00:58:15,260 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 00:58:15,660 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 01:00:54,698 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 01:00:55,106 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 01:17:59,293 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 01:17:59,720 - INFO - Connexion réussie pour l'utilisateur: eee@gmail.com
+2025-06-23 01:18:06,605 - ERROR - Un utilisateur avec l'email eee@gmail.com existe déjà.
+2025-06-23 01:18:13,570 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 01:18:14,013 - INFO - Nouvel utilisateur créé avec succès : ee@gmail.com
+2025-06-23 01:18:14,037 - INFO - Message envoyé à RabbitMQ pour activer l'email : ee@gmail.com
+2025-06-23 01:18:14,053 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : ee@gmail.com
+2025-06-23 01:19:09,847 - ERROR - Un utilisateur avec l'email ee@gmail.com existe déjà.
+2025-06-23 01:19:14,794 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 01:19:15,210 - INFO - Nouvel utilisateur créé avec succès : e@gmail.com
+2025-06-23 01:19:15,228 - INFO - Message envoyé à RabbitMQ pour activer l'email : e@gmail.com
+2025-06-23 01:19:15,246 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : e@gmail.com
+2025-06-23 01:49:03,695 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 01:49:03,710 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 01:49:03,722 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-364' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001E0BD003BB0>()]>>
+2025-06-23 01:49:03,725 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-367' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001E0BD2C1C10>()]>>
+2025-06-23 01:49:03,727 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-368' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001E0BD2C1670>()]>>
+2025-06-23 01:49:03,728 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-370' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001E0BD2C1190>()]>>
+2025-06-23 01:49:03,730 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 01:49:03,741 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 01:52:45,197 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 01:52:45,218 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 01:52:45,757 - INFO - Nouvel utilisateur créé avec succès : e@gmail.com
+2025-06-23 01:52:45,784 - INFO - Message envoyé à RabbitMQ pour activer l'email : e@gmail.com
+2025-06-23 01:52:45,800 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : e@gmail.com
+2025-06-23 01:56:00,436 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-42' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000013852BEB7C0>()]>>
+2025-06-23 01:56:00,437 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-44' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000013852CACAF0>()]>>
+2025-06-23 01:56:00,438 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 01:56:00,452 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 01:58:53,867 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 01:58:53,868 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 01:58:54,318 - INFO - Nouvel utilisateur créé avec succès : test2@gmail.com
+2025-06-23 01:58:54,343 - INFO - Message envoyé à RabbitMQ pour activer l'email : test2@gmail.com
+2025-06-23 01:58:54,362 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : test2@gmail.com
+2025-06-23 02:04:36,741 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 02:04:37,143 - INFO - Nouvel utilisateur créé avec succès : test@gmail.com
+2025-06-23 02:04:37,160 - INFO - Message envoyé à RabbitMQ pour activer l'email : test@gmail.com
+2025-06-23 02:04:37,175 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : test@gmail.com
+2025-06-23 02:04:54,418 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 02:04:54,828 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 02:10:18,383 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 02:10:18,795 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 02:18:12,179 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 02:18:12,592 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 02:25:15,937 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 02:25:16,344 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 02:28:22,308 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 02:28:22,711 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 02:36:47,207 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 02:36:47,604 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 06:47:41,327 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 06:47:41,759 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 06:47:42,182 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 06:47:42,415 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 06:47:42,429 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 06:47:42,440 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 06:47:42,448 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-2357' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000016F3CD1CF10>()]>>
+2025-06-23 06:47:42,450 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-2360' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000016F3CD1CEB0>()]>>
+2025-06-23 06:47:42,454 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-2362' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000016F3CD1C400>()]>>
+2025-06-23 06:47:42,455 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-2364' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000016F3CD1C430>()]>>
+2025-06-23 07:05:02,784 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:05:02,803 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 07:05:03,268 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:05:19,291 - INFO - Tentative de connexion pour l'email: ee@gmail.com
+2025-06-23 07:05:19,294 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 07:05:26,200 - INFO - Tentative de connexion pour l'email: ee@gmail.com
+2025-06-23 07:05:26,203 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 07:05:30,710 - INFO - Tentative de connexion pour l'email: eee@gmail.com
+2025-06-23 07:05:30,712 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 29, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 07:05:34,264 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:05:34,655 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:13:56,214 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:13:56,614 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:15:03,702 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:15:04,111 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:16:01,121 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:16:01,513 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:18:45,530 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:19:42,061 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:19:42,463 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:20:17,982 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:20:55,173 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:30:38,875 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:30:38,883 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 07:30:39,345 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:31:22,548 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:31:22,966 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:31:23,067 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:32:11,425 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:32:11,840 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:32:11,880 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:38:21,290 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:38:21,690 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:38:21,769 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:39:57,568 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:39:57,976 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:39:58,033 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:41:23,346 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:41:23,761 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:41:23,854 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:52:32,755 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:52:33,163 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:52:33,232 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:54:46,486 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:54:46,881 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:54:46,974 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:54:56,457 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:55:57,660 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:56:16,510 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:56:16,927 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:56:17,082 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 07:56:53,899 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:56:54,283 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:56:54,339 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:57:23,276 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 07:57:23,681 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 07:57:23,834 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 07:59:42,360 - INFO - Tentative de connexion pour l'email: e@gmail.com
+2025-06-23 07:59:42,775 - INFO - Connexion réussie pour l'utilisateur: e@gmail.com
+2025-06-23 07:59:42,888 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: b762664b-881f-4d6d-b42a-ffd92a62c994
+2025-06-23 08:01:21,070 - INFO - Code de réinitialisation envoyé à e@gmail.com : 73825
+2025-06-23 08:01:21,097 - ERROR - Erreur lors de la sauvegarde du code pour e@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'e@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:02:23,273 - INFO - Code de réinitialisation envoyé à e@gmail.com : 58574
+2025-06-23 08:02:23,278 - ERROR - Erreur lors de la sauvegarde du code pour e@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'e@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:03:27,979 - INFO - Code de réinitialisation envoyé à e@gmail.com : 28873
+2025-06-23 08:03:27,983 - ERROR - Erreur lors de la sauvegarde du code pour e@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'e@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:03:37,403 - INFO - Code de réinitialisation envoyé à test@gmail.com : 10907
+2025-06-23 08:03:37,409 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:06:51,065 - INFO - Code de réinitialisation envoyé à test@gmail.com : 81780
+2025-06-23 08:06:51,071 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:07:04,754 - INFO - Code de réinitialisation envoyé à test@gmail.com : 69778
+2025-06-23 08:07:04,758 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:14:52,048 - INFO - Code de réinitialisation envoyé à test@gmail.com : 35577
+2025-06-23 08:14:52,054 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:16:47,451 - INFO - Code de réinitialisation envoyé à test@gmail.com : 56144
+2025-06-23 08:16:47,457 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:16:50,899 - INFO - Code de réinitialisation envoyé à test@gmail.com : 48619
+2025-06-23 08:16:50,904 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:19:28,033 - INFO - Code de réinitialisation envoyé à test@gmail.com : 47039
+2025-06-23 08:19:28,038 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 08:21:14,239 - INFO - Code de réinitialisation envoyé à test@gmail.com : 26685
+2025-06-23 08:21:14,246 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 15:49:27,670 - INFO - Code de réinitialisation envoyé à test@gmail.com : 77630
+2025-06-23 15:49:27,680 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 15:49:53,174 - INFO - Code de réinitialisation envoyé à test@gmail.com : 28274
+2025-06-23 15:49:53,179 - ERROR - Erreur lors de la sauvegarde du code pour test@gmail.com: (psycopg2.errors.UndefinedTable) relation "user_codes" does not exist
+LINE 2: FROM user_codes 
+             ^
+
+[SQL: SELECT user_codes.id AS user_codes_id, user_codes.email AS user_codes_email, user_codes.code AS user_codes_code, user_codes.created_at AS user_codes_created_at 
+FROM user_codes 
+WHERE user_codes.email = %(email_1)s 
+ LIMIT %(param_1)s]
+[parameters: {'email_1': 'test@gmail.com', 'param_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-06-23 15:52:06,501 - INFO - Code de réinitialisation envoyé à test@gmail.com : 22760
+2025-06-23 15:52:06,523 - INFO - Code 22760 sauvegardé pour test@gmail.com
+2025-06-23 15:52:33,071 - ERROR - Utilisateur introuvable avec l'email tejst@gmail.com
+2025-06-23 15:52:33,079 - ERROR - Erreur lors de la recherche de l'utilisateur : 404: Utilisateur introuvable.
+2025-06-23 15:57:35,687 - INFO - Code de réinitialisation envoyé à test@gmail.com : 38715
+2025-06-23 15:57:35,704 - INFO - Code 38715 sauvegardé pour test@gmail.com
+2025-06-23 16:03:22,698 - ERROR - Utilisateur introuvable avec l'email g@gmail.com
+2025-06-23 16:03:22,699 - ERROR - Erreur lors de la recherche de l'utilisateur : 404: Utilisateur introuvable.
+2025-06-23 16:03:28,008 - ERROR - Utilisateur introuvable avec l'email g@gmail.com
+2025-06-23 16:03:28,008 - ERROR - Erreur lors de la recherche de l'utilisateur : 404: Utilisateur introuvable.
+2025-06-23 16:03:44,056 - ERROR - Utilisateur introuvable avec l'email g@gmail.com
+2025-06-23 16:03:44,057 - ERROR - Erreur lors de la recherche de l'utilisateur : 404: Utilisateur introuvable.
+2025-06-23 16:03:58,534 - INFO - Code de réinitialisation envoyé à test@gmail.com : 37613
+2025-06-23 16:03:58,544 - INFO - Code 37613 sauvegardé pour test@gmail.com
+2025-06-23 16:04:59,169 - INFO - Code de réinitialisation envoyé à test@gmail.com : 349018
+2025-06-23 16:04:59,187 - INFO - Code 349018 sauvegardé pour test@gmail.com
+2025-06-23 16:08:03,031 - INFO - Code de réinitialisation envoyé à test@gmail.com : 487058
+2025-06-23 16:08:03,039 - INFO - Code 487058 sauvegardé pour test@gmail.com
+2025-06-23 16:45:12,348 - INFO - Code de réinitialisation envoyé à test@gmail.com : 797447
+2025-06-23 16:45:12,384 - INFO - Code 797447 sauvegardé pour test@gmail.com
+2025-06-23 16:45:56,065 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 16:45:56,067 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 16:46:00,249 - WARNING - Vérification du code pour test@gmail.com échouée: Code non trouvé.
+2025-06-23 16:47:35,165 - WARNING - Vérification du code pour test@gmail.com échouée: Code non trouvé.
+2025-06-23 16:53:52,376 - WARNING - Vérification du code pour test@gmail.com échouée: Code non trouvé.
+2025-06-23 16:53:58,995 - INFO - Code de réinitialisation envoyé à test@gmail.com : 655253
+2025-06-23 16:53:59,025 - INFO - Code 655253 sauvegardé pour test@gmail.com
+2025-06-23 16:54:08,469 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 16:54:08,469 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 16:55:15,395 - INFO - Code de réinitialisation envoyé à test@gmail.com : 928882
+2025-06-23 16:55:15,420 - INFO - Code 928882 sauvegardé pour test@gmail.com
+2025-06-23 16:55:20,014 - INFO - Code de réinitialisation envoyé à test@gmail.com : 322101
+2025-06-23 16:55:20,043 - INFO - Code 322101 sauvegardé pour test@gmail.com
+2025-06-23 16:55:24,972 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:00:36,555 - INFO - Code de réinitialisation envoyé à test@gmail.com : 625326
+2025-06-23 17:00:36,570 - INFO - Code 625326 sauvegardé pour test@gmail.com
+2025-06-23 17:00:45,590 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:00:45,602 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:00:52,280 - INFO - Code de réinitialisation envoyé à test@gmail.com : 693495
+2025-06-23 17:00:52,295 - INFO - Code 693495 sauvegardé pour test@gmail.com
+2025-06-23 17:01:00,999 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:19:32,771 - INFO - Code de réinitialisation envoyé à test@gmail.com : 396437
+2025-06-23 17:19:32,780 - INFO - Code 396437 sauvegardé pour test@gmail.com
+2025-06-23 17:19:47,246 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:19:47,246 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:19:54,189 - INFO - Code de réinitialisation envoyé à test@gmail.com : 691689
+2025-06-23 17:19:54,198 - INFO - Code 691689 sauvegardé pour test@gmail.com
+2025-06-23 17:19:57,454 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:22:28,168 - INFO - Code de réinitialisation envoyé à test@gmail.com : 617851
+2025-06-23 17:22:28,176 - INFO - Code 617851 sauvegardé pour test@gmail.com
+2025-06-23 17:22:31,730 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:23:43,968 - INFO - Code de réinitialisation envoyé à test@gmail.com : 435151
+2025-06-23 17:23:43,977 - INFO - Code 435151 sauvegardé pour test@gmail.com
+2025-06-23 17:23:48,168 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:23:59,584 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:24:12,338 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:24:12,339 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:43:18,681 - INFO - Code de réinitialisation envoyé à test@gmail.com : 108803
+2025-06-23 17:43:18,710 - INFO - Code 108803 sauvegardé pour test@gmail.com
+2025-06-23 17:43:22,992 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:43:27,895 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:43:41,025 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:43:41,032 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:44:21,103 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 17:44:21,127 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 17:44:21,749 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:44:50,939 - ERROR - Utilisateur introuvable avec l'email test@gmail.co
+2025-06-23 17:44:50,940 - ERROR - Erreur lors de la recherche de l'utilisateur : 404: Utilisateur introuvable.
+2025-06-23 17:44:53,717 - INFO - Code de réinitialisation envoyé à test@gmail.com : 924950
+2025-06-23 17:44:53,743 - INFO - Code 924950 sauvegardé pour test@gmail.com
+2025-06-23 17:45:00,341 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-23 17:45:12,242 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:45:12,243 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:46:23,668 - INFO - Code de réinitialisation envoyé à test@gmail.com : 478617
+2025-06-23 17:46:23,700 - INFO - Code 478617 sauvegardé pour test@gmail.com
+2025-06-23 17:46:31,928 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:46:31,929 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:49:04,806 - INFO - Code de réinitialisation envoyé à test@gmail.com : 226766
+2025-06-23 17:49:04,823 - INFO - Code 226766 sauvegardé pour test@gmail.com
+2025-06-23 17:49:36,158 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:49:36,158 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:49:57,409 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 17:50:14,172 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 17:50:14,655 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:50:23,662 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 17:50:24,147 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:50:32,739 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 17:50:33,193 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:50:52,751 - INFO - Code de réinitialisation envoyé à test@gmail.com : 518528
+2025-06-23 17:50:52,761 - INFO - Code 518528 sauvegardé pour test@gmail.com
+2025-06-23 17:51:02,745 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:51:02,746 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 17:51:15,280 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 17:51:28,761 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 17:51:29,251 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:51:59,507 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 17:51:59,960 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:52:44,478 - INFO - Création d'un nouvel utilisateur...
+2025-06-23 17:52:45,016 - INFO - Nouvel utilisateur créé avec succès : es@gmail.com
+2025-06-23 17:52:45,037 - INFO - Message envoyé à RabbitMQ pour activer l'email : es@gmail.com
+2025-06-23 17:52:45,060 - INFO - Message envoyé à RabbitMQ pour PASSER ID   : es@gmail.com
+2025-06-23 17:52:58,551 - INFO - Tentative de connexion pour l'email: es@gmail.com
+2025-06-23 17:52:59,083 - INFO - Connexion réussie pour l'utilisateur: es@gmail.com
+2025-06-23 17:52:59,491 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 9ea71efb-9bb2-4263-adef-6d7aced2585b
+2025-06-23 17:53:16,806 - INFO - Code de réinitialisation envoyé à es@gmail.com : 709279
+2025-06-23 17:53:16,821 - INFO - Code 709279 sauvegardé pour es@gmail.com
+2025-06-23 17:53:32,965 - INFO - Code validé avec succès pour es@gmail.com
+2025-06-23 17:53:32,965 - INFO - Code de réinitialisation vérifié avec succès pour: es@gmail.com
+2025-06-23 17:53:47,399 - INFO - Mot de passe réinitialisé avec succès pour: es@gmail.com
+2025-06-23 17:53:58,306 - INFO - Tentative de connexion pour l'email: es@gmail.com
+2025-06-23 17:53:58,794 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 17:59:10,243 - INFO - Code de réinitialisation envoyé à test@gmail.com : 635011
+2025-06-23 17:59:10,260 - INFO - Code 635011 sauvegardé pour test@gmail.com
+2025-06-23 17:59:55,398 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 17:59:55,400 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 18:00:29,161 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 18:01:09,040 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:01:09,529 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 18:03:00,879 - INFO - Code de réinitialisation envoyé à test@gmail.com : 433213
+2025-06-23 18:03:00,888 - INFO - Code 433213 sauvegardé pour test@gmail.com
+2025-06-23 18:03:11,099 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 18:03:11,100 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 18:03:22,595 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 18:03:42,057 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:03:42,487 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 18:06:11,550 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:06:12,106 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 18:06:22,810 - INFO - Code de réinitialisation envoyé à test@gmail.com : 898188
+2025-06-23 18:06:22,823 - INFO - Code 898188 sauvegardé pour test@gmail.com
+2025-06-23 18:06:37,569 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 18:06:37,570 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 18:07:01,703 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 18:07:18,692 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:07:19,237 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 18:07:32,303 - INFO - Code de réinitialisation envoyé à test@gmail.com : 548025
+2025-06-23 18:07:32,315 - INFO - Code 548025 sauvegardé pour test@gmail.com
+2025-06-23 18:07:40,809 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 18:07:40,810 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 18:07:51,159 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 18:08:02,777 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:08:03,253 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-23 18:08:27,927 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:08:28,555 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 18:08:28,667 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 18:19:47,164 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-730' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000024D5C8EA3D0>()]>>
+2025-06-23 18:19:47,169 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-732' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000024D5C8F5250>()]>>
+2025-06-23 18:19:47,172 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 18:19:48,354 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-06-23 18:36:20,743 - INFO - Code de réinitialisation envoyé à test@gmail.com : 132281
+2025-06-23 18:36:20,765 - INFO - Code 132281 sauvegardé pour test@gmail.com
+2025-06-23 18:36:39,445 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 18:36:39,446 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 18:37:03,903 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-23 18:37:23,141 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-23 18:37:23,146 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-23 18:37:23,670 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-23 18:37:23,810 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-23 18:42:25,224 - INFO - Code de réinitialisation envoyé à test@gmail.com : 153888
+2025-06-23 18:42:25,242 - INFO - Code 153888 sauvegardé pour test@gmail.com
+2025-06-23 18:42:45,676 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-23 18:42:45,676 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-23 18:42:54,491 - ERROR - Erreur lors de la mise à jour du code : 'NoneType' object has no attribute 'scalars'
+2025-06-23 18:45:21,789 - INFO - Code de réinitialisation envoyé à test@gmail.com : 575524
+2025-06-23 18:45:21,801 - INFO - Code 575524 sauvegardé pour test@gmail.com
+2025-06-23 18:46:47,446 - ERROR - Utilisateur introuvable avec l'email test@gmail.ckm
+2025-06-23 18:46:47,447 - ERROR - Erreur lors de la recherche de l'utilisateur : 404: Utilisateur introuvable.
+2025-06-23 18:46:51,056 - INFO - Code de réinitialisation envoyé à test@gmail.com : 906231
+2025-06-23 18:46:51,066 - INFO - Code 906231 sauvegardé pour test@gmail.com
+2025-06-23 18:47:30,421 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-24 01:17:08,838 - INFO - Code de réinitialisation envoyé à test@gmail.com : 566398
+2025-06-24 01:17:08,854 - INFO - Code 566398 sauvegardé pour test@gmail.com
+2025-06-24 01:17:19,669 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-24 01:17:28,926 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-24 01:17:28,932 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-24 01:19:38,464 - INFO - Code de réinitialisation envoyé à test@gmail.com : 763564
+2025-06-24 01:19:38,763 - INFO - Code 763564 sauvegardé pour test@gmail.com
+2025-06-24 01:19:47,196 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-24 01:19:47,197 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-24 01:19:53,531 - INFO - Code de réinitialisation envoyé à test@gmail.com : 890224
+2025-06-24 01:19:53,585 - INFO - Code 890224 sauvegardé pour test@gmail.com
+2025-06-24 01:19:58,263 - WARNING - Vérification du code pour test@gmail.com échouée: Code invalide.
+2025-06-24 01:20:07,956 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-24 01:20:07,956 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-24 01:22:44,493 - ERROR - Erreur lors de la mise à jour du code : 'NoneType' object has no attribute 'scalars'
+2025-06-24 01:28:46,050 - ERROR - Erreur lors de la mise à jour du code : 'NoneType' object has no attribute 'scalars'
+2025-06-24 01:29:22,589 - INFO - Code de réinitialisation envoyé à test@gmail.com : 548362
+2025-06-24 01:29:22,599 - INFO - Code 548362 sauvegardé pour test@gmail.com
+2025-06-24 01:29:41,756 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-24 01:29:41,757 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-24 01:32:37,984 - INFO - Code de réinitialisation envoyé à test@gmail.com : 697150
+2025-06-24 01:32:37,993 - INFO - Code 697150 sauvegardé pour test@gmail.com
+2025-06-24 01:32:50,812 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-24 01:32:50,813 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-24 01:34:42,480 - INFO - Code de réinitialisation envoyé à test@gmail.com : 870364
+2025-06-24 01:34:42,491 - INFO - Code 870364 sauvegardé pour test@gmail.com
+2025-06-24 01:35:01,273 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-24 01:35:01,273 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-24 01:35:23,305 - ERROR - Erreur lors de la mise à jour du code : 'NoneType' object has no attribute 'scalars'
+2025-06-24 01:36:25,213 - ERROR - Erreur lors de la mise à jour du code : 'NoneType' object has no attribute 'scalars'
+2025-06-24 01:37:39,876 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-24 01:37:40,527 - INFO - Password updated successfully for user ID: test@gmail.com
+2025-06-24 01:37:53,429 - INFO - Password updated successfully for user ID: test@gmail.com
+2025-06-24 01:39:01,574 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-24 01:39:02,194 - INFO - Password updated successfully for user ID: test@gmail.com
