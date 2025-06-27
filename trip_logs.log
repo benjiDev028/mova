@@ -1,0 +1,50 @@
+2025-06-25 22:38:15,223 - ERROR - Voyage avec l'ID e56f8c9d-3d3f-4ef5-a7a6-927e3a8a7f12 non trouvé.
+2025-06-25 22:38:45,399 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 0df14f3b-7bcf-4cbc-acca-b644493b7f3a
+2025-06-25 22:38:45,422 - INFO - Voyage créé avec succès : 
+2025-06-25 22:58:30,184 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 453e8a65-8caf-4116-87ec-497c8c073825
+2025-06-25 22:58:30,187 - INFO - Voyage créé avec succès : 
+2025-06-25 23:28:52,614 - ERROR - Erreur lors de la création du trajet : 'place' is an invalid keyword argument for Stop
+2025-06-25 23:29:11,741 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 318d41f1-ab8f-4a16-ba25-603816db3bf7
+2025-06-25 23:29:11,745 - INFO - Voyage créé avec succès : 
+2025-06-25 23:29:39,057 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 1e8cb73b-5e42-4fa4-aacd-9b2eefb18b1b
+2025-06-25 23:29:39,061 - INFO - Voyage créé avec succès : 
+2025-06-25 23:29:58,714 - ERROR - Erreur lors de la création du trajet : 'place' is an invalid keyword argument for Stop
+2025-06-25 23:30:21,019 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 1f72f818-76f4-4fd0-8633-9b221b21ac0c
+2025-06-25 23:30:58,339 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: a1a300d1-d8fb-44ea-a0e4-35c8f2147fb9
+2025-06-25 23:31:40,581 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 14a21fd3-1ea3-4f3d-b627-02c5ec2cdb96
+2025-06-25 23:34:53,635 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 954dba36-4ea4-4a58-b2d7-677ddbb9b7a3
+2025-06-25 23:36:23,856 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 4e528789-dbe0-402e-9b0c-5989e8f33cd9
+2025-06-25 23:37:40,324 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 4e6b273f-d7f7-49bf-b4fb-1030ac019384
+2025-06-25 23:39:00,682 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: d79e9d31-6110-4684-a976-1e803518dae4
+2025-06-25 23:39:11,764 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 509ead2e-eaa1-4a66-9e0f-47040541be46
+2025-06-25 23:39:39,401 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: d3de3d52-5efe-4502-82d2-3bbcfe4c8f41
+2025-06-25 23:42:03,731 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: c4d5d1d0-e7de-4884-9a16-cfffe5254755
+2025-06-25 23:42:57,353 - ERROR - Erreur lors de la création du trajet : (psycopg2.errors.NotNullViolation) null value in column "id" of relation "trips" violates not-null constraint
+DETAIL:  Failing row contains (null, a6fa6b8d-9bd7-456e-b0f3-16ed8b540acc, Bathurst, Moncton, Gare principale, Université de Moncton, 08:30:00, 2025-07-10, 30, 3, Départ à l'heure, petit sac seulement, pending, 2025-06-25 23:42:57, 2025-06-25 23:42:57).
+
+[SQL: INSERT INTO trips (driver_id, departure_city, destination_city, departure_place, destination_place, departure_time, departure_date, total_price, available_seats, message, status, created_at, updated_at) VALUES (%(driver_id)s::UUID, %(departure_city)s, %(destination_city)s, %(departure_place)s, %(destination_place)s, %(departure_time)s, %(departure_date)s, %(total_price)s, %(available_seats)s, %(message)s, %(status)s, %(created_at)s, %(updated_at)s)]
+[parameters: {'driver_id': UUID('a6fa6b8d-9bd7-456e-b0f3-16ed8b540acc'), 'departure_city': 'Bathurst', 'destination_city': 'Moncton', 'departure_place': 'Gare principale', 'destination_place': 'Université de Moncton', 'departure_time': datetime.time(8, 30), 'departure_date': datetime.date(2025, 7, 10), 'total_price': 30.0, 'available_seats': 3, 'message': "Départ à l'heure, petit sac seulement", 'status': <TripStatus.pending: 'pending'>, 'created_at': datetime.datetime(2025, 6, 25, 23, 42, 57), 'updated_at': datetime.datetime(2025, 6, 25, 23, 42, 57)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-06-25 23:43:27,846 - ERROR - Erreur lors de la création du trajet : (psycopg2.errors.NotNullViolation) null value in column "id" of relation "trips" violates not-null constraint
+DETAIL:  Failing row contains (null, a6fa6b8d-9bd7-456e-b0f3-16ed8b540acc, Bathurst, Moncton, Gare principale, Université de Moncton, 08:30:00, 2025-07-10, 30, 3, Départ à l'heure, petit sac seulement, pending, 2025-06-25 23:43:27, 2025-06-25 23:43:27).
+
+[SQL: INSERT INTO trips (driver_id, departure_city, destination_city, departure_place, destination_place, departure_time, departure_date, total_price, available_seats, message, status, created_at, updated_at) VALUES (%(driver_id)s::UUID, %(departure_city)s, %(destination_city)s, %(departure_place)s, %(destination_place)s, %(departure_time)s, %(departure_date)s, %(total_price)s, %(available_seats)s, %(message)s, %(status)s, %(created_at)s, %(updated_at)s)]
+[parameters: {'driver_id': UUID('a6fa6b8d-9bd7-456e-b0f3-16ed8b540acc'), 'departure_city': 'Bathurst', 'destination_city': 'Moncton', 'departure_place': 'Gare principale', 'destination_place': 'Université de Moncton', 'departure_time': datetime.time(8, 30), 'departure_date': datetime.date(2025, 7, 10), 'total_price': 30.0, 'available_seats': 3, 'message': "Départ à l'heure, petit sac seulement", 'status': <TripStatus.pending: 'pending'>, 'created_at': datetime.datetime(2025, 6, 25, 23, 43, 27), 'updated_at': datetime.datetime(2025, 6, 25, 23, 43, 27)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-06-25 23:48:02,054 - ERROR - Erreur lors de la création du trajet : (psycopg2.errors.NotNullViolation) null value in column "trip_id" of relation "preferences" violates not-null constraint
+DETAIL:  Failing row contains (4b8976f2-6116-4e0c-bb9e-251fcfcea0d3, null, t, f, f, t, f, f, cash).
+
+[SQL: INSERT INTO preferences (id, trip_id, baggage, pets_allowed, smoking_allowed, air_conditioning, bike_support, ski_support, mode_payment) VALUES (%(id)s::UUID, %(trip_id)s::UUID, %(baggage)s, %(pets_allowed)s, %(smoking_allowed)s, %(air_conditioning)s, %(bike_support)s, %(ski_support)s, %(mode_payment)s)]
+[parameters: {'id': UUID('4b8976f2-6116-4e0c-bb9e-251fcfcea0d3'), 'trip_id': None, 'baggage': True, 'pets_allowed': False, 'smoking_allowed': False, 'air_conditioning': True, 'bike_support': False, 'ski_support': False, 'mode_payment': 'cash'}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2025-06-25 23:49:51,705 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 6ee4ac6f-00ea-4b57-92d4-af6068a8571d
+2025-06-25 23:49:51,719 - ERROR - Erreur création trajet: 'StopCreate' object has no attribute '_sa_instance_state'
+2025-06-25 23:51:36,996 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 01394624-e082-4db9-be15-ab111191ada3
+2025-06-25 23:51:37,015 - INFO - Voyage créé avec succès : 
+2025-06-27 00:48:03,646 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 53019d18-53ff-4b54-befd-27397d023f4b
+2025-06-27 00:48:03,663 - INFO - Voyage créé avec succès : 
+2025-06-27 01:28:41,457 - INFO - Aucun trajet trouvé pour aujourd'hui.
+2025-06-27 01:29:18,656 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 01924ca4-c726-4bd9-9864-b54bf351d39a
+2025-06-27 01:29:18,675 - INFO - Voyage créé avec succès : 
+2025-06-27 01:30:28,363 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 6427db0b-e9a0-4020-a85e-fe72db811297
+2025-06-27 01:30:28,373 - INFO - Voyage créé avec succès : 
