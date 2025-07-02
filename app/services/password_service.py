@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
 from fastapi import HTTPException
-from app.db.models.user import UserCode, User
+from app.db.models.user import User
+from app.db.models.user_code import UserCode
 from app.core.security import get_password_hash
 from app.db.schemas.password import UpdatePasswordRequest
 import aio_pika

@@ -1135,3 +1135,458 @@ Traceback (most recent call last):
     version = _bcrypt.__about__.__version__
 AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-06-24 01:39:02,194 - INFO - Password updated successfully for user ID: test@gmail.com
+2025-06-24 01:39:56,101 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-24 01:39:56,698 - INFO - Password updated successfully for user ID: test@gmail.com
+2025-06-24 01:39:56,699 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-24 01:40:10,639 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-24 01:40:11,159 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-24 01:40:20,572 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-24 01:40:21,191 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-24 01:40:21,383 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-24 01:59:16,085 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-24 02:03:47,768 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-24 02:26:57,892 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-24 22:58:44,157 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-24 23:53:31,782 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-27 23:19:32,670 - INFO - Tentative de connexion pour l'email: es@gmail.com
+2025-06-27 23:19:32,695 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-27 23:19:33,198 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:20:36,538 - INFO - Tentative de connexion pour l'email: es@gmail.com
+2025-06-27 23:20:36,948 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:21:16,038 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:21:16,454 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:21:49,602 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:21:50,019 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:21:58,505 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:21:58,919 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:22:58,630 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:22:59,043 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:23:45,001 - INFO - Code de réinitialisation envoyé à test@gmail.com : 520874
+2025-06-27 23:23:45,029 - INFO - Code 520874 sauvegardé pour test@gmail.com
+2025-06-27 23:25:12,689 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:25:13,105 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:25:25,417 - INFO - Code de réinitialisation envoyé à test@gmail.com : 107514
+2025-06-27 23:25:25,430 - INFO - Code 107514 sauvegardé pour test@gmail.com
+2025-06-27 23:25:35,024 - INFO - Code validé avec succès pour test@gmail.com
+2025-06-27 23:25:35,025 - INFO - Code de réinitialisation vérifié avec succès pour: test@gmail.com
+2025-06-27 23:25:56,107 - INFO - Password updated successfully for user ID: test@gmail.com
+2025-06-27 23:25:56,107 - INFO - Mot de passe réinitialisé avec succès pour: test@gmail.com
+2025-06-27 23:26:17,500 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:26:17,991 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-27 23:38:50,057 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:38:50,076 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-27 23:38:50,515 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-27 23:41:59,879 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-27 23:42:00,285 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-27 23:42:13,510 - INFO - Code de réinitialisation envoyé à test@gmail.com : 935855
+2025-06-27 23:42:13,531 - INFO - Code 935855 sauvegardé pour test@gmail.com
+2025-06-28 04:00:17,363 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-28 04:00:17,786 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-28 04:00:17,919 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-28 04:01:25,376 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-28 04:01:25,788 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-28 04:01:25,894 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-29 20:52:14,829 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-06-29 20:55:00,279 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-29 20:55:00,302 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-06-29 20:55:00,758 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 35, in login_user
+    raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
+fastapi.exceptions.HTTPException: 400: Mot de passe ou Identifiant incorrect.
+2025-06-29 20:55:04,569 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-06-29 20:55:05,038 - INFO - Connexion réussie pour l'utilisateur: test@gmail.com
+2025-06-29 20:55:05,082 - INFO - Requête reçue pour récupérer l'utilisateur avec l'id: 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-07-01 19:49:28,840 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-07-01 19:49:28,841 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4250, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[User(users)]'. Original exception was: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 19:49:40,525 - INFO - Tentative de connexion pour l'email: es@gmail.com
+2025-07-01 19:49:40,526 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4250, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[User(users)]'. Original exception was: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 19:49:58,331 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-07-01 19:49:58,332 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4250, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[User(users)]'. Original exception was: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 19:50:06,146 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-07-01 19:50:06,147 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4250, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[User(users)]'. Original exception was: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 19:58:42,075 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-07-01 19:58:42,076 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 2437, in _determine_joins
+    self.primaryjoin = join_condition(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\util.py", line 123, in join_condition
+    return Join._join_condition(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\selectable.py", line 1412, in _join_condition
+    raise exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Can't find any foreign key relationships between 'users' and 'users'.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4254, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 1658, in do_init
+    self._setup_join_conditions()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 1898, in _setup_join_conditions
+    self._join_condition = jc = JoinCondition(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 2324, in __init__
+    self._determine_joins()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 2458, in _determine_joins
+    raise sa_exc.NoForeignKeysError(
+sqlalchemy.exc.NoForeignKeysError: Could not determine join condition between parent/child tables on relationship User.user - there are no foreign keys linking these tables.  Ensure that referencing columns are associated with a ForeignKey or ForeignKeyConstraint, or specify a 'primaryjoin' expression.
+2025-07-01 20:05:23,924 - INFO - Tentative de connexion pour l'email: test@gmail.com
+2025-07-01 20:05:23,925 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 516, in _resolve_name
+    rval = d[token]
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\_collections.py", line 345, in __missing__
+    self[key] = val = self.creator(key)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 484, in _access_cls
+    return self.fallback[key]
+KeyError: 'Car'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4254, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 1656, in do_init
+    self._setup_entity()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 1868, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 520, in _resolve_name
+    self._raise_for_name(name, err)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 501, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 20:05:38,094 - INFO - Tentative de connexion pour l'email: es@gmail.com
+2025-07-01 20:05:38,095 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4250, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[User(users)]'. Original exception was: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 20:06:23,338 - INFO - Tentative de connexion pour l'email: test2@gmail.com
+2025-07-01 20:06:23,338 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4250, in _do_configure_registries
+    raise e
+sqlalchemy.exc.InvalidRequestError: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[User(users)]'. Original exception was: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
+2025-07-01 20:13:56,806 - INFO - Tentative de connexion pour l'email: test2@gmail.com
+2025-07-01 20:13:56,807 - ERROR - Erreur lors de la tentative de connexion
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 516, in _resolve_name
+    rval = d[token]
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\_collections.py", line 345, in __missing__
+    self[key] = val = self.creator(key)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 484, in _access_cls
+    return self.fallback[key]
+KeyError: 'Car'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\CORE TECH\covoiturage\mova-user\app\api\endpoints\auth_route.py", line 50, in login_endpoint
+    token, refresh_token = await login_user(db, email, password)
+  File "D:\CORE TECH\covoiturage\mova-user\app\services\auth_service.py", line 28, in login_user
+    user = db.query(User).filter(User.email == email).one_or_none()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\session.py", line 2955, in query
+    return self._query_cls(entities, self, **kwargs)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 275, in __init__
+    self._set_entities(entities)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 287, in _set_entities
+    self._raw_columns = [
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\query.py", line 288, in <listcomp>
+    coercions.expect(
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\sql\coercions.py", line 388, in expect
+    insp._post_inspect
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\util\langhelpers.py", line 1257, in __get__
+    obj.__dict__[self.__name__] = result = self.fget(obj)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2724, in _post_inspect
+    self._check_configure()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2401, in _check_configure
+    _configure_registries({self.registry}, cascade=True)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4213, in _configure_registries
+    _do_configure_registries(registries, cascade)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 4254, in _do_configure_registries
+    mapper._post_configure_properties()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\mapper.py", line 2418, in _post_configure_properties
+    prop.init()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\interfaces.py", line 589, in init
+    self.do_init()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 1656, in do_init
+    self._setup_entity()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\relationships.py", line 1868, in _setup_entity
+    self._clsregistry_resolve_name(argument)(),
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 520, in _resolve_name
+    self._raise_for_name(name, err)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\sqlalchemy\orm\clsregistry.py", line 501, in _raise_for_name
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: When initializing mapper Mapper[User(users)], expression 'Car' failed to locate a name ('Car'). If this is a class name, consider adding this relationship() to the <class 'app.db.models.user.User'> class after both dependent classes have been defined.
