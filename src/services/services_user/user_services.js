@@ -1,4 +1,4 @@
-const url ="http://192.168.2.13:8000/";
+const url ="http://192.168.2.13:8001/";
 
 
 export const getUserById = async (userId) => {
@@ -11,7 +11,7 @@ export const getUserById = async (userId) => {
     });
 
     if (!response.ok) {
-      throw new Error('Erreur lors de la récupération des statistiques utilisateur');
+      throw new Error('Erreur lors de la récupération des informations de l utilisateur');
     }
 
     const data = await response.json();

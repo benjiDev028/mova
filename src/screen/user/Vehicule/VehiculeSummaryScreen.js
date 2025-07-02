@@ -1,0 +1,289 @@
+// VehicleSummaryScreen.js
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  SafeAreaView,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const VehicleSummaryScreen = ({ navigation }) => {
+  const [vehicles, setVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+
+  useEffect(() => {
+    loadVehicles();
+  }, []);
+
+  const loadVehicles = async () => {
+    try {
+      const storedVehicles = await AsyncStorage.getItem('vehicles');
+      const storedSelectedId = await AsyncStorage.getItem('selectedVehicleId');
+      
+      if (storedVehicles) {
+        setVehicles(JSON.parse(storedVehicles));
+      }
+      
+      if (storedSelectedId) {
+        setSelectedVehicleId(storedSelectedId);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des véhicules:', error);
+    }
+  };
+
+  const renderVehicleCard = ({ item }) => {
+    const isSelected = item.id === selectedVehicleId;
+    
+    return (
+      <TouchableOpacity
+        style={[styles.vehicleCard, isSelected && styles.selectedCard]}
+        onPress={() => navigation.navigate('VehicleDetails', { vehicle: item })}
+      >
+        <View style={styles.cardContent}>
+          <View style={styles.vehicleIcon}>
+            <Ionicons name="car" size={24} color="#FFC72C" />
+          </View>
+          
+          <View style={styles.vehicleInfo}>
+            <Text style={styles.vehicleTitle}>
+              {item.marque} {item.modele} {item.annee}
+            </Text>
+            <Text style={styles.vehicleSubtitle}>
+              {item.couleur} • {item.plaque}
+            </Text>
+            {isSelected && (
+              <Text style={styles.principalLabel}>Véhicule principal</Text>
+            )}
+          </View>
+          
+          <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Mes Véhicules</Text>
+      </View>
+
+      {vehicles.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="car-outline" size={64} color="#8E8E93" />
+          <Text style={styles.emptyTitle}>Aucun véhicule</Text>
+          <Text style={styles.emptySubtitle}>
+            Ajoutez votre premier véhicule pour commencer
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={vehicles}
+          renderItem={renderVehicleCard}
+          keyExtractor={(item) => item.id}
+          style={styles.vehicleList}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => navigation.navigate('VehicleDetails', { isEditing: false })}
+      >
+        <Ionicons name="add" size={24} color="white" />
+        <Text style={styles.addButtonText}>Ajouter un véhicule</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+};
+
+
+// Styles partagés
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E7',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+  },
+  // Styles pour VehicleSummaryScreen
+  vehicleList: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  vehicleCard: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: '#FFC72C',
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  vehicleIcon: {
+    marginRight: 12,
+  },
+  vehicleInfo: {
+    flex: 1,
+  },
+  vehicleTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  vehicleSubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+  },
+  principalLabel: {
+    fontSize: 12,
+    color: '#FFC72C',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFC72C',
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  // Styles pour VehicleDetailsScreen
+  content: {
+    flex: 1,
+  },
+  form: {
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#E5E5E7',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  actionButtons: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  principalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFC72C',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  principalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF3B30',
+    padding: 16,
+    borderRadius: 12,
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  footer: {
+    backgroundColor: 'white',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E7',
+  },
+  saveButton: {
+    backgroundColor: '#FFC72C',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+export default VehicleSummaryScreen;

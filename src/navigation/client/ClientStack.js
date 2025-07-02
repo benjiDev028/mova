@@ -13,6 +13,8 @@ import DetailTripScreen from '../../screen/passager/DetailTrip/DetailTripScreen'
 import PayBookingScreen from '../../screen/passager/PayBooking/PayBooking';
 import EncaissementScreen from '../../screen/user/Encaissement/EncaissementScreen';
 import StatsScreen from '../../screen/user/Stats/StatsScreen';
+import VehicleSummaryScreen from '../../screen/user/Vehicule/VehiculeSummaryScreen';
+import VehicleDetailsScreen from '../../screen/user/Vehicule/VehiculeDetailsScreen';
 const Stack = createStackNavigator();
 
 export default function ClientStack() {
@@ -31,7 +33,11 @@ export default function ClientStack() {
       <Stack.Screen name="PayBooking" component={PayBookingScreen} />
       <Stack.Screen name="Encaissement" component={EncaissementScreen}/>
       <Stack.Screen name="Stats" component={StatsScreen} />
+      <Stack.Screen name="VehiculeSummary" component={VehicleSummaryScreen} />
+      <Stack.Screen name="VehicleDetails" component={VehicleDetailsScreen}  />
       
     </Stack.Navigator>
+
+    
   );
 }

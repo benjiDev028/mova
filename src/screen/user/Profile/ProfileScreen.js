@@ -85,7 +85,7 @@ const ProfileScreen = ({navigation}) => {
           <MenuItem 
             icon="🚙" 
             label="Mon véhicule" 
-            onPress={() => handlePress("vehicle")} 
+            onPress={() => handlePress("VehiculeSummary")} 
           />
           <MenuItem 
             icon="⚙️" 
