@@ -228,8 +228,8 @@ async def search_trips_service(
     db: Session,
     departure_city: Optional[str],
     destination_city: Optional[str],
-    date: Optional[date],
-    status: Optional[str],
+    departure_date: date,
+    status: str,  # Plus optionnel, valeur par défaut gérée dans l'endpoint
     skip: int,
     limit: int
 ) -> List[TripResponse]:
@@ -238,20 +238,20 @@ async def search_trips_service(
         joinedload(Trip.stops)
     )
 
+    # Filtrage obligatoire par statut
+    query = query.filter(Trip.status == status, Trip.departure_date == departure_date)
+
     if departure_city:
         query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
     if destination_city:
         query = query.filter(Trip.destination_city.ilike(f"%{destination_city}%"))
     if date:
         query = query.filter(Trip.departure_date == date)
-    if status:
-        query = query.filter(Trip.status == status)
 
     trips = query.offset(skip).limit(limit).all()
 
     if not trips:
-        logging.info("🔎 Aucun trajet trouvé avec les filtres : "
-                     f"{departure_city=}, {destination_city=}, {date=}, {status=}")
+        logging.info(f"🔎 Aucun trajet trouvé avec les filtres : {departure_city=}, {destination_city=}, {date=}")
 
     return trips
 
@@ -281,9 +281,6 @@ async def get_trips_with_stop_service(db: Session, city: str) -> List[Trip]:
         logging.info(f"Aucun trajet trouvé passant par la ville : {city}")
     return trips
 
-
-
-
 async def update_trip_status_service(db: Session, trip_id: uuid.UUID, new_status: str) -> Trip:
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
     if not trip:
@@ -295,7 +292,6 @@ async def update_trip_status_service(db: Session, trip_id: uuid.UUID, new_status
     db.refresh(trip)
     return trip
 
-
 async def get_upcoming_trips_by_driver_service(db: Session, driver_id: uuid) -> List[Trip]:
     today = date.today()
     return db.query(Trip).options(
@@ -305,7 +301,6 @@ async def get_upcoming_trips_by_driver_service(db: Session, driver_id: uuid) -> 
         Trip.driver_id == driver_id,
         Trip.departure_date >= today
     ).order_by(Trip.departure_date.asc(), Trip.departure_time.asc()).all()
-
 
 async def get_trips_by_stop_city_service(db: Session, stop_city: str) -> List[TripResponse]:
     trips = db.query(Trip).join(Stop).options(
@@ -321,7 +316,6 @@ async def get_trips_by_stop_city_service(db: Session, stop_city: str) -> List[Tr
         return []
 
     return trips
-
 
 async def get_today_trips_service(db: Session) -> List[TripResponse]:
     today = date.today()

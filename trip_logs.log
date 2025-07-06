@@ -48,3 +48,21 @@ DETAIL:  Failing row contains (4b8976f2-6116-4e0c-bb9e-251fcfcea0d3, null, t, f,
 2025-06-27 01:29:18,675 - INFO - Voyage créé avec succès : 
 2025-06-27 01:30:28,363 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 6427db0b-e9a0-4020-a85e-fe72db811297
 2025-06-27 01:30:28,373 - INFO - Voyage créé avec succès : 
+2025-07-05 03:46:40,399 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 8220aeb8-2ee5-4892-a4b5-3a37a5db9c61
+2025-07-05 03:46:40,410 - INFO - Voyage créé avec succès : 
+2025-07-05 03:48:18,164 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 017c1f1c-71d6-42e5-891e-118f4b3bc674
+2025-07-05 03:48:18,171 - INFO - Voyage créé avec succès : 
+2025-07-05 04:02:33,551 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 0c2466ed-32f4-4f40-91e5-5e25be13f6f2
+2025-07-05 04:02:33,556 - INFO - Voyage créé avec succès : 
+2025-07-05 04:03:31,561 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: edb28c33-5169-4bc9-8bac-9bde65798f91
+2025-07-05 04:03:31,567 - INFO - Voyage créé avec succès : 
+2025-07-05 04:17:24,040 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: bd6a9367-6480-4396-8129-a038f7a56e49
+2025-07-05 04:17:24,046 - INFO - Voyage créé avec succès : 
+2025-07-05 04:23:24,493 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 022c36d1-54e3-4346-b9b5-640266deeb48
+2025-07-05 04:23:24,498 - INFO - Voyage créé avec succès : 
+2025-07-05 18:01:59,123 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 6026de17-e19f-4545-9d1a-8f96acdaa796
+2025-07-05 18:01:59,130 - INFO - Voyage créé avec succès : 
+2025-07-05 18:05:13,213 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: d6d6365e-103a-4196-88bd-9915753e5965
+2025-07-05 18:05:13,218 - INFO - Voyage créé avec succès : 
+2025-07-05 18:31:52,607 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 39fbf58d-fe7a-44e9-a4ad-3ed0ac967191
+2025-07-05 18:31:52,612 - INFO - Voyage créé avec succès : 
