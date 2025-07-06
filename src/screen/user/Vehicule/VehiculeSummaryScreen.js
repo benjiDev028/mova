@@ -11,31 +11,27 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../../hooks/useAuth';
 
 const VehicleSummaryScreen = ({ navigation }) => {
-  const [vehicles, setVehicles] = useState([]);
-  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
 
-  useEffect(() => {
-    loadVehicles();
+  const [selectedVehicleId, setSelectedVehicleId] = useState(null);
+  const { user } = useAuth(); // Récupération des données utilisateur si nécessaire
+
+
+  const vehicles  = user?.cars || []; // Récupération des véhicules de l'utilisateur
+
+
+    useEffect(() => {
+    const loadSelectedVehicle = async () => {
+      const id = await AsyncStorage.getItem('selectedVehicleId');
+      if (id) setSelectedVehicleId(id);
+    };
+
+    loadSelectedVehicle();
   }, []);
 
-  const loadVehicles = async () => {
-    try {
-      const storedVehicles = await AsyncStorage.getItem('vehicles');
-      const storedSelectedId = await AsyncStorage.getItem('selectedVehicleId');
-      
-      if (storedVehicles) {
-        setVehicles(JSON.parse(storedVehicles));
-      }
-      
-      if (storedSelectedId) {
-        setSelectedVehicleId(storedSelectedId);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des véhicules:', error);
-    }
-  };
+
 
   const renderVehicleCard = ({ item }) => {
     const isSelected = item.id === selectedVehicleId;
@@ -52,10 +48,10 @@ const VehicleSummaryScreen = ({ navigation }) => {
           
           <View style={styles.vehicleInfo}>
             <Text style={styles.vehicleTitle}>
-              {item.marque} {item.modele} {item.annee}
+              {item.brand} {item.model} {item.date_of_car}
             </Text>
             <Text style={styles.vehicleSubtitle}>
-              {item.couleur} • {item.plaque}
+              {item.color} • {item.license_plate}
             </Text>
             {isSelected && (
               <Text style={styles.principalLabel}>Véhicule principal</Text>

@@ -18,11 +18,11 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
   
   const [formData, setFormData] = useState({
     id: '',
-    marque: '',
-    modele: '',
-    annee: '',
-    couleur: '',
-    plaque: '',
+    brand: '',
+    model: '',
+    date_of_car: '',
+    color: '',
+    license_plate: '',
     options: '',
   });
 
@@ -30,7 +30,15 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     if (vehicle) {
-      setFormData(vehicle);
+      setFormData({
+        id: vehicle.id,
+        brand: vehicle.brand || '',
+        model: vehicle.model || '',
+        date_of_car: vehicle.date_of_car || '',
+        color: vehicle.color || '',
+        license_plate: vehicle.license_plate || '',
+        options: vehicle.options || '',
+      });
     } else {
       // Générer un ID unique pour un nouveau véhicule
       setFormData(prev => ({
@@ -48,15 +56,15 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
   };
 
   const validateForm = () => {
-    if (!formData.marque.trim()) {
+    if (!formData.brand.trim()) {
       Alert.alert('Erreur', 'La marque est obligatoire');
       return false;
     }
-    if (!formData.modele.trim()) {
+    if (!formData.model.trim()) {
       Alert.alert('Erreur', 'Le modèle est obligatoire');
       return false;
     }
-    if (!formData.annee.trim()) {
+    if (!formData.date_of_car.trim()) {
       Alert.alert('Erreur', 'L\'année est obligatoire');
       return false;
     }
@@ -162,8 +170,8 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.label}>Marque *</Text>
             <TextInput
               style={styles.input}
-              value={formData.marque}
-              onChangeText={(value) => handleInputChange('marque', value)}
+              value={formData.brand}
+              onChangeText={(value) => handleInputChange('brand', value)}
               placeholder="Ex: Toyota, Honda, BMW..."
             />
           </View>
@@ -172,7 +180,7 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.label}>Modèle *</Text>
             <TextInput
               style={styles.input}
-              value={formData.modele}
+              value={formData.model}
               onChangeText={(value) => handleInputChange('modele', value)}
               placeholder="Ex: Corolla, Civic, X3..."
             />
@@ -182,8 +190,8 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.label}>Année *</Text>
             <TextInput
               style={styles.input}
-              value={formData.annee}
-              onChangeText={(value) => handleInputChange('annee', value)}
+              value={formData.date_of_car}
+              onChangeText={(value) => handleInputChange('date_of_car', value)}
               placeholder="Ex: 2021"
               keyboardType="numeric"
             />
@@ -193,7 +201,7 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.label}>Couleur</Text>
             <TextInput
               style={styles.input}
-              value={formData.couleur}
+              value={formData.color}
               onChangeText={(value) => handleInputChange('couleur', value)}
               placeholder="Ex: Blanc, Noir, Rouge..."
             />
@@ -203,7 +211,7 @@ const VehicleDetailsScreen = ({ route, navigation }) => {
             <Text style={styles.label}>Plaque d'immatriculation</Text>
             <TextInput
               style={styles.input}
-              value={formData.plaque}
+              value={formData.license_plate}
               onChangeText={(value) => handleInputChange('plaque', value.toUpperCase())}
               placeholder="Ex: ABC-1234"
               autoCapitalize="characters"
