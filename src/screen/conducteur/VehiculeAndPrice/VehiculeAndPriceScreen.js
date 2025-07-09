@@ -1,164 +1,255 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   StyleSheet,
-  SafeAreaView
+  Alert,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
-const VehicleAndPriceScreen = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const {
-    departure,
-    arrival,
-    date,
-    stops,
-    pickupLocation,
-    dropoffLocation,
-    routeOption,
-  } = route.params;
+const VehicleAndPriceScreen = ({ route, navigation }) => {
+  const { departure, arrival,pickupLocation,dropoffLocation,date,time, preferences, stops = [], destinationPrice = '' } = route.params;
 
-  const [vehicle, setVehicle] = useState('');
-  const [seats, setSeats] = useState('');
-  const [stopPrices, setStopPrices] = useState(stops.map(stop => ({
-    location: stop.location,
-    price: stop.price || '',
-  })));
+  const [localStops, setLocalStops] = useState(stops);
+  const [arrivalPrice, setArrivalPrice] = useState(destinationPrice.toString());
+  const [isFormValid, setIsFormValid] = useState(false);
 
-  const handlePriceChange = (index, value) => {
-    const updated = [...stopPrices];
+  // Validation du formulaire
+  useEffect(() => {
+    const allPricesFilled = localStops.every(stop => stop.price && !isNaN(parseFloat(stop.price)));
+    const arrivalPriceValid = arrivalPrice && !isNaN(parseFloat(arrivalPrice));
+    setIsFormValid(allPricesFilled && arrivalPriceValid);
+  }, [localStops, arrivalPrice]);
+
+  const handleStopPriceChange = (index, value) => {
+    const updated = [...localStops];
     updated[index].price = value;
-    setStopPrices(updated);
+    setLocalStops(updated);
   };
 
-  const handleNext = () => {
-    navigation.navigate('PreferencesScreen', {
+  const validateAndContinue = () => {
+    if (!isFormValid) {
+      Alert.alert(
+        "Prix invalides",
+        "Veuillez entrer des valeurs numériques valides pour tous les arrêts et la destination finale."
+      );
+      return;
+    }
+
+    navigation.navigate('VehiculeSelection', {
       departure,
       arrival,
       date,
+      time,
       pickupLocation,
       dropoffLocation,
-      routeOption,
-      vehicle,
-      seats,
-      stops: stopPrices,
+      preferences,
+      stops: localStops.map(stop => ({
+        ...stop,
+        price: parseFloat(stop.price)
+      })),
+      destinationPrice: parseFloat(arrivalPrice)
     });
   };
 
+  const getCityName = (location) => {
+    if (!location) return 'Arrêt inconnu';
+    if (typeof location === 'string') return location;
+    return location.city || location.name || location.description || 'Arrêt inconnu';
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Véhicule & Prix</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      
+      {/* En-tête personnalisée comme demandé */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color="#003366" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Configuration des prix</Text>
+        <View style={styles.placeholder} />
+      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nom du véhicule (ex: Toyota Corolla)"
-        value={vehicle}
-        onChangeText={setVehicle}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre de places disponibles"
-        value={seats}
-        onChangeText={setSeats}
-        keyboardType="numeric"
-      />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoid}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.subHeader}>Définissez le prix pour chaque arrêt</Text>
 
-      {stopPrices.length > 0 && (
-        <View style={styles.stopsSection}>
-          <Text style={styles.sectionTitle}>Prix par arrêt</Text>
-          <FlatList
-            data={stopPrices}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item, index }) => (
-              <View style={styles.stopRow}>
-                <Text style={styles.stopLabel}>{item.location}</Text>
-                <TextInput
-                  style={styles.stopInput}
-                  placeholder="Prix"
-                  value={item.price}
-                  onChangeText={(value) => handlePriceChange(index, value)}
-                  keyboardType="numeric"
-                />
+          <View style={styles.priceSection}>
+            <Text style={styles.sectionTitle}>Arrêts intermédiaires</Text>
+            {localStops.map((stop, index) => (
+              <View key={`stop-${index}`} style={styles.priceInputContainer}>
+                <Text style={styles.stopLabel}>
+                  {getCityName(stop.location || stop)}
+                </Text>
+                <View style={styles.priceInputWrapper}>
+                  <TextInput
+                    style={styles.priceInput}
+                    keyboardType="decimal-pad"
+                    placeholder="0.00"
+                    value={stop.price?.toString()}
+                    onChangeText={(value) => handleStopPriceChange(index, value)}
+                  />
+                  <Text style={styles.currency}>$</Text>
+                </View>
               </View>
-            )}
-          />
-        </View>
-      )}
+            ))}
+          </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleNext}>
-        <Text style={styles.buttonText}>Suivant</Text>
-      </TouchableOpacity>
+          <View style={styles.priceSection}>
+            <Text style={styles.sectionTitle}>Destination finale</Text>
+            <View style={styles.priceInputContainer}>
+              <Text style={styles.stopLabel}>
+                {getCityName(arrival)}
+              </Text>
+              <View style={styles.priceInputWrapper}>
+                <TextInput
+                  style={styles.priceInput}
+                  keyboardType="decimal-pad"
+                  placeholder="0.00"
+                  value={arrivalPrice}
+                  onChangeText={setArrivalPrice}
+                />
+                <Text style={styles.currency}>$</Text>
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={[styles.button, !isFormValid && styles.disabledButton]} 
+            onPress={validateAndContinue}
+            disabled={!isFormValid}
+          >
+            <Text style={styles.buttonText}>Continuer vers la sélection du véhicule</Text>
+            <Ionicons name="car-sport" size={20} color="#fff" />
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-export default VehicleAndPriceScreen;
-
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#fffaf0',
-    padding: 20,
+    backgroundColor: '#F8F9FA',
   },
-  title: {
-    fontSize: 22,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#FFFFFF',
+  },
+  backButton: {
+    padding: 5,
+  },
+  headerTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#003366',
-    marginBottom: 20,
+    textAlign: 'center',
+    flex: 1,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 16,
-    backgroundColor: '#fff',
+  placeholder: {
+    width: 24,
   },
-  stopsSection: {
-    marginTop: 10,
+  keyboardAvoid: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  subHeader: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 25,
+    textAlign: 'center',
+  },
+  priceSection: {
+    marginBottom: 25,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#003366',
-    marginBottom: 10,
+    color: '#111827',
+    marginBottom: 15,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
-  stopRow: {
+  priceInputContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   stopLabel: {
+    fontSize: 16,
+    color: '#374151',
     flex: 1,
-    fontSize: 15,
-    color: '#333',
   },
-  stopInput: {
-    width: 80,
+  priceInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-    padding: 8,
-    backgroundColor: '#fff',
-    textAlign: 'center',
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 12,
+  },
+  priceInput: {
+    width: 80,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#111827',
+  },
+  currency: {
+    fontSize: 16,
+    color: '#6B7280',
   },
   button: {
-    backgroundColor: '#003366',
-    paddingVertical: 14,
-    borderRadius: 10,
-    marginTop: 30,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#003DA5',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  disabledButton: {
+    backgroundColor: '#9CA3AF',
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#FFF',
     fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
   },
 });
+
+export default VehicleAndPriceScreen;

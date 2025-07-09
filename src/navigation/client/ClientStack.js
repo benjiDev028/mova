@@ -15,6 +15,7 @@ import EncaissementScreen from '../../screen/user/Encaissement/EncaissementScree
 import StatsScreen from '../../screen/user/Stats/StatsScreen';
 import VehicleSummaryScreen from '../../screen/user/Vehicule/VehiculeSummaryScreen';
 import VehicleDetailsScreen from '../../screen/user/Vehicule/VehiculeDetailsScreen';
+import VehicleSelectionScreen from '../../screen/conducteur/VehiculeSelection/VehiculeSelectionScreen';
 const Stack = createStackNavigator();
 
 export default function ClientStack() {
@@ -25,7 +26,7 @@ export default function ClientStack() {
       <Stack.Screen name="PickupLocation" component={PickupLocationScreen} />
       <Stack.Screen name="DropoffLocation" component={DropoffLocationScreen} />
       <Stack.Screen name="RouteSelection" component={RouteSelectionScreen} />
-      <Stack.Screen name="VehicleAndPrice" component={VehicleAndPriceScreen} />
+      <Stack.Screen name="VehiculeAndPrice" component={VehicleAndPriceScreen} />
       <Stack.Screen name="Preferences" component={PreferencesScreen} />
       <Stack.Screen name="ReviewAndConfirm" component={ReviewAndConfirmScreen} />
       <Stack.Screen name="ListFound" component={ListFoundScreen} />
@@ -35,6 +36,7 @@ export default function ClientStack() {
       <Stack.Screen name="Stats" component={StatsScreen} />
       <Stack.Screen name="VehiculeSummary" component={VehicleSummaryScreen} />
       <Stack.Screen name="VehicleDetails" component={VehicleDetailsScreen}  />
+      <Stack.Screen name="VehiculeSelection" component={VehicleSelectionScreen}/>
       
     </Stack.Navigator>
 

@@ -33,7 +33,7 @@ const ClientTabs = () => {
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#FFC72C',
+        tabBarActiveTintColor: '#003DA5',
         tabBarInactiveTintColor: '#8E8E93',
         headerShown: false,
         tabBarStyle: {

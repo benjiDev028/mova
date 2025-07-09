@@ -1,3 +1,4 @@
+// PayBookingScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -21,7 +22,9 @@ const CARD_TYPES = {
 };
 
 const PayBookingScreen = ({ route, navigation }) => {
-  const { trip, seats, selectedStop } = route.params;
+  const { trip  } = route.params;
+  const seats = trip?.seats ?? 1;
+  const selectedStop = trip?.selectedStop ?? null;
   const [cardNumber, setCardNumber] = useState('');
   const [formattedCardNumber, setFormattedCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -74,14 +77,15 @@ const PayBookingScreen = ({ route, navigation }) => {
     }
   };
 
-  // Calculs des prix
-  const pricePerSeat = selectedStop ? selectedStop.price : trip.price;
-  const subtotal = pricePerSeat * seats;
-  const bookingFee = 3.5 * seats; // Frais par personne
-  const annualFee = 7;
+  // Calculs des prix sécurisés - CORRECTION: Frais de service fixes à 3.50$
+  const pricePerSeat = selectedStop?.price ?? trip?.price ?? 0;
+  const seatsCount = Number(seats) || 1;
+  const subtotal = (Number(pricePerSeat) * seatsCount) || 0;
+  const bookingFee = (3.50 * seatsCount); // FIXE: Frais de service fixes, pas par place
+  const annualFee = 0;
   const pretaxTotal = subtotal + bookingFee + annualFee;
-  const nbTax = pretaxTotal * 0.15;
-  const total = pretaxTotal + nbTax;
+  const nbTax = (pretaxTotal * 0.15) || 0;
+  const total = (pretaxTotal + nbTax) || 0;
 
   const handlePayment = async () => {
     // Validation des champs
@@ -127,13 +131,13 @@ const PayBookingScreen = ({ route, navigation }) => {
   };
 
   const getPaymentType = () => {
-    if (trip.preferences.includes('paiementCash')) {
+    if (trip?.preferences?.includes('paiementCash')) {
       return {
         type: 'cash',
         description: `Paiement en espèces : ${pricePerSeat}$ par passager à remettre au chauffeur`,
         icon: 'payments'
       };
-    } else if (trip.preferences.includes('virement')) {
+    } else if (trip?.preferences?.includes('virement')) {
       return {
         type: 'transfer',
         description: 'Paiement par virement bancaire à effectuer avant le départ',
@@ -168,7 +172,7 @@ const PayBookingScreen = ({ route, navigation }) => {
         {/* Résumé du trajet */}
         <View style={styles.tripSummaryCard}>
           <View style={styles.tripHeader}>
-            <Text style={styles.tripTime}>{trip.time}</Text>
+            <Text style={styles.tripTime}>{trip?.time || '--:--'}</Text>
             <View style={styles.seatsInfo}>
               <MaterialIcons name="person" size={16} color="#6B7280" />
               <Text style={styles.seatsText}>{seats} place{seats > 1 ? 's' : ''}</Text>
@@ -178,13 +182,13 @@ const PayBookingScreen = ({ route, navigation }) => {
           <View style={styles.routeContainer}>
             <View style={styles.locationRow}>
               <View style={styles.dot} />
-              <Text style={styles.locationText}>{trip.departure}</Text>
+              <Text style={styles.locationText}>{trip?.departure || 'Départ'}</Text>
             </View>
             <View style={styles.routeLine} />
             <View style={styles.locationRow}>
               <View style={[styles.dot, styles.dotDest]} />
               <Text style={[styles.locationText, styles.destinationText]}>
-                {selectedStop ? selectedStop.location : trip.arrival}
+                {selectedStop ? selectedStop.location : trip?.arrival || 'Destination'}
               </Text>
             </View>
           </View>
@@ -194,12 +198,12 @@ const PayBookingScreen = ({ route, navigation }) => {
               <FontAwesome name="user" size={16} color="#fff" />
             </View>
             <View style={styles.driverDetails}>
-              <Text style={styles.driverName}>{trip.driverName}</Text>
-              <Text style={styles.carModel}>{trip.carModel}</Text>
+              <Text style={styles.driverName}>{trip?.driverName || 'Conducteur'}</Text>
+              <Text style={styles.carModel}>{trip?.carModel || 'Véhicule'}</Text>
             </View>
             <View style={styles.ratingContainer}>
               <MaterialIcons name="star" size={16} color="#FFC107" />
-              <Text style={styles.rating}>{trip.rating}</Text>
+              <Text style={styles.rating}>{trip?.rating || 4.5}</Text>
             </View>
           </View>
 
@@ -214,12 +218,12 @@ const PayBookingScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Détails de facturation</Text>
           
           <View style={styles.billingRow}>
-            <Text style={styles.billingLabel}>Places ({seats}x {pricePerSeat}$)</Text>
+            <Text style={styles.billingLabel}>Places ({seatsCount}x {pricePerSeat}$)</Text>
             <Text style={styles.billingValue}>{subtotal.toFixed(2)}$</Text>
           </View>
           
           <View style={styles.billingRow}>
-            <Text style={styles.billingLabel}>Frais de réservation ({seats}x 3.50$)</Text>
+            <Text style={styles.billingLabel}>Frais de service ({seatsCount}x 3.50)</Text>
             <Text style={styles.billingValue}>{bookingFee.toFixed(2)}$</Text>
           </View>
           
@@ -701,4 +705,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
 export default PayBookingScreen;

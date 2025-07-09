@@ -24,24 +24,13 @@ const BASE_URL = "http://192.168.2.13:8002/";
 
 export const searchTrips = async (departure, destination, date, includeNearby = false) => {
   try {
-    // Fonction pour nettoyer et normaliser les chaînes
-    const cleanAndNormalize = (str) => {
-      return str
-        .trim() // Enlever les espaces en début/fin
-        .replace(/[\u200B-\u200D\uFEFF]/g, '') // Enlever les caractères invisibles
-        .replace(/\uFFFC/g, '') // Enlever le caractère de remplacement d'objet
-        .normalize("NFD") // Normaliser les accents
-        .replace(/[\u0300-\u036f]/g, "") // Enlever les diacritiques
-        .toLowerCase(); // Mettre en minuscule
+    // Normaliser les chaînes (enlever accents et mettre en minuscule)
+    const normalizeString = (str) => {
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     };
 
-    const normalizedDeparture = cleanAndNormalize(departure);
-    const normalizedDestination = cleanAndNormalize(destination);
-
-    // Vérifier que les chaînes ne sont pas vides après nettoyage
-    if (!normalizedDeparture || !normalizedDestination) {
-      throw new Error('Les villes de départ et destination ne peuvent pas être vides');
-    }
+    const normalizedDeparture = normalizeString(departure);
+    const normalizedDestination = normalizeString(destination);
 
     const params = new URLSearchParams();
     params.append('departure_city', normalizedDeparture);
@@ -51,31 +40,23 @@ export const searchTrips = async (departure, destination, date, includeNearby = 
 
     const url = `${BASE_URL}tp/search_trips?${params.toString()}`;
     
-    // Log pour déboggage
-    console.log('URL de recherche:', url);
-    console.log('Paramètres:', {
-      departure: normalizedDeparture,
-      destination: normalizedDestination,
-      date,
-      
-    });
-
     const response = await fetch(url);
-
+    
     if (!response.ok) throw new Error(`Erreur serveur: ${response.status}`);
-    const data = await response.json();
 
+    const data = await response.json();
+    
     // Filtrage supplémentaire côté client
     if (includeNearby) {
       return data.filter(trip => {
-        const tripDest = cleanAndNormalize(trip.destination_city);
-        const stopsMatch = trip.stops?.some(stop =>
-          cleanAndNormalize(stop.destination_city).includes(normalizedDestination)
+        const tripDest = normalizeString(trip.destination_city);
+        const stopsMatch = trip.stops?.some(stop => 
+          normalizeString(stop.destination_city).includes(normalizedDestination)
         );
         return tripDest.includes(normalizedDestination) || stopsMatch;
       });
     }
-
+    
     return data;
   } catch (error) {
     console.error('Erreur de recherche:', error);

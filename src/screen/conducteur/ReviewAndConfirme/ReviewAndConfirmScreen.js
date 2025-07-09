@@ -10,12 +10,29 @@ import {
   TextInput,
   Alert,
   Platform,
-  FlatList
+  FlatList,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
 const ReviewAndConfirmScreen = ({ navigation, route }) => {
+  // Extract all parameters from route.params
+  const {
+    departure,
+    arrival,
+    pickupLocation,
+    dropoffLocation,
+    date,
+    time,
+    preferences = {},
+    stops = [],
+    destinationPrice,
+    vehicle,
+    availableSeats,
+    totalSeats,
+  } = route.params;
+
   // Fonction utilitaire pour sécuriser les chaînes de caractères
   const safeString = (value, fallback = '') => {
     if (typeof value === 'string') return value;
@@ -24,24 +41,46 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     return fallback;
   };
 
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return 'Date non spécifiée';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      
+      return date.toLocaleDateString('fr-FR', options);
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const formatDateForDatabase = (dateString) => {
+    if (!dateString) return null;
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   // Fonction pour normaliser les données des étapes
   const normalizeStops = (stops) => {
-    if (!Array.isArray(stops)) {
-      return [
-        {
-          id: 1,
-          location: 'À côté de l\'arribus (station Jules-Dallaire)',
-          city: 'Québec',
-          price: 15,
-          time: '12:30 PM'
-        }
-      ];
-    }
-
+    if (!Array.isArray(stops)) return [];
     return stops.map((stop, index) => ({
       id: stop.id || index + 1,
-      location: safeString(stop.location, 'Adresse non spécifiée'),
-      city: safeString(stop.city, 'Ville inconnue'),
+      location: safeString(stop.location, `Arrêt ${index + 1}`),
+      city: safeString(stop.city, `Arrêt ${index + 1}`),
       price: typeof stop.price === 'number' ? stop.price : 0,
       time: safeString(stop.time, '--:--')
     }));
@@ -49,59 +88,116 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
 
   // Initialisation des données du trajet
   const [tripData, setTripData] = useState({
-    departure: safeString(route.params?.departure, 'Québec'),
-    arrival: safeString(route.params?.arrival, 'Montréal'),
-    date: safeString(route.params?.date, new Date().toLocaleDateString('fr-FR')),
-    time: safeString(route.params?.time, '12:00 PM'),
-    pickupLocation: safeString(route.params?.pickupLocation, 'Gare du Palais, Québec'),
-    dropoffLocation: safeString(route.params?.dropoffLocation, 'Station Saint-Michel - Esso, Montréal'),
-    vehicle: route.params?.vehicle || {
-      type: 'Honda Civic 2021',
-      color: 'Bleu',
-      plate: 'JUM 832'
+    departure: safeString(departure, 'Départ inconnu'),
+    arrival: safeString(arrival, 'Destination inconnue'),
+    pickupLocation: safeString(pickupLocation, 'Point de prise en charge non spécifié'),
+    dropoffLocation: safeString(dropoffLocation, 'Point de dépôt non spécifié'),
+    date: safeString(date, 'Date non spécifiée'),
+    time: safeString(time, 'Heure non spécifiée'),
+    vehicle: vehicle || {
+      name: 'Véhicule non spécifié',
+      type: 'Type inconnu',
+      seats: totalSeats || 4,
+      color: '#000000'
     },
-    seats: typeof route.params?.seats === 'number' ? route.params.seats : 3,
-    stops: normalizeStops(route.params?.stops),
+    seats: typeof availableSeats === 'number' ? availableSeats : 1,
+    stops: normalizeStops(stops),
     preferences: {
-      smoker: !!route.params?.preferences?.smoker,
-      pets: !!route.params?.preferences?.pets,
-      luggage: !!route.params?.preferences?.luggage,
-      bikeRack: !!route.params?.preferences?.bikeRack,
-      skiRack: !!route.params?.preferences?.skiRack,
-      ac: !!route.params?.preferences?.ac,
-      paymentMethod: safeString(route.params?.preferences?.paymentMethod, 'card')
+      smoker: !!preferences?.smoker,
+      pets: !!preferences?.pets,
+      luggage: !!preferences?.luggage,
+      bikeRack: !!preferences?.bikeRack,
+      skiRack: !!preferences?.skiRack,
+      ac: !!preferences?.ac,
+      paymentMethod: safeString(preferences?.paymentMethod, 'card')
     },
-    driverMessage: safeString(route.params?.driverMessage),
-    finalPrice: typeof route.params?.finalPrice === 'number' ? route.params.finalPrice : 25
+    finalPrice: typeof destinationPrice === 'number' ? destinationPrice : 0
   });
 
-  const [activeModal, setActiveModal] = useState(null);
-  const [tempValue, setTempValue] = useState('');
+  const [messageModalVisible, setMessageModalVisible] = useState(false);
+  const [tempMessage, setTempMessage] = useState('');
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  // Vérification des données à l'arrivée
+  // Fonction pour gérer les modifications avec navigation correcte
+  const handleEdit = (section) => {
+    const allCurrentData = {
+      departure: tripData.departure,
+      arrival: tripData.arrival,
+      pickupLocation: tripData.pickupLocation,
+      dropoffLocation: tripData.dropoffLocation,
+      date: tripData.date,
+      time: tripData.time,
+      preferences: tripData.preferences,
+      stops: tripData.stops,
+      destinationPrice: tripData.finalPrice,
+      vehicle: tripData.vehicle,
+      availableSeats: tripData.seats,
+      totalSeats: tripData.vehicle.seats,
+      driverMessage: tripData.driverMessage
+    };
+
+    switch (section) {
+      case 'route':
+        // Navigation vers l'onglet client pour modifier l'itinéraire
+        Alert.alert(
+          "Modifier l'itinéraire",
+          "Pour modifier l'itinéraire, vous devez retourner à l'écran principal et refaire la sélection.",
+          [
+            { text: "Annuler", style: "cancel" },
+            { 
+              text: "Continuer", 
+              onPress: () => {
+                // Naviguer vers l'onglet client
+                navigation.navigate('ClientTabs', { 
+                  screen: 'AddTrajetTab',
+                  params: { 
+                    editMode: true,
+                    currentData: allCurrentData,
+                    returnScreen: 'ReviewAndConfirmScreen'
+                  }
+                });
+              }
+            }
+          ]
+        );
+        break;
+
+      case 'vehicle':
+        navigation.navigate('VehiculeSelection', {
+          editMode: true,
+          currentData: allCurrentData,
+          returnScreen: 'ReviewAndConfirmScreen'
+        });
+        break;
+
+      case 'preferences':
+        navigation.navigate('Preferences', {
+          editMode: true,
+          currentData: allCurrentData,
+          returnScreen: 'ReviewAndConfirmScreen'
+        });
+        break;
+
+      default:
+        Alert.alert("Erreur", "Section de modification non reconnue");
+    }
+  };
+
+  // Effet pour mettre à jour les données quand on revient d'une modification
   useEffect(() => {
-    console.log('Trip data initialized:', JSON.stringify(tripData, null, 2));
-  }, []);
-
-  // Composant Modal pour les éditions
-  const EditModal = React.memo(({ visible, title, onClose, onSave, children }) => (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <MaterialIcons name="close" size={24} color="#003366" />
-            </TouchableOpacity>
-          </View>
-          {children}
-          <TouchableOpacity style={styles.saveButton} onPress={onSave}>
-            <Text style={styles.saveButtonText}>Sauvegarder</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  ));
+    if (route.params?.updatedData) {
+      const updatedData = route.params.updatedData;
+      setTripData(prev => ({
+        ...prev,
+        ...updatedData,
+        stops: normalizeStops(updatedData.stops || prev.stops),
+        preferences: {
+          ...prev.preferences,
+          ...updatedData.preferences
+        }
+      }));
+    }
+  }, [route.params?.updatedData]);
 
   // Composant pour les icônes de préférences
   const PreferenceIcon = React.memo(({ type, active }) => {
@@ -119,28 +215,26 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
       <View style={[styles.preferenceIcon, active && styles.activePreferenceIcon]}>
         <MaterialIcons 
           name={icons[type]} 
-          size={16} 
+          size={18} 
           color={active ? "#fff" : "#666"} 
         />
       </View>
     );
   });
 
-  // Gestion des modales
-  const openEditModal = useCallback((modalType, initialValue = '') => {
-    setTempValue(initialValue);
-    setActiveModal(modalType);
-  }, []);
+  // Gestion de la modale de message
+  const openMessageModal = useCallback(() => {
+    setTempMessage(tripData.driverMessage || '');
+    setMessageModalVisible(true);
+  }, [tripData.driverMessage]);
 
-  const saveChanges = useCallback(() => {
-    if (activeModal === 'message') {
-      setTripData(prev => ({ ...prev, driverMessage: tempValue }));
-    }
-    setActiveModal(null);
-  }, [activeModal, tempValue]);
+  const saveMessage = useCallback(() => {
+    setTripData(prev => ({ ...prev, driverMessage: tempMessage }));
+    setMessageModalVisible(false);
+  }, [tempMessage]);
 
   // Confirmation du trajet
-  const confirmTrip = useCallback(() => {
+  const confirmTrip = useCallback(async () => {
     Alert.alert(
       "Confirmer le trajet",
       "Voulez-vous publier ce trajet de covoiturage ?",
@@ -148,18 +242,34 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
         { text: "Annuler", style: "cancel" },
         { 
           text: "Confirmer", 
-          onPress: () => {
-            console.log('Trip published:', tripData);
-            Alert.alert(
-              "Succès!", 
-              "Votre trajet a été publié avec succès!",
-              [{ text: "OK", onPress: () => navigation.navigate('DriverHome') }]
-            );
+          onPress: async () => {
+            setIsPublishing(true);
+            try {
+              console.log('Trip published:', {
+                ...tripData,
+                stops: stops,
+                destinationPrice: destinationPrice,
+                vehicle: vehicle,
+                availableSeats: availableSeats
+              });
+              
+              await new Promise(resolve => setTimeout(resolve, 1500));
+              
+              Alert.alert(
+                "Succès!", 
+                "Votre trajet a été publié avec succès!",
+                [{ text: "OK", onPress: () => navigation.navigate('DriverHome') }]
+              );
+            } catch (error) {
+              Alert.alert("Erreur", "Une erreur s'est produite lors de la publication");
+            } finally {
+              setIsPublishing(false);
+            }
           }
         }
       ]
     );
-  }, [navigation, tripData]);
+  }, [navigation, tripData, stops, destinationPrice, vehicle, availableSeats]);
 
   // Rendu d'un point d'arrêt
   const renderStopItem = useCallback(({ item }) => (
@@ -176,41 +286,117 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     </View>
   ), []);
 
+  // Rendu de la modale de message
+  const renderMessageModal = () => (
+    <Modal
+      visible={messageModalVisible}
+      animationType="slide"
+      transparent
+      onRequestClose={() => setMessageModalVisible(false)}
+    >
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.modalOverlay}
+      >
+        <TouchableWithoutFeedback onPress={() => setMessageModalVisible(false)}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={styles.messageModalContainer}>
+          <View style={styles.messageModalHeader}>
+            <Text style={styles.messageModalTitle}>Message aux passagers</Text>
+            <TouchableOpacity 
+              onPress={() => setMessageModalVisible(false)}
+              style={styles.closeButton}
+            >
+              <MaterialIcons name="close" size={24} color="#003DA5" />
+            </TouchableOpacity>
+          </View>
+          
+          <TextInput
+            style={styles.messageInput}
+            value={tempMessage}
+            onChangeText={setTempMessage}
+            placeholder="Écrivez un message personnalisé pour vos passagers..."
+            multiline
+            numberOfLines={4}
+            maxLength={200}
+            placeholderTextColor="#999"
+          />
+          
+          <Text style={styles.characterCount}>
+            {tempMessage.length}/200 caractères
+          </Text>
+          
+          <TouchableOpacity 
+            style={styles.saveButton} 
+            onPress={saveMessage}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.saveButtonText}>Sauvegarder</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#E53E3E', '#C53030']}
-        style={styles.gradientBackground}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.wrapper}
       >
-        {/* En-tête */}
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <MaterialIcons name="arrow-back" size={24} color="#fff" />
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.backButton}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#003DA5" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Vérification</Text>
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Contenu principal */}
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
+        {/* Sous-titre */}
+        <View style={styles.headerContent}>
           <Text style={styles.subtitle}>Dernière étape!</Text>
           <Text style={styles.description}>
             Vérifiez que les détails ci-dessous sont exacts avant d'annoncer.
           </Text>
+        </View>
 
+        {/* Contenu principal */}
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Carte Itinéraire */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="route" size={20} color="#003366" />
-              <Text style={styles.cardTitle}>Itinéraire</Text>
+              <View style={styles.cardTitleContainer}>
+                <MaterialIcons name="route" size={22} color="#003DA5" />
+                <Text style={styles.cardTitle}>Itinéraire</Text>
+              </View>
               <TouchableOpacity 
-                onPress={() => navigation.navigate('EditItinerary', { tripData })}
+                onPress={() => handleEdit('route')}
+                style={styles.editButton}
               >
-                <MaterialIcons name="edit" size={20} color="#FFCC00" />
+                <MaterialIcons name="edit" size={20} color="#003DA5" />
               </TouchableOpacity>
+            </View>
+            
+            {/* Affichage de la date et heure */}
+            <View style={styles.datetimeContainer}>
+              <View style={styles.datetimeItem}>
+                <MaterialIcons name="calendar-today" size={16} color="#666" />
+                <Text style={styles.datetimeText}>{formatDateForDisplay(tripData.date)}</Text>
+              </View>
+              <View style={styles.datetimeItem}>
+                <MaterialIcons name="access-time" size={16} color="#666" />
+                <Text style={styles.datetimeText}>{tripData.time}</Text>
+              </View>
             </View>
             
             <View style={styles.routeContainer}>
@@ -238,34 +424,56 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
                 <View style={styles.routeInfo}>
                   <Text style={styles.routeCity}>{tripData.arrival}</Text>
                   <Text style={styles.routeLocation}>{tripData.dropoffLocation}</Text>
-                  <Text style={styles.finalPrice}>
-                    {tripData.finalPrice}$ • Destination finale
-                  </Text>
+                  <View style={styles.finalPriceContainer}>
+                    <Text style={styles.finalPrice}>{tripData.finalPrice}$</Text>
+                    <Text style={styles.finalPriceLabel}>Destination finale</Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
 
-          {/* Carte Véhicule (exemple) */}
+          {/* Carte Véhicule */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="directions-car" size={20} color="#003366" />
-              <Text style={styles.cardTitle}>Véhicule</Text>
+              <View style={styles.cardTitleContainer}>
+                <MaterialIcons name="directions-car" size={22} color="#003DA5" />
+                <Text style={styles.cardTitle}>Véhicule</Text>
+              </View>
+              <TouchableOpacity 
+                onPress={() => handleEdit('vehicle')}
+                style={styles.editButton}
+              >
+                <MaterialIcons name="edit" size={20} color="#003DA5" />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.vehicleText}>{tripData.vehicle.type}</Text>
-            <Text style={styles.vehicleDetail}>
-              {tripData.vehicle.color} • {tripData.vehicle.plate}
-            </Text>
-            <Text style={styles.vehicleDetail}>
-              {tripData.seats} place{tripData.seats > 1 ? 's' : ''} disponible{tripData.seats > 1 ? 's' : ''}
-            </Text>
+            <View style={styles.vehicleContainer}>
+              <Text style={styles.vehicleText}>{tripData.vehicle.name}</Text>
+              <Text style={styles.vehicleDetail}>
+                {tripData.vehicle.type} • {tripData.vehicle.color} • {tripData.vehicle.seats} places
+              </Text>
+              <View style={styles.seatsContainer}>
+                <MaterialIcons name="airline-seat-recline-normal" size={16} color="#666" />
+                <Text style={styles.seatsText}>
+                  {tripData.seats} place{tripData.seats > 1 ? 's' : ''} disponible{tripData.seats > 1 ? 's' : ''}
+                </Text>
+              </View>
+            </View>
           </View>
 
-          {/* Carte Préférences (exemple) */}
+          {/* Carte Préférences */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="settings" size={20} color="#003366" />
-              <Text style={styles.cardTitle}>Préférences</Text>
+              <View style={styles.cardTitleContainer}>
+                <MaterialIcons name="settings" size={22} color="#003DA5" />
+                <Text style={styles.cardTitle}>Préférences</Text>
+              </View>
+              <TouchableOpacity 
+                onPress={() => handleEdit('preferences')}
+                style={styles.editButton}
+              >
+                <MaterialIcons name="edit" size={20} color="#003DA5" />
+              </TouchableOpacity>
             </View>
             <View style={styles.preferencesContainer}>
               {Object.entries(tripData.preferences).map(([key, value]) => {
@@ -297,129 +505,163 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* Message au conducteur */}
+          {/* Message aux passagers */}
           <TouchableOpacity 
             style={styles.messageCard}
-            onPress={() => openEditModal('message', tripData.driverMessage)}
+            onPress={openMessageModal}
+            activeOpacity={0.7}
           >
-            <Text style={styles.messageLabel}>Message aux passagers:</Text>
+            <View style={styles.messageHeader}>
+              <MaterialIcons name="message" size={20} color="#003DA5" />
+              <Text style={styles.messageLabel}>Message aux passagers</Text>
+              <MaterialIcons name="edit" size={18} color="#003DA5" />
+            </View>
             <Text style={styles.messageText}>
-              {tripData.driverMessage || 'Ajouter un message...'}
+              {tripData.driverMessage || 'Ajouter un message personnalisé pour vos passagers...'}
             </Text>
-            <MaterialIcons 
-              name="edit" 
-              size={18} 
-              color="#FFCC00" 
-              style={styles.messageEditIcon}
-            />
           </TouchableOpacity>
+
+          {/* Espacement pour le bouton fixe */}
+          <View style={styles.bottomSpacing} />
         </ScrollView>
 
         {/* Bouton de confirmation */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
-            style={styles.confirmButton} 
+            style={[styles.confirmButton, isPublishing && styles.confirmButtonDisabled]} 
             onPress={confirmTrip}
+            activeOpacity={0.7}
+            disabled={isPublishing}
           >
-            <Text style={styles.confirmButtonText}>Annoncer le trajet</Text>
-            <MaterialIcons name="check-circle" size={20} color="#fff" />
+            <MaterialIcons name="check-circle" size={24} color="#fff" />
+            <Text style={styles.confirmButtonText}>
+              {isPublishing ? 'Publication en cours...' : 'Annoncer le trajet'}
+            </Text>
           </TouchableOpacity>
         </View>
-      </LinearGradient>
 
-      {/* Modale pour éditer le message */}
-      <EditModal
-        visible={activeModal === 'message'}
-        title="Message aux passagers"
-        onClose={() => setActiveModal(null)}
-        onSave={saveChanges}
-      >
-        <TextInput
-          style={styles.messageInput}
-          value={tempValue}
-          onChangeText={setTempValue}
-          placeholder="Écrivez un message personnalisé..."
-          multiline
-          numberOfLines={4}
-          maxLength={200}
-        />
-        <Text style={styles.characterCount}>
-          {tempValue.length}/200 caractères
-        </Text>
-      </EditModal>
+        {/* Modale pour éditer le message */}
+        {renderMessageModal()}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-// Styles
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa'
   },
-  gradientBackground: {
+  wrapper: {
     flex: 1,
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? 20 : 10,
+    paddingBottom: 10,
+    backgroundColor: '#fff',
+    elevation: Platform.OS === 'android' ? 2 : 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  backButton: {
+    padding: 4,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#003DA5',
   },
-  scrollContent: {
-    paddingBottom: 100,
+  headerContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   subtitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    paddingHorizontal: 20,
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#003DA5',
+    marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    color: '#fff',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    opacity: 0.9,
+    color: '#666',
+    lineHeight: 20,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100,
   },
   card: {
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 12,
     borderRadius: 12,
     padding: 16,
+    marginBottom: 16,
+    elevation: Platform.OS === 'android' ? 2 : 0,
     shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   cardHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  cardTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#003366',
-    flex: 1,
+    color: '#003DA5',
+    marginLeft: 8,
+  },
+  editButton: {
+    padding: 4,
+  },
+  // Nouveaux styles pour la date et heure
+  datetimeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingLeft: 8,
+  },
+  datetimeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  datetimeText: {
+    fontSize: 14,
+    color: '#333',
     marginLeft: 8,
   },
   routeContainer: {
-    paddingLeft: 10,
+    paddingLeft: 8,
   },
   routePoint: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   routeDot: {
     width: 12,
@@ -432,178 +674,227 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   stopDot: {
-    backgroundColor: '#FF9800',
+    backgroundColor: '#FFCC00',
   },
   endDot: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#FF6B6B',
   },
   routeLine: {
     position: 'absolute',
     left: 5,
-    top: -12,
+    top: 16,
     width: 2,
-    height: 24,
-    backgroundColor: '#e0e0e0',
+    height: 40,
+    backgroundColor: '#ddd',
   },
   routeInfo: {
     flex: 1,
+    paddingBottom: 8,
   },
   routeCity: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#003366',
+    color: '#333',
   },
   routeLocation: {
     fontSize: 14,
     color: '#666',
     marginTop: 2,
   },
+  routeTime: {
+    fontSize: 14,
+    color: '#003DA5',
+    marginTop: 4,
+  },
   stopPrice: {
-    fontSize: 12,
-    color: '#FF9800',
-    fontWeight: '600',
+    fontSize: 14,
+    color: '#003DA5',
+    marginTop: 4,
+  },
+  finalPriceContainer: {
     marginTop: 4,
   },
   finalPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#003DA5',
+  },
+  finalPriceLabel: {
     fontSize: 12,
-    color: '#E53E3E',
-    fontWeight: '600',
-    marginTop: 4,
+    color: '#666',
+    marginTop: 2,
+  },
+  vehicleContainer: {
+    paddingLeft: 8,
   },
   vehicleText: {
     fontSize: 16,
-    color: '#003366',
     fontWeight: '600',
-    marginBottom: 4,
+    color: '#333',
   },
   vehicleDetail: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 2,
+    marginTop: 4,
   },
-  preferencesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-  },
-  preferenceItem: {
+  seatsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
-    marginBottom: 8,
+    marginTop: 8,
   },
-  preferenceText: {
+  seatsText: {
     fontSize: 14,
     color: '#666',
     marginLeft: 6,
   },
+  preferencesContainer: {
+    paddingLeft: 8,
+  },
+  preferenceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   preferenceIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f5f5f5',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
   },
   activePreferenceIcon: {
-    backgroundColor: '#003366',
+    backgroundColor: '#003DA5',
+  },
+  preferenceText: {
+    fontSize: 14,
+    color: '#333',
   },
   messageCard: {
     backgroundColor: '#fff',
-    marginHorizontal: 20,
-    marginBottom: 12,
     borderRadius: 12,
     padding: 16,
+    marginBottom: 16,
+    elevation: Platform.OS === 'android' ? 2 : 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     borderWidth: 1,
-    borderColor: '#FFCC00',
+    borderColor: '#f0f0f0',
+  },
+  messageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   messageLabel: {
-    fontSize: 14,
-    color: '#003366',
+    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    color: '#003DA5',
+    marginLeft: 8,
+    flex: 1,
   },
   messageText: {
     fontSize: 14,
     color: '#666',
-  },
-  messageEditIcon: {
-    position: 'absolute',
-    right: 16,
-    top: 16,
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#fff',
     padding: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 20,
+    elevation: Platform.OS === 'android' ? 8 : 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -2 },
   },
   confirmButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#003DA5',
     paddingVertical: 16,
     borderRadius: 12,
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#ccc',
   },
   confirmButtonText: {
-    color: '#E53E3E',
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 18,
-    marginRight: 8,
+    marginLeft: 8,
   },
+  bottomSpacing: {
+    height: 20,
+  },
+  // Styles pour la modale
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
   },
-  modalContainer: {
+  messageModalContainer: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 20,
-    width: '90%',
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
   },
-  modalHeader: {
+  messageModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
   },
-  modalTitle: {
+  messageModalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#003366',
+    color: '#003DA5',
+  },
+  closeButton: {
+    padding: 4,
   },
   messageInput: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: '#ddd',
+    borderRadius: 12,
+    padding: 16,
     fontSize: 16,
     textAlignVertical: 'top',
-    minHeight: 100,
+    minHeight: 120,
+    backgroundColor: '#f8f9fa',
   },
   characterCount: {
     textAlign: 'right',
-    color: '#666',
     fontSize: 12,
+    color: '#666',
     marginTop: 8,
+    marginBottom: 20,
   },
   saveButton: {
-    backgroundColor: '#003366',
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: '#003DA5',
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
   saveButtonText: {
     color: '#fff',

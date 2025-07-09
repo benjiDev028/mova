@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Image
 } from "react-native";
 import {
   Ionicons,
   MaterialIcons,
   FontAwesome5,
+  FontAwesome
 } from "@expo/vector-icons";
 import { searchTrips } from "../../../services/service_trip/service_trip";
 import user_services from "../../../services/services_user/user_services";
@@ -21,6 +23,19 @@ import moment from 'moment';
 import 'moment/locale/fr';
 
 moment.locale('fr');
+
+// Configuration des préférences
+const PREFERENCES_CONFIG = {
+  nonFumeur: { icon: "smoke-free", label: "Non fumeur", color: "#059669" },
+  fumeur: { icon: "smoking-rooms", label: "Fumeur", color: "#DC2626" },
+  climatisation: { icon: "ac-unit", label: "Climatisation", color: "#3B82F6" },
+  valise: { icon: "luggage", label: "Coffre à bagages", color: "#8B5CF6" },
+  vélo: { icon: "directions-bike", label: "Transport vélo", color: "#10B981" },
+  ski: { icon: "downhill-skiing", label: "Transport ski", color: "#06B6D4" },
+  paiementCash: { icon: "payments", label: "Paiement cash", color: "#F59E0B" },
+  virement: { icon: "account-balance", label: "Virement", color: "#6366F1" },
+  animaux: { icon: "pets", label: "Animaux acceptés", color: "#EC4899" }
+};
 
 export default function ListFoundScreen({ navigation, route }) {
   const [trips, setTrips] = useState([]);
@@ -30,7 +45,6 @@ export default function ListFoundScreen({ navigation, route }) {
     departure: '',
     arrival: '',
     date: null,
-    
     includeNearby: true,
     filters: {}
   });
@@ -40,26 +54,16 @@ export default function ListFoundScreen({ navigation, route }) {
       try {
         const params = route.params || {};
         
-        const { 
-          departure = '', 
-          arrival = '', 
-          date = null, 
-          includeNearby = true,
-          filters = {}
-        } = params;
-
-        console.log('Paramètres reçus:', params);
-
         setSearchParams({
-          departure,
-          arrival,
-          date,
-          includeNearby,
-          filters
+          departure: params.departure || '',
+          arrival: params.arrival || '',
+          date: params.date || null,
+          includeNearby: params.includeNearby !== false,
+          filters: params.filters || {}
         });
 
-        if (departure && arrival) {
-          await fetchTripsWithDriverInfo(departure, arrival, date, filters);
+        if (params.departure && params.arrival) {
+          await fetchTripsWithDriverInfo(params.departure, params.arrival, params.date, params.filters);
         } else {
           setTrips([]);
         }
@@ -79,23 +83,9 @@ export default function ListFoundScreen({ navigation, route }) {
       setLoading(true);
       setError(null);
       
-      const normalizedDeparture = departure.trim();
-      const normalizedArrival = arrival.trim();
-      
-      console.log('Recherche avec:', { 
-        departure: normalizedDeparture, 
-        arrival: normalizedArrival, 
-        date, 
-        
-        filters
-      });
-      
-      const tripsData = await searchTrips(normalizedDeparture, normalizedArrival, date);
-      
-      console.log('Données brutes reçues:', tripsData);
+      const tripsData = await searchTrips(departure.trim(), arrival.trim(), date);
       
       if (!tripsData || tripsData.length === 0) {
-        console.log('Aucun trajet retourné par le service');
         setTrips([]);
         return;
       }
@@ -105,29 +95,27 @@ export default function ListFoundScreen({ navigation, route }) {
           try {
             const userData = await user_services.getUserById(trip.driver_id);
             
-            console.log('Traitement du trajet:', trip.id);
-            console.log('Préférences du trajet:', trip.preferences);
-            
-            // Appliquer les filtres
             if (!matchesFilters(trip, filters)) {
-              console.log('Trajet exclu par les filtres:', trip.id);
               return null;
             }
 
-            // Construire la liste des arrêts
+            // Calcul des places disponibles
+            const totalSeats = trip.total_seats ?? trip.available_seats ?? 3;
+            const availableSeats = trip.available_seats ?? totalSeats;
+            const reservedSeats = totalSeats - availableSeats;
+
+            // Construction des arrêts
             const stops = [];
-            
-            // Ajouter les arrêts intermédiaires s'ils existent
             if (trip.stops && trip.stops.length > 0) {
               trip.stops.forEach(stop => {
                 stops.push({
                   location: stop.destination_city || "Arrêt non spécifié",
-                  price: stop.price || 0
+                  price: stop.price || 0,
+                  id : stop.id
                 });
               });
             }
             
-            // Ajouter la destination finale
             stops.push({
               location: `${trip.destination_city} - ${trip.destination_place}`,
               price: trip.total_price,
@@ -135,7 +123,7 @@ export default function ListFoundScreen({ navigation, route }) {
             });
 
             const carInfo = userData.cars?.[0] || {};
-            const carModel = carInfo.brand && carInfo.model 
+            const carModel = carInfo.brand && carInfo.model && carInfo.date_of_car
               ? `${carInfo.brand} ${carInfo.model}` 
               : "Information non disponible";
 
@@ -146,16 +134,18 @@ export default function ListFoundScreen({ navigation, route }) {
               departure: `${trip.departure_city} - ${trip.departure_place}`,
               arrival: `${trip.destination_city} - ${trip.destination_place}`,
               price: trip.total_price,
-              rating: 4.5, // Valeur par défaut - à remplacer par les vraies données
-              reviews: Math.floor(Math.random() * 100) + 50, // Valeur par défaut
-              availableSeats: trip.available_seats || 0,
-              totalSeats: 4, // Valeur par défaut - à adapter selon les données réelles
+              rating: userData.rating || 4.5,
+              reviews: userData.reviews_count || Math.floor(Math.random() * 100) + 50,
+              availableSeats: availableSeats,
+              reservedSeats: reservedSeats,
+              totalSeats: totalSeats,
+   
               driverName: `${userData.first_name || 'Prénom'} ${userData.last_name || 'Nom'}`,
               driverPhoto: userData.profile_picture || null,
               carModel: carModel,
               preferences: convertPreferencesToArray(trip.preferences),
               estimatedDuration: calculateEstimatedDuration(trip.departure_city, trip.destination_city),
-              verified: true, // À adapter selon les données réelles
+              verified: userData.verified || false,
               stops: stops,
               message: trip.message || '',
               status: "pending",
@@ -168,9 +158,7 @@ export default function ListFoundScreen({ navigation, route }) {
         })
       );
 
-      const validTrips = tripsWithDetails.filter(trip => trip !== null);
-      console.log('Trajets valides après filtrage:', validTrips.length);
-      setTrips(validTrips);
+      setTrips(tripsWithDetails.filter(trip => trip !== null));
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err.message);
@@ -179,92 +167,51 @@ export default function ListFoundScreen({ navigation, route }) {
     }
   };
 
-  // Fonction pour vérifier si un trajet correspond aux filtres
   const matchesFilters = (trip, filters) => {
-    if (!filters || Object.keys(filters).length === 0) {
-      return true;
-    }
+    if (!filters || Object.keys(filters).length === 0) return true;
 
     const prefs = trip.preferences || {};
     
-    // Vérifier chaque filtre
     for (const [filterKey, filterValue] of Object.entries(filters)) {
+      if (filterValue === null || filterValue === undefined) continue;
+
       switch (filterKey) {
         case 'priceRange':
-          if (filterValue && (trip.total_price < filterValue.min || trip.total_price > filterValue.max)) {
-            return false;
-          }
-          break;
-        case 'departureTime':
-          if (filterValue && !isTimeInRange(trip.departure_time, filterValue)) {
-            return false;
-          }
-          break;
-        case 'smoking':
-          if (filterValue !== undefined && prefs.smoking_allowed !== filterValue) {
-            return false;
-          }
-          break;
-        case 'airConditioning':
-          if (filterValue && !prefs.air_conditioning) {
-            return false;
-          }
-          break;
-        case 'baggage':
-          if (filterValue && !prefs.baggage) {
-            return false;
-          }
-          break;
-        case 'pets':
-          if (filterValue && !prefs.pets_allowed) {
-            return false;
-          }
-          break;
-        case 'bikeSupport':
-          if (filterValue && !prefs.bike_support) {
-            return false;
-          }
-          break;
-        case 'skiSupport':
-          if (filterValue && !prefs.ski_support) {
-            return false;
-          }
-          break;
-        case 'paymentMode':
-          if (filterValue && prefs.mode_payment !== filterValue) {
-            return false;
-          }
+          const maxPrice = typeof filterValue === 'object' ? filterValue.max : filterValue;
+          if (maxPrice !== undefined && trip.total_price > maxPrice) return false;
           break;
         case 'minSeats':
-          if (filterValue && trip.available_seats < filterValue) {
-            return false;
-          }
+          const availableSeats = (trip.available_seats || 0) - (trip.reserved_seats || 0);
+          if (availableSeats < filterValue) return false;
           break;
-        default:
-          console.log('Filtre non reconnu:', filterKey);
+        case 'smoking':
+          if (prefs.smoking_allowed !== filterValue) return false;
+          break;
+        case 'airConditioning':
+          if (filterValue && !prefs.air_conditioning) return false;
+          break;
+        case 'baggage':
+          if (filterValue && !prefs.baggage) return false;
+          break;
+        case 'pets':
+          if (filterValue && !prefs.pets_allowed) return false;
+          break;
+        case 'bikeSupport':
+          if (filterValue && !prefs.bike_support) return false;
+          break;
+        case 'skiSupport':
+          if (filterValue && !prefs.ski_support) return false;
+          break;
+        case 'paymentMode':
+          if (filterValue && prefs.mode_payment !== filterValue) return false;
+          break;
       }
     }
     
     return true;
   };
 
-  const isTimeInRange = (tripTime, timeRange) => {
-    if (!tripTime || !timeRange) return true;
-    
-    const tripMinutes = timeToMinutes(tripTime);
-    const startMinutes = timeToMinutes(timeRange.start);
-    const endMinutes = timeToMinutes(timeRange.end);
-    
-    return tripMinutes >= startMinutes && tripMinutes <= endMinutes;
-  };
-
-  const timeToMinutes = (timeString) => {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours * 60 + minutes;
-  };
-
   const calculateEstimatedDuration = (departure, destination) => {
-    // Calcul approximatif basé sur les villes communes du Québec
     const distances = {
       'montreal-gatineau': '2h',
       'montreal-quebec': '3h',
@@ -275,8 +222,8 @@ export default function ListFoundScreen({ navigation, route }) {
       'longueuil-montreal': '20min'
     };
     
-    const key = `${departure.trim()}-${destination.trim()}`;
-    return distances[key] || '2h'; // Valeur par défaut
+    const key = `${departure.trim().toLowerCase()}-${destination.trim().toLowerCase()}`;
+    return distances[key] || '2h';
   };
 
   const convertPreferencesToArray = (prefs) => {
@@ -284,21 +231,18 @@ export default function ListFoundScreen({ navigation, route }) {
     
     const preferencesArray = [];
     
-    // Préférences basées sur les vraies données API
     if (prefs.air_conditioning) preferencesArray.push("climatisation");
     if (prefs.baggage) preferencesArray.push("valise");
     if (prefs.bike_support) preferencesArray.push("vélo");
     if (prefs.ski_support) preferencesArray.push("ski");
     if (prefs.pets_allowed) preferencesArray.push("animaux");
     
-    // Gestion du tabac
     if (prefs.smoking_allowed) {
       preferencesArray.push("fumeur");
     } else {
       preferencesArray.push("nonFumeur");
     }
     
-    // Mode de paiement
     if (prefs.mode_payment === "cash") {
       preferencesArray.push("paiementCash");
     } else if (prefs.mode_payment === "virement") {
@@ -306,36 +250,6 @@ export default function ListFoundScreen({ navigation, route }) {
     }
     
     return preferencesArray;
-  };
-
-  const getPreferenceIcon = (pref) => {
-    const icons = {
-      nonFumeur: "smoke-free",
-      fumeur: "smoking-rooms",
-      climatisation: "ac-unit",
-      valise: "luggage",
-      vélo: "directions-bike",
-      ski: "downhill-skiing",
-      paiementCash: "payments",
-      virement: "account-balance",
-      animaux: "pets",
-    };
-    return icons[pref] || "check-circle";
-  };
-
-  const getPreferenceColor = (pref) => {
-    const colors = {
-      nonFumeur: "#059669",
-      fumeur: "#DC2626",
-      climatisation: "#3B82F6",
-      valise: "#8B5CF6",
-      vélo: "#10B981",
-      ski: "#06B6D4",
-      paiementCash: "#F59E0B",
-      virement: "#6366F1",
-      animaux: "#EC4899",
-    };
-    return colors[pref] || "#6B7280";
   };
 
   const renderTripCard = ({ item }) => (
@@ -378,7 +292,11 @@ export default function ListFoundScreen({ navigation, route }) {
       <View style={styles.driverInfo}>
         <View style={styles.driverDetails}>
           <View style={styles.driverNameContainer}>
-            <FontAwesome5 name="user-circle" size={16} color="#6B7280" />
+            {item.driverPhoto ? (
+              <Image source={{ uri: item.driverPhoto }} style={styles.driverAvatar} />
+            ) : (
+              <FontAwesome name="user-circle" size={16} color="#6B7280" />
+            )}
             <Text style={styles.driverName}>{item.driverName}</Text>
             {item.verified && (
               <View style={styles.verifiedBadge}>
@@ -407,13 +325,15 @@ export default function ListFoundScreen({ navigation, route }) {
       <View style={styles.cardFooter}>
         <View style={styles.ratingContainer}>
           <MaterialIcons name="star" size={14} color="#FFC107" />
-          <Text style={styles.rating}>{item.rating}</Text>
+          <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
           <Text style={styles.reviews}>({item.reviews}+ avis)</Text>
         </View>
 
         <View style={styles.seatsContainer}>
           <MaterialIcons name="airline-seat-recline-normal" size={16} color="#6B7280" />
-          <Text style={styles.seatsText}>{item.availableSeats} places disponibles</Text>
+          <Text style={styles.seatsText}>
+             {item.totalSeats - item.availableSeats} / {item.totalSeats} places
+          </Text>
         </View>
       </View>
 
@@ -423,69 +343,42 @@ export default function ListFoundScreen({ navigation, route }) {
         style={styles.preferencesScroll}
         contentContainerStyle={styles.preferencesContainer}
       >
-        {item.preferences.map((pref, index) => (
-          <View key={`pref-${index}`} style={[
-            styles.preferenceChip,
-            { borderColor: getPreferenceColor(pref) }
-          ]}>
-            <MaterialIcons
-              name={getPreferenceIcon(pref)}
-              size={12}
-              color={getPreferenceColor(pref)}
-            />
-            <Text style={[styles.preferenceText, { color: getPreferenceColor(pref) }]}>
-              {pref}
-            </Text>
-          </View>
-        ))}
+        {item.preferences.map((pref, index) => {
+          const config = PREFERENCES_CONFIG[pref] || { icon: "check-circle", label: pref, color: "#6B7280" };
+          return (
+            <View key={`pref-${index}`} style={[
+              styles.preferenceChip,
+              { borderColor: config.color }
+            ]}>
+              <MaterialIcons
+                name={config.icon}
+                size={12}
+                color={config.color}
+              />
+              <Text style={[styles.preferenceText, { color: config.color }]}>
+                {config.label}
+              </Text>
+            </View>
+          );
+        })}
       </ScrollView>
 
       <TouchableOpacity 
-        style={styles.bookButton}
+        style={[
+          styles.bookButton,
+          item.availableSeats <= 0 && styles.disabledButton
+        ]}
         onPress={() => navigation.navigate("DetailTrip", { trip: item })}
         activeOpacity={0.7}
+        disabled={item.availableSeats <= 0}
       >
-        <Text style={styles.bookButtonText}>Réserver</Text>
+        <Text style={styles.bookButtonText}>
+          {item.availableSeats <= 0 ? 'COMPLET' : 'Réserver'}
+        </Text>
         <MaterialIcons name="arrow-forward" size={16} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );
-
-  const renderAppliedFilters = () => {
-    if (!searchParams.filters || Object.keys(searchParams.filters).length === 0) {
-      return null;
-    }
-
-    return (
-      <View style={styles.appliedFiltersContainer}>
-        <Text style={styles.appliedFiltersTitle}>Filtres appliqués:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {Object.entries(searchParams.filters).map(([key, value], index) => (
-            <View key={index} style={styles.appliedFilterChip}>
-              <Text style={styles.appliedFilterText}>
-                {getFilterDisplayName(key, value)}
-              </Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
-
-  const getFilterDisplayName = (key, value) => {
-    const displayNames = {
-      priceRange: `Prix: ${value.min}$ - ${value.max}$`,
-      smoking: value ? 'Fumeur autorisé' : 'Non-fumeur',
-      airConditioning: 'Climatisation',
-      baggage: 'Valises autorisées',
-      pets: 'Animaux autorisés',
-      bikeSupport: 'Support vélo',
-      skiSupport: 'Support ski',
-      paymentMode: value === 'cash' ? 'Paiement espèces' : 'Virement',
-      minSeats: `Min ${value} places`,
-    };
-    return displayNames[key] || `${key}: ${value}`;
-  };
 
   if (loading) {
     return (
@@ -507,7 +400,6 @@ export default function ListFoundScreen({ navigation, route }) {
             searchParams.departure,
             searchParams.arrival,
             searchParams.date,
-            searchParams.time,
             searchParams.filters
           )}
         >
@@ -529,12 +421,6 @@ export default function ListFoundScreen({ navigation, route }) {
           <Ionicons name="arrow-back" size={24} color="#003366" />
         </TouchableOpacity>
         <Text style={styles.textHeader}>Trajets disponibles</Text>
-        <TouchableOpacity 
-          style={styles.filterButton}
-          onPress={() => navigation.navigate('SearchTrajet', searchParams)}
-        >
-          <MaterialIcons name="tune" size={24} color="#007BFF" />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.resultsHeader}>
@@ -546,8 +432,6 @@ export default function ListFoundScreen({ navigation, route }) {
           {searchParams.arrival && ` • ${searchParams.departure} → ${searchParams.arrival}`}
         </Text>
       </View>
-
-      {renderAppliedFilters()}
 
       {trips.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -575,6 +459,7 @@ export default function ListFoundScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -583,31 +468,22 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   textHeader: {
     fontSize: 18,
     fontWeight: '700',
     color: '#003366',
+    flex: 1,
+    textAlign: 'center',
+    marginRight: 24
   },
   backButton: {
     padding: 8,
-    borderRadius: 8,
-  },
-  filterButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#F0F8FF',
   },
   resultsHeader: {
     paddingHorizontal: 16,
@@ -755,44 +631,64 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  driverAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 8,
+  },
   driverName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#374151',
-    marginLeft: 6,
     marginRight: 4,
   },
   verifiedBadge: {
-    marginLeft: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#D1FAE5',
     paddingHorizontal: 6,
-    borderRadius: 6
+    paddingVertical: 2,
+    borderRadius: 10,
   },
   verifiedText: {
     color: '#065F46',
     fontSize: 10,
-    fontWeight: '600'
+    fontWeight: '600',
+    marginLeft: 2,
   },
   carModel: {
     fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
   },
+  durationContainer: {
+    alignItems: 'flex-end',
+  },
   duration: {
     fontSize: 12,
     color: '#6B7280',
     fontWeight: '500',
   },
+  paymentMode: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2,
+  },
   messageContainer: {
+    flexDirection: 'row',
     backgroundColor: '#EFF6FF',
     padding: 8,
     borderRadius: 8,
     marginBottom: 12,
+    alignItems: 'center',
   },
   messageText: {
     fontSize: 12,
     color: '#1E40AF',
     fontStyle: 'italic',
+    marginLeft: 4,
+    flex: 1,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -815,18 +711,14 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 4,
   },
-  passengersContainer: {
+  seatsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
-  passengers: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#1E40AF',
+  seatsText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
     marginLeft: 4,
   },
   preferencesScroll: {
@@ -845,13 +737,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 6,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   preferenceText: {
     fontSize: 10,
     fontWeight: '500',
     marginLeft: 3,
-    color: '#003366',
   },
   bookButton: {
     backgroundColor: '#003366',
@@ -861,11 +751,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    shadowColor: '#007BFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
+  },
+  disabledButton: {
+    backgroundColor: '#9CA3AF',
   },
   bookButtonText: {
     color: '#FFFFFF',
@@ -878,6 +766,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 16,
+    color: '#003366',
+    fontSize: 16,
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -885,9 +778,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: 'red',
+    color: '#EF4444',
     marginBottom: 20,
     textAlign: 'center',
+    fontSize: 16,
   },
   retryButton: {
     backgroundColor: '#007BFF',
@@ -902,6 +796,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   emptyText: {
     marginTop: 16,
@@ -913,5 +808,17 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontSize: 14,
     marginTop: 4,
+    textAlign: 'center',
+  },
+  modifySearchButton: {
+    marginTop: 20,
+    backgroundColor: '#003366',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  modifySearchText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   }
 });

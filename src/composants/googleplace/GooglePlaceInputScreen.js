@@ -11,43 +11,59 @@ import {
 
 const GOOGLE_API_KEY = 'AIzaSyBwx5yyNbJYbt_TLBEozRXPl3oZD4wH-DE';
 
-const GooglePlacesInput = ({ placeholder, onSelect, hideMap, style }) => {
+const GooglePlacesInput = ({ placeholder, onSelect, style }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (query.length > 2) {
-      setLoading(true);
-      fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${query}&key=${GOOGLE_API_KEY}&language=fr&components=country:ca`
-      )
-        .then(res => res.json())
-        .then(data => {
+    const fetchSuggestions = async () => {
+      if (query.length > 2) {
+        setLoading(true);
+        try {
+          const res = await fetch(
+            `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${GOOGLE_API_KEY}&language=fr&types=(cities)&components=country:ca`
+          );
+          const data = await res.json();
           setResults(data.predictions || []);
+        } catch (err) {
+          console.error("Erreur API Places:", err);
+        } finally {
           setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    } else {
-      setResults([]);
-    }
+        }
+      } else {
+        setResults([]);
+      }
+    };
+
+    fetchSuggestions();
   }, [query]);
 
-  const handleSelect = (place) => {
-    fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&key=${GOOGLE_API_KEY}`
-    )
-      .then(res => res.json())
-      .then(data => {
-        const location = data.result.geometry.location;
-        const result = {
-          description: place.description,
-          location
-        };
-        setQuery(place.description);
-        setResults([]);
-        onSelect(result);
-      });
+const handleSelect = async (place) => {
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&key=${GOOGLE_API_KEY}`
+      );
+      const data = await res.json();
+      const location = data.result.geometry.location;
+
+      // Extraire seulement le nom de la ville (première partie avant la virgule)
+      const cityName = place.structured_formatting?.main_text || 
+                      place.description.split(',')[0].trim();
+
+      const result = {
+        city: cityName, // Utilisation du nom de ville seulement
+        description: place.description,
+        latitude: location.lat,
+        longitude: location.lng
+      };
+
+      setQuery(cityName); // Afficher seulement le nom de la ville dans l'input
+      setResults([]);
+      onSelect(result);
+    } catch (err) {
+      console.error("Erreur lors de la sélection:", err);
+    }
   };
 
   return (
@@ -68,6 +84,7 @@ const GooglePlacesInput = ({ placeholder, onSelect, hideMap, style }) => {
             <Text>{item.description}</Text>
           </TouchableOpacity>
         )}
+        keyboardShouldPersistTaps="handled"
       />
     </View>
   );

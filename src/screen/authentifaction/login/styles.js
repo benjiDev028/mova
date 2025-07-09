@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: '#FFC72C',
+    backgroundColor: '#003DA5',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#FFFFFF',
+    color: '#FFF',
     fontSize: 18,
     fontWeight: '600',
     marginRight: 8,
