@@ -38,6 +38,7 @@ class Trip(Base):
     __tablename__ = "trips"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     driver_id = Column(UUID, nullable=False, index=True)
+    car_id =Column(UUID, nullable=True, index=True)
     departure_city = Column(String, nullable=False, index=True)
     destination_city = Column(String, nullable=False, index=True)
     departure_place = Column(String, nullable=False)

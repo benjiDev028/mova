@@ -5,7 +5,6 @@ from typing import Optional
 
 class StopBase(BaseModel):
     destination_city: str = Field(..., max_length=100)
-    place: Optional[str] = None
     price: float
     stop_order: Optional[int] = 1
 
@@ -24,7 +23,6 @@ class StopUpdate(StopBase):
 class StopResponse(BaseModel):
     id: UUID
     destination_city: str = Field(..., max_length=100)
-    place: Optional[str] = None
     price: float
 
     class Config:

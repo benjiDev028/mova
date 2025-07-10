@@ -10,6 +10,7 @@ import aio_pika
 import json
 import uuid
 from sqlalchemy.orm import joinedload
+from sqlalchemy import or_
 from typing import List
 from datetime import datetime, time, date
 from app.db.schemas.trip import TripCreate, TripResponse
@@ -68,6 +69,7 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
     trip_id = uuid.uuid4()
     trip = Trip(
         id=trip_id,
+        car_id = trip_data.car_id,
         driver_id=trip_data.driver_id,
         departure_city=trip_data.departure_city,
         destination_city=trip_data.destination_city,
@@ -134,7 +136,9 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
         # Construction de la réponse
         return TripResponse(
             id=trip.id,
+        
             driver_id=trip.driver_id,
+            car_id=trip.car_id,
             departure_city=trip.departure_city,
             destination_city=trip.destination_city,
             departure_place=trip.departure_place,
@@ -189,6 +193,90 @@ async def get_trip_by_id_service(db: Session, trip_id: uuid) -> TripResponse:
     # Construction de la réponse
     return trip
 
+# Service function version (if you prefer separation of concerns)
+async def search_trips_service(
+    db: Session,
+    departure_city: Optional[str],
+    destination_city: Optional[str],
+    departure_date: date,
+    status: str = "pending",  # Default value
+    skip: int = 0,
+    limit: int = 100
+) -> List[TripResponse]:
+    """
+    Service function for searching trips.
+    Can be called from multiple endpoints.
+    """
+    query = db.query(Trip).options(
+        joinedload(Trip.preferences),
+        joinedload(Trip.stops)
+    )
+    
+    # Required filters
+    query = query.filter(
+        Trip.status == status,
+        Trip.departure_date == departure_date
+    )
+    
+    # Optional filters
+    if departure_city:
+        query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
+    
+
+    
+    trips = query.offset(skip).limit(limit).all()
+    
+    if not trips:
+        logging.info(f"🔎 Aucun trajet trouvé avec les filtres : departure_city={departure_city}, destination_city={destination_city}, departure_date={departure_date}")
+    else:
+        logging.info(f"✅ {len(trips)} trajet(s) trouvé(s)")
+    
+    return trips
+
+async def search_trips_advanced_service(
+    db: Session,
+    departure_city: Optional[str],
+    destination_city: Optional[str],
+    departure_date: date,
+    status: str = "pending",  # Default value
+    skip: int = 0,
+    limit: int = 100
+) -> List[TripResponse]:
+    """
+    Service function for searching trips.
+    Can be called from multiple endpoints.
+    """
+    query = db.query(Trip).options(
+        joinedload(Trip.preferences),
+        joinedload(Trip.stops)
+    )
+    
+    # Required filters
+    query = query.filter(
+        Trip.status == status,
+        Trip.departure_date == departure_date
+    )
+    
+    # Optional filters
+    if departure_city:
+        query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
+    
+    if destination_city:
+        query = query.filter(
+            or_(
+                Trip.destination_city.ilike(f"%{destination_city}%"),
+                Trip.stops.any(Stop.destination_city.ilike(f"%{destination_city}%"))
+            )
+        )
+    
+    trips = query.offset(skip).limit(limit).all()
+    
+    if not trips:
+        logging.info(f"🔎 Aucun trajet trouvé avec les filtres : departure_city={departure_city}, destination_city={destination_city}, departure_date={departure_date}")
+    else:
+        logging.info(f"✅ {len(trips)} trajet(s) trouvé(s)")
+    
+    return trips
 
 async def get_all_trips_service(db: Session) -> List[TripResponse]:
     trips = db.query(Trip).options(

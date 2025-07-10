@@ -7,6 +7,7 @@ from app.db.schemas.stop import StopResponse, StopCreate
 from enum import Enum
 
 
+
 class TripStatus(str, Enum):
     pending = "pending"
     ongoing = "ongoing"
@@ -16,6 +17,7 @@ class TripStatus(str, Enum):
 
 class TripBase(BaseModel):
     driver_id: UUID
+    car_id:UUID
     departure_city: str = Field(..., max_length=100)
     destination_city: str = Field(..., max_length=100)
     departure_place: str = Field(..., max_length=100)
@@ -32,6 +34,7 @@ class TripBase(BaseModel):
 
 
 class TripCreate(TripBase):
+    
     preferences: PreferenceCreate
     stops: Optional[List[StopCreate]] = None
 
@@ -42,6 +45,7 @@ class TripUpdate(TripBase):
 
 class TripResponse(TripBase):
     id: UUID
+    car_id:UUID
     created_at: datetime
     updated_at: datetime
     preferences: Optional[PreferenceResponse]     
