@@ -30,15 +30,7 @@ const DropoffLocationScreen = () => {
       dropoffLocation :locationRef.current
       
 
-    },console.log("drop off ",{
-      departure,
-      arrival,
-      date,
-      time,
-      stops,
-      pickupLocation,
-      dropoffLocation :locationRef.current
-    }));
+    },console.log("drop off ",));
   };
 
   return (

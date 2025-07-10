@@ -11,7 +11,7 @@ import {
   Image,
   ActivityIndicator,Alert
 } from 'react-native';
-import {styles} from "./styles"
+import {styles} from "./styles";
 import { Ionicons } from '@expo/vector-icons';
 import {register} from '../../../services/Register'; // Assurez-vous d'avoir un service d'authentification
 

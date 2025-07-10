@@ -15,6 +15,8 @@ import {
   TouchableWithoutFeedback
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../../hooks/useAuth';
+import ClientTabs from '../../../navigation/client/ClientTabs';
 
 const ReviewAndConfirmScreen = ({ navigation, route }) => {
   // Extract all parameters from route.params
@@ -33,7 +35,8 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     totalSeats,
   } = route.params;
 
-  // Fonction utilitaire pour sécuriser les chaînes de caractères
+    const { user } = useAuth();
+  // Utility function to safely handle strings
   const safeString = (value, fallback = '') => {
     if (typeof value === 'string') return value;
     if (typeof value === 'number') return value.toString();
@@ -61,20 +64,30 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     }
   };
 
-  const formatDateForDatabase = (dateString) => {
-    if (!dateString) return null;
-    
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString;
-      
-      return date.toISOString().split('T')[0];
-    } catch (error) {
-      return dateString;
-    }
+  // Normalize vehicle data
+  const normalizeVehicle = (vehicleData) => {
+    if (!vehicleData) return {
+      brand: 'Marque inconnue',
+      model: 'Modèle inconnu',
+      type: 'Type inconnu',
+      seats: 4,
+      color: 'Couleur inconnue',
+      year: 'Année inconnue',
+      licensePlate: 'Non spécifiée'
+    };
+
+    return {
+      brand: safeString(vehicleData.brand, 'Marque inconnue'),
+      model: safeString(vehicleData.model, 'Modèle inconnu'),
+      type: safeString(vehicleData.type, 'Type inconnu'),
+      seats: vehicleData.seats || 4,
+      color: safeString(vehicleData.color, 'Couleur inconnue'),
+      year: vehicleData.date_of_car ? safeString(vehicleData.date_of_car) : 'Année inconnue',
+      licensePlate: safeString(vehicleData.license_plate, 'Non spécifiée')
+    };
   };
 
-  // Fonction pour normaliser les données des étapes
+  // Normalize stops data
   const normalizeStops = (stops) => {
     if (!Array.isArray(stops)) return [];
     return stops.map((stop, index) => ({
@@ -86,59 +99,81 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     }));
   };
 
-  // Initialisation des données du trajet
-  const [tripData, setTripData] = useState({
-    departure: safeString(departure, 'Départ inconnu'),
-    arrival: safeString(arrival, 'Destination inconnue'),
-    pickupLocation: safeString(pickupLocation, 'Point de prise en charge non spécifié'),
-    dropoffLocation: safeString(dropoffLocation, 'Point de dépôt non spécifié'),
-    date: safeString(date, 'Date non spécifiée'),
-    time: safeString(time, 'Heure non spécifiée'),
-    vehicle: vehicle || {
-      name: 'Véhicule non spécifié',
-      type: 'Type inconnu',
-      seats: totalSeats || 4,
-      color: '#000000'
-    },
-    seats: typeof availableSeats === 'number' ? availableSeats : 1,
-    stops: normalizeStops(stops),
-    preferences: {
-      smoker: !!preferences?.smoker,
-      pets: !!preferences?.pets,
-      luggage: !!preferences?.luggage,
-      bikeRack: !!preferences?.bikeRack,
-      skiRack: !!preferences?.skiRack,
-      ac: !!preferences?.ac,
-      paymentMethod: safeString(preferences?.paymentMethod, 'card')
-    },
-    finalPrice: typeof destinationPrice === 'number' ? destinationPrice : 0
+
+  const [tripData, setTripData] = useState(() => {
+    // Initialiser avec toutes les données reçues ou mises à jour
+    const initialData = route.params?.updatedData || {};
+    
+    return {
+      departure: safeString(initialData.departure || departure, 'Départ inconnu'),
+      arrival: safeString(initialData.arrival || arrival, 'Destination inconnue'),
+      pickupLocation: safeString(initialData.pickupLocation || pickupLocation, 'Point de prise en charge non spécifié'),
+      dropoffLocation: safeString(initialData.dropoffLocation || dropoffLocation, 'Point de dépôt non spécifié'),
+      date: safeString(initialData.date || date, 'Date non spécifiée'),
+      time: safeString(initialData.time || time, 'Heure non spécifiée'),
+      vehicle: normalizeVehicle(initialData.vehicle || vehicle),
+      originalVehicle: initialData.vehicle || vehicle, // Garder l'objet original
+      seats: typeof (initialData.availableSeats || availableSeats) === 'number' ? (initialData.availableSeats || availableSeats) : 1,
+      stops: normalizeStops(initialData.stops || stops),
+      originalStops: initialData.stops || stops, // Garder les arrêts originaux
+      preferences: {
+        smoker: !!(initialData.preferences?.smoker || preferences?.smoker),
+        pets: !!(initialData.preferences?.pets || preferences?.pets),
+        luggage: !!(initialData.preferences?.luggage || preferences?.luggage),
+        bikeRack: !!(initialData.preferences?.bikeRack || preferences?.bikeRack),
+        skiRack: !!(initialData.preferences?.skiRack || preferences?.skiRack),
+        ac: !!(initialData.preferences?.ac || preferences?.ac),
+        paymentMethod: safeString(initialData.preferences?.paymentMethod || preferences?.paymentMethod, 'card')
+      },
+      finalPrice: typeof (initialData.destinationPrice || destinationPrice) === 'number' ? (initialData.destinationPrice || destinationPrice) : 0,
+      driverMessage: initialData.driverMessage || '',
+      totalSeats: initialData.totalSeats || totalSeats
+    };
   });
 
   const [messageModalVisible, setMessageModalVisible] = useState(false);
   const [tempMessage, setTempMessage] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
 
-  // Fonction pour gérer les modifications avec navigation correcte
-  const handleEdit = (section) => {
-    const allCurrentData = {
+  // AMÉLIORATION: Fonction pour créer un package complet des données
+  const createCompleteDataPackage = useCallback(() => {
+    return {
+      // Données principales
       departure: tripData.departure,
       arrival: tripData.arrival,
       pickupLocation: tripData.pickupLocation,
       dropoffLocation: tripData.dropoffLocation,
       date: tripData.date,
       time: tripData.time,
-      preferences: tripData.preferences,
-      stops: tripData.stops,
-      destinationPrice: tripData.finalPrice,
-      vehicle: tripData.vehicle,
+      
+      // Données véhicule
+      vehicle: tripData.originalVehicle,
       availableSeats: tripData.seats,
-      totalSeats: tripData.vehicle.seats,
-      driverMessage: tripData.driverMessage
+      totalSeats: tripData.totalSeats,
+      
+      // Données arrêts et prix
+      stops: tripData.originalStops,
+      destinationPrice: tripData.finalPrice,
+      
+      // Préférences
+      preferences: tripData.preferences,
+      
+      // Message
+      driverMessage: tripData.driverMessage,
+      
+      // Métadonnées pour la navigation
+      returnScreen: 'ReviewAndConfirmScreen',
+      editMode: true,
+      preserveAllData: true // Flag pour indiquer de préserver toutes les données
     };
+  }, [tripData]);
+
+  // Handle edit navigation avec conservation complète des données
+  const handleEdit = useCallback((section) => {
+    const completeData = createCompleteDataPackage();
 
     switch (section) {
       case 'route':
-        // Navigation vers l'onglet client pour modifier l'itinéraire
         Alert.alert(
           "Modifier l'itinéraire",
           "Pour modifier l'itinéraire, vous devez retourner à l'écran principal et refaire la sélection.",
@@ -147,13 +182,11 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
             { 
               text: "Continuer", 
               onPress: () => {
-                // Naviguer vers l'onglet client
                 navigation.navigate('ClientTabs', { 
                   screen: 'AddTrajetTab',
                   params: { 
-                    editMode: true,
-                    currentData: allCurrentData,
-                    returnScreen: 'ReviewAndConfirmScreen'
+                    ...completeData,
+                    editingSection: 'route'
                   }
                 });
               }
@@ -164,42 +197,119 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
 
       case 'vehicle':
         navigation.navigate('VehiculeSelection', {
-          editMode: true,
-          currentData: allCurrentData,
-          returnScreen: 'ReviewAndConfirmScreen'
+          ...completeData,
+          editingSection: 'vehicle'
         });
         break;
 
       case 'preferences':
         navigation.navigate('Preferences', {
-          editMode: true,
-          currentData: allCurrentData,
-          returnScreen: 'ReviewAndConfirmScreen'
+          ...completeData,
+          editingSection: 'preferences'
         });
         break;
 
       default:
         Alert.alert("Erreur", "Section de modification non reconnue");
     }
-  };
+  }, [createCompleteDataPackage, navigation]);
 
-  // Effet pour mettre à jour les données quand on revient d'une modification
+  // AMÉLIORATION: Mise à jour robuste des données lors du retour
   useEffect(() => {
     if (route.params?.updatedData) {
       const updatedData = route.params.updatedData;
-      setTripData(prev => ({
-        ...prev,
-        ...updatedData,
-        stops: normalizeStops(updatedData.stops || prev.stops),
-        preferences: {
-          ...prev.preferences,
-          ...updatedData.preferences
+      
+      setTripData(prevData => {
+        const newData = { ...prevData };
+        
+        // Mise à jour sélective selon la section éditée
+        if (updatedData.editingSection === 'vehicle') {
+          newData.vehicle = normalizeVehicle(updatedData.vehicle);
+          newData.originalVehicle = updatedData.vehicle;
+          newData.seats = updatedData.availableSeats || prevData.seats;
+          newData.totalSeats = updatedData.totalSeats || prevData.totalSeats;
         }
-      }));
+        
+        if (updatedData.editingSection === 'preferences') {
+          newData.preferences = {
+            ...prevData.preferences,
+            ...updatedData.preferences
+          };
+        }
+        
+        if (updatedData.editingSection === 'route') {
+          newData.departure = safeString(updatedData.departure, prevData.departure);
+          newData.arrival = safeString(updatedData.arrival, prevData.arrival);
+          newData.pickupLocation = safeString(updatedData.pickupLocation, prevData.pickupLocation);
+          newData.dropoffLocation = safeString(updatedData.dropoffLocation, prevData.dropoffLocation);
+          newData.date = safeString(updatedData.date, prevData.date);
+          newData.time = safeString(updatedData.time, prevData.time);
+          newData.stops = normalizeStops(updatedData.stops || []);
+          newData.originalStops = updatedData.stops || [];
+          newData.finalPrice = typeof updatedData.destinationPrice === 'number' ? updatedData.destinationPrice : prevData.finalPrice;
+        }
+        
+        // Toujours préserver le message du conducteur
+        if (updatedData.driverMessage !== undefined) {
+          newData.driverMessage = updatedData.driverMessage;
+        }
+        
+        return newData;
+      });
+      
+      // Nettoyer les paramètres après utilisation
+      navigation.setParams({ updatedData: null });
     }
-  }, [route.params?.updatedData]);
+  }, [route.params?.updatedData, navigation]);
 
-  // Composant pour les icônes de préférences
+  // AMÉLIORATION: Vérifier l'intégrité des données avant publication
+  const validateTripData = useCallback(() => {
+    const errors = [];
+    
+    if (!tripData.departure || tripData.departure === 'Départ inconnu') {
+      errors.push('Point de départ manquant');
+    }
+    
+    if (!tripData.arrival || tripData.arrival === 'Destination inconnue') {
+      errors.push('Destination manquante');
+    }
+    
+    if (!tripData.date || tripData.date === 'Date non spécifiée') {
+      errors.push('Date manquante');
+    }
+    
+    if (!tripData.time || tripData.time === 'Heure non spécifiée') {
+      errors.push('Heure manquante');
+    }
+    
+    if (tripData.seats < 1) {
+      errors.push('Nombre de places invalide');
+    }
+    
+    if (tripData.finalPrice < 0) {
+      errors.push('Prix invalide');
+    }
+    
+    return errors;
+  }, [tripData]);
+const formatDateForDatabase = (dateString) => {
+  if (!dateString) return null;
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    
+    // Format YYYY-MM-DD pour la base de données
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    return dateString;
+  }
+};
+  // Preference icon component
   const PreferenceIcon = React.memo(({ type, active }) => {
     const icons = {
       smoker: active ? 'smoking-rooms' : 'smoke-free',
@@ -221,8 +331,48 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
       </View>
     );
   });
+function convertFrenchDateToISO(frenchDateStr) {
+  const mois = {
+    janvier: '01',
+    février: '02',
+    fevrier: '02',
+    mars: '03',
+    avril: '04',
+    mai: '05',
+    juin: '06',
+    juillet: '07',
+    août: '08',
+    aout: '08',
+    septembre: '09',
+    octobre: '10',
+    novembre: '11',
+    décembre: '12',
+    decembre: '12',
+  };
 
-  // Gestion de la modale de message
+  try {
+    const parts = frenchDateStr
+      .toLowerCase()
+      .replace(',', '')
+      .split(' ')
+      .filter(Boolean);
+
+    if (parts.length < 3) throw new Error('Format invalide');
+
+    const day = parts[1].padStart(2, '0');
+    const month = mois[parts[2]];
+    const year = parts[3];
+
+    if (!month) throw new Error(`Mois invalide: ${parts[2]}`);
+
+    return `${year}-${month}-${day}`;
+  } catch (err) {
+    console.error('Erreur de conversion de date:', err.message);
+    return null;
+  }
+}
+
+  // Message modal handlers
   const openMessageModal = useCallback(() => {
     setTempMessage(tripData.driverMessage || '');
     setMessageModalVisible(true);
@@ -233,45 +383,97 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     setMessageModalVisible(false);
   }, [tempMessage]);
 
-  // Confirmation du trajet
-  const confirmTrip = useCallback(async () => {
+  // Confirm and publish trip avec validation
+const confirmTrip = useCallback(async () => {
+  // Valider les données avant publication
+  const validationErrors = validateTripData();
+  
+  if (validationErrors.length > 0) {
     Alert.alert(
-      "Confirmer le trajet",
-      "Voulez-vous publier ce trajet de covoiturage ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        { 
-          text: "Confirmer", 
-          onPress: async () => {
-            setIsPublishing(true);
-            try {
-              console.log('Trip published:', {
-                ...tripData,
-                stops: stops,
-                destinationPrice: destinationPrice,
-                vehicle: vehicle,
-                availableSeats: availableSeats
-              });
-              
-              await new Promise(resolve => setTimeout(resolve, 1500));
-              
-              Alert.alert(
-                "Succès!", 
-                "Votre trajet a été publié avec succès!",
-                [{ text: "OK", onPress: () => navigation.navigate('DriverHome') }]
-              );
-            } catch (error) {
-              Alert.alert("Erreur", "Une erreur s'est produite lors de la publication");
-            } finally {
-              setIsPublishing(false);
+      "Données incomplètes",
+      `Veuillez corriger les erreurs suivantes :\n• ${validationErrors.join('\n• ')}`,
+      [{ text: "OK" }]
+    );
+    return;
+  }
+
+  Alert.alert(
+    "Confirmer le trajet",
+    "Voulez-vous publier ce trajet de covoiturage ?",
+    [
+      { text: "Annuler", style: "cancel" },
+      { 
+        text: "Confirmer", 
+        onPress: async () => {
+          setIsPublishing(true);
+          try {
+            // Préparer les données pour l'API
+            const tripDataForApi = {
+              driver_id: user.id, // Supposons que vous avez l'ID de l'utilisateur
+              car_id: tripData.originalVehicle.id,
+              departure_city: tripData.departure,
+              destination_city: tripData.arrival,
+              departure_place: tripData.pickupLocation,
+              destination_place: tripData.dropoffLocation,
+              departure_time: tripData.time,
+              departure_date: convertFrenchDateToISO(date),
+              total_price: tripData.finalPrice,
+              available_seats: tripData.seats,
+              message: tripData.driverMessage || '',
+              status: "pending",
+              preferences: {
+                baggage: tripData.preferences.luggage,
+                pets_allowed: tripData.preferences.pets,
+                smoking_allowed: tripData.preferences.smoker,
+                air_conditioning: tripData.preferences.ac,
+                bike_support: tripData.preferences.bikeRack,
+                ski_support: tripData.preferences.skiRack,
+                mode_payment: tripData.preferences.paymentMethod === 'card' ? 'virement' : 'espèces'
+              },
+              stops: tripData.stops.map(stop => ({
+                destination_city: stop.city,
+                price: stop.price
+              }))
+            };
+
+            console.log('Data being sent to API:', tripDataForApi);
+
+            // Envoyer les données à l'API
+            const response = await fetch('http://192.168.2.13:8002/tp/create_trip', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                // Si vous utilisez l'authentification
+              },
+              body: JSON.stringify(tripDataForApi)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.message || 'Erreur lors de la publication');
             }
+
+            Alert.alert(
+              "Succès!", 
+              "Votre trajet a été publié avec succès!",
+              [{ text: "OK", onPress: () => navigation.navigate(ClientTabs,'HomeTab') }]
+            );
+          } catch (error) {
+            console.error('Publication error:', error);
+            Alert.alert(
+              "Erreur", 
+              error.message || "Une erreur s'est produite lors de la publication"
+            );
+          } finally {
+            setIsPublishing(false);
           }
         }
-      ]
-    );
-  }, [navigation, tripData, stops, destinationPrice, vehicle, availableSeats]);
-
-  // Rendu d'un point d'arrêt
+      }
+    ]
+  );
+}, [navigation, tripData, validateTripData, user]);
+  // Render stop item
   const renderStopItem = useCallback(({ item }) => (
     <View style={styles.routePoint}>
       <View style={styles.routeLine} />
@@ -286,7 +488,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
     </View>
   ), []);
 
-  // Rendu de la modale de message
+  // Render message modal
   const renderMessageModal = () => (
     <Modal
       visible={messageModalVisible}
@@ -357,7 +559,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Sous-titre */}
+        {/* Subtitle */}
         <View style={styles.headerContent}>
           <Text style={styles.subtitle}>Dernière étape!</Text>
           <Text style={styles.description}>
@@ -365,14 +567,14 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
           </Text>
         </View>
 
-        {/* Contenu principal */}
+        {/* Main content */}
         <ScrollView 
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Carte Itinéraire */}
+          {/* Route Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleContainer}>
@@ -387,7 +589,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
             
-            {/* Affichage de la date et heure */}
+            {/* Date and time */}
             <View style={styles.datetimeContainer}>
               <View style={styles.datetimeItem}>
                 <MaterialIcons name="calendar-today" size={16} color="#666" />
@@ -400,7 +602,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
             </View>
             
             <View style={styles.routeContainer}>
-              {/* Point de départ */}
+              {/* Departure point */}
               <View style={styles.routePoint}>
                 <View style={[styles.routeDot, styles.startDot]} />
                 <View style={styles.routeInfo}>
@@ -409,7 +611,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
                 </View>
               </View>
               
-              {/* Points d'arrêt */}
+              {/* Stops */}
               <FlatList
                 data={tripData.stops}
                 renderItem={renderStopItem}
@@ -417,7 +619,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
                 scrollEnabled={false}
               />
               
-              {/* Point d'arrivée */}
+              {/* Arrival point */}
               <View style={styles.routePoint}>
                 <View style={styles.routeLine} />
                 <View style={[styles.routeDot, styles.endDot]} />
@@ -433,7 +635,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* Carte Véhicule */}
+          {/* Vehicle Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleContainer}>
@@ -448,20 +650,30 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
             <View style={styles.vehicleContainer}>
-              <Text style={styles.vehicleText}>{tripData.vehicle.name}</Text>
-              <Text style={styles.vehicleDetail}>
-                {tripData.vehicle.type} • {tripData.vehicle.color} • {tripData.vehicle.seats} places
+              <Text style={styles.vehicleName}>
+                {tripData.vehicle.brand} {tripData.vehicle.model}
               </Text>
+              
+              <View style={styles.vehicleDetailsRow}>
+                <Text style={styles.vehicleDetail}>Type: {tripData.vehicle.type}</Text>
+                <Text style={styles.vehicleDetail}>Année: {tripData.vehicle.year}</Text>
+              </View>
+              
+              <View style={styles.vehicleDetailsRow}>
+                <Text style={styles.vehicleDetail}>Couleur: {tripData.vehicle.color}</Text>
+                <Text style={styles.vehicleDetail}>Plaque: {tripData.vehicle.licensePlate}</Text>
+              </View>
+              
               <View style={styles.seatsContainer}>
                 <MaterialIcons name="airline-seat-recline-normal" size={16} color="#666" />
                 <Text style={styles.seatsText}>
-                  {tripData.seats} place{tripData.seats > 1 ? 's' : ''} disponible{tripData.seats > 1 ? 's' : ''}
+                  {tripData.seats} place{tripData.seats > 1 ? 's' : ''} disponible{tripData.seats > 1 ? 's' : ''} sur {tripData.vehicle.seats}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Carte Préférences */}
+          {/* Preferences Card */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleContainer}>
@@ -505,7 +717,7 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* Message aux passagers */}
+          {/* Passenger Message */}
           <TouchableOpacity 
             style={styles.messageCard}
             onPress={openMessageModal}
@@ -521,11 +733,11 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
             </Text>
           </TouchableOpacity>
 
-          {/* Espacement pour le bouton fixe */}
+          {/* Spacing for fixed button */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
 
-        {/* Bouton de confirmation */}
+        {/* Confirm Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
             style={[styles.confirmButton, isPublishing && styles.confirmButtonDisabled]} 
@@ -540,14 +752,12 @@ const ReviewAndConfirmScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Modale pour éditer le message */}
+        {/* Message edit modal */}
         {renderMessageModal()}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

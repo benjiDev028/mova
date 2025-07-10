@@ -1,21 +1,29 @@
+// PickupLocationScreen.js
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Alert
+} from 'react-native';
 import GooglePlacesInputPublicOnly from '../../../composants/googleplacepublic/GooglePlacesInputPublicOnly';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import {styles} from "./styles";
+import { styles } from './styles';
 
 const PickupLocationScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { departure, arrival, date,time, stops } = route.params;
+  const { departure, arrival, date, time, stops } = route.params;
 
   const locationRef = useRef(null);
   const [isValid, setIsValid] = useState(false);
 
   const handleConfirm = () => {
     if (!locationRef.current) {
-      Alert.alert("Erreur", "Veuillez sélectionner un lieu public valide.");
+      Alert.alert('Erreur', 'Veuillez sélectionner un lieu public valide.');
       return;
     }
 
@@ -32,12 +40,8 @@ const PickupLocationScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
-      
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#003366" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lieu de rencontre</Text>
@@ -48,29 +52,36 @@ const PickupLocationScreen = () => {
       <Text style={styles.subtitle}>Choisissez un point de rencontre public</Text>
 
       <GooglePlacesInputPublicOnly
-        placeholder="Rechercher une station, gare, aéroport, etc."
+        placeholder="Rechercher un lieu public"
+        baseLocation={departure.city}
         onSelect={(location) => {
           locationRef.current = location;
-          setIsValid(!!location); // Active ou désactive le bouton suivant
+          setIsValid(!!location);
         }}
       />
 
       <View style={styles.suggestionsContainer}>
         <Text style={styles.suggestionsTitle}>Suggestions :</Text>
         <View style={styles.suggestionButtons}>
-          <TouchableOpacity style={styles.suggestionButton}>
+          <TouchableOpacity
+            style={styles.suggestionButton}
+            onPress={() => {/* Implémenter suggestion */}}
+          >
             <Ionicons name="train" size={18} color="#003366" />
             <Text style={styles.suggestionText}>Gare la plus proche</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.suggestionButton}>
+          <TouchableOpacity
+            style={styles.suggestionButton}
+            onPress={() => {/* Implémenter suggestion */}}
+          >
             <Ionicons name="subway" size={18} color="#003366" />
             <Text style={styles.suggestionText}>Station de métro</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={[styles.button, !isValid && styles.disabledButton]} 
+      <TouchableOpacity
+        style={[styles.button, !isValid && styles.disabledButton]}
         onPress={handleConfirm}
         disabled={!isValid}
       >
@@ -79,7 +90,5 @@ const PickupLocationScreen = () => {
     </SafeAreaView>
   );
 };
-
-
 
 export default PickupLocationScreen;

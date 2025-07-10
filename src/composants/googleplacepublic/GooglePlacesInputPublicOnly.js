@@ -98,6 +98,7 @@ const GooglePlacesInputPublicOnly = ({ placeholder, onSelect, style, baseLocatio
         setQuery(resultData.name);
         setResults([]);
         onSelect(result);
+        
       })
       .catch(() => {
         Alert.alert("Erreur", "Impossible de valider ce lieu.");

@@ -11,11 +11,23 @@ import {
 
 const GOOGLE_API_KEY = 'AIzaSyBwx5yyNbJYbt_TLBEozRXPl3oZD4wH-DE';
 
-const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', country = 'ca' }) => {
-  const [query, setQuery] = useState('');
+const GooglePlacesInput = ({ 
+  placeholder, 
+  onSelect, 
+  style, 
+  types = '(cities)', 
+  country = 'ca',
+  initialValue = '' 
+}) => {
+  const [query, setQuery] = useState(initialValue);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState(null);
+
+  // Mettre à jour la valeur quand initialValue change
+  useEffect(() => {
+    setQuery(initialValue);
+  }, [initialValue]);
 
   // Fonction debounce pour limiter les appels API
   const fetchSuggestionsDebounced = (searchText) => {
@@ -62,7 +74,6 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
 
       const result = {
         city: cityName,
-        // description: place.description,
         description: cityName,
         latitude: location.lat,
         longitude: location.lng
@@ -71,7 +82,6 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
       setQuery(cityName);
       setResults([]); // Ferme immédiatement la liste des suggestions
       onSelect(result);
-      console.log("resssss",)
     } catch (err) {
       console.error("Erreur lors de la sélection:", err);
     }
@@ -89,7 +99,8 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
         placeholder={placeholder}
         value={query}
         onChangeText={handleChangeText}
-        placeholderTextColor="#888"
+        placeholderTextColor="#999"
+        autoCapitalize="words"
       />
       {loading && <ActivityIndicator size="small" color="#003366" style={styles.loader} />}
       {results.length > 0 && (
@@ -115,26 +126,35 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 8,
-    zIndex: 1, // Important pour que la liste des suggestions s'affiche au-dessus des autres éléments
+    flex: 1,
+    zIndex: 1000, // Z-index élevé pour que les suggestions s'affichent au-dessus
+    position: 'relative',
   },
   input: {
-    height: 45,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
+    flex: 1,
     fontSize: 16,
-    color: '#000',
-    backgroundColor: '#F9FAFB',
+    color: '#333',
+    paddingVertical: 0, // Enlever le padding vertical pour s'aligner avec le design existant
+    paddingHorizontal: 0,
+    margin: 0,
   },
   resultsList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
     maxHeight: 200,
     borderWidth: 1,
     borderColor: '#D1D5DB',
     borderRadius: 8,
     marginTop: 5,
     backgroundColor: '#FFF',
+    zIndex: 1001,
+    elevation: 5, // Pour Android
+    shadowColor: '#000', // Pour iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   resultItem: {
     padding: 12,
@@ -144,6 +164,7 @@ const styles = StyleSheet.create({
   mainText: {
     fontWeight: '500',
     fontSize: 16,
+    color: '#333',
   },
   secondaryText: {
     fontSize: 14,
@@ -151,7 +172,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   loader: {
-    marginTop: 5,
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
   },
 });
 

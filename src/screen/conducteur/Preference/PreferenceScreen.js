@@ -59,13 +59,13 @@ const PreferencesScreen = () => {
 
   const resetPreferences = () => {
     setPreferences({
-      smoker: null,
-      pets: null,
+      smoker: false,
+      pets: false,
       luggage: true,
       bikeRack: false,
       skiRack: false,
-      ac: false,
-      paymentMethod: null,
+      ac: true,
+      paymentMethod: 'virement',
     });
   };
 

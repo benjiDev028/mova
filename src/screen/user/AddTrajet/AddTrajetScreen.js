@@ -11,13 +11,14 @@ import {
   Switch,
   Modal,
   TouchableWithoutFeedback,
-  FlatList
+  Dimensions
 } from 'react-native';
 import {styles} from "./styles";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import GooglePlacesInput from '../../../composants/googleplace/GooglePlaceInputScreen';
 import { Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
+import { normalize } from '../../../composants/normalise/normalize';
 import 'moment/locale/fr';
 
 moment.locale('fr');
@@ -37,30 +38,24 @@ const AddTrajetScreen = ({ navigation }) => {
 
   const getRouteInfo = async (origin, destination, waypoints = []) => {
     try {
-      const waypointsParam =
-        waypoints.length > 0
-          ? `&waypoints=${waypoints.map(wp => `${wp.latitude},${wp.longitude}`).join('|')}`
-          : '';
-
+      const waypointsParam = waypoints.length > 0 
+        ? `&waypoints=${waypoints.map(wp => `${wp.latitude},${wp.longitude}`).join('|')}` 
+        : '';
+      
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}${waypointsParam}&key=${API_KEY}`
       );
-
+      
       const data = await response.json();
-
+      
       if (data.routes.length > 0) {
-        const totalDuration = data.routes[0].legs
-          .map(leg => leg.duration.text)
-          .join(' + ');
-        const totalDistance = data.routes[0].legs
-          .map(leg => leg.distance.text)
-          .join(' + ');
-
-        setDuration(totalDuration);
-        setDistance(totalDistance);
+        setDuration(data.routes[0].legs.reduce((acc, leg) => 
+          acc + leg.duration.text, ''));
+        setDistance(data.routes[0].legs.reduce((acc, leg) => 
+          acc + leg.distance.text, ''));
       }
     } catch (error) {
-      console.error('Erreur lors du calcul de la route:', error);
+      console.error('Error fetching route:', error);
     }
   };
 
@@ -274,36 +269,7 @@ const AddTrajetScreen = ({ navigation }) => {
       </View>
     );
   };
-
-  const renderStopItem = ({ item, index }) => (
-    <View>
-      <View style={styles.inputGroup}>
-        <View style={styles.routePoint}>
-          <View style={[styles.routeDot, styles.routeDotStop]} />
-          <Text style={styles.inputLabel}>Arrêt {index + 1}</Text>
-        </View>
-        <View style={styles.stopInputWrapper}>
-          <View style={styles.stopInput}>
-            <GooglePlacesInput
-              placeholder={`Ville d'arrêt`}
-              onSelect={(location) => updateStop(index, location)}
-              style={styles.placeInput}
-              types={['(cities)']}
-              country="ca"
-            />
-          </View>
-          <TouchableOpacity 
-            onPress={() => removeStop(index)}
-            style={styles.removeButton}
-          >
-            <Ionicons name="close-circle" size={24} color="#FF6B6B" />
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.connectionLine} />
-    </View>
-  );
-
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
@@ -349,6 +315,7 @@ const AddTrajetScreen = ({ navigation }) => {
                 <GooglePlacesInput
                   placeholder="Ville de départ"
                   onSelect={setDeparture}
+                   initialValue={departure?.city}
                   style={styles.placeInput}
                   types={['(cities)']}
                   country="ca"
@@ -358,14 +325,34 @@ const AddTrajetScreen = ({ navigation }) => {
 
             <View style={styles.connectionLine} />
 
-            {multiStopMode && (
-              <FlatList
-                data={stops}
-                renderItem={renderStopItem}
-                keyExtractor={(item) => item.id.toString()}
-                scrollEnabled={false}
-              />
-            )}
+            {multiStopMode && stops.map((stop, index) => (
+              <View key={stop.id}>
+                <View style={styles.inputGroup}>
+                  <View style={styles.routePoint}>
+                    <View style={[styles.routeDot, styles.routeDotStop]} />
+                    <Text style={styles.inputLabel}>Arrêt {index + 1}</Text>
+                  </View>
+                  <View style={styles.stopInputWrapper}>
+                    <View style={styles.stopInput}>
+                      <GooglePlacesInput
+                        placeholder={`Ville d'arrêt`}
+                        onSelect={(location) => updateStop(index, location)}
+                        style={styles.placeInput}
+                        types={['(cities)']}
+                        country="ca"
+                      />
+                    </View>
+                    <TouchableOpacity 
+                      onPress={() => removeStop(index)}
+                      style={styles.removeButton}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#FF6B6B" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={styles.connectionLine} />
+              </View>
+            ))}
 
             <View style={styles.inputGroup}>
               <View style={styles.routePoint}>
@@ -377,6 +364,7 @@ const AddTrajetScreen = ({ navigation }) => {
                   placeholder="Ville de destination"
                   onSelect={setArrival}
                   style={styles.placeInput}
+                   initialValue={departure?.city}
                   types={['(cities)']}
                   country="ca"
                 />
@@ -441,10 +429,10 @@ const AddTrajetScreen = ({ navigation }) => {
           disabled={!isValid}
           onPress={() =>
             navigation.navigate('PickupLocation', {
-              departure,
-              arrival,
+              departure : normalize(departure.city),
+              arrival: normalize(arrival.city),
               date: formatDate(date),
-              time: formatTime(date),
+              time : formatTime(date),
               stops: stops || [],
             })
           }

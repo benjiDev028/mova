@@ -17,6 +17,7 @@ import {
   FontAwesome5,
   FontAwesome
 } from "@expo/vector-icons";
+import service_vehicule from "../../../services/service_vehicule/service_vehicule";
 import { searchTrips } from "../../../services/service_trip/service_trip";
 import user_services from "../../../services/services_user/user_services";
 import moment from 'moment';
@@ -122,11 +123,10 @@ export default function ListFoundScreen({ navigation, route }) {
               isFinalDestination: true
             });
 
-            const carInfo = userData.cars?.[0] || {};
-            const carModel = carInfo.brand && carInfo.model && carInfo.date_of_car
-              ? `${carInfo.brand} ${carInfo.model}` 
-              : "Information non disponible";
-
+            // const carInfo = userData.cars?.[0] || {};
+            const carInfo = await service_vehicule.getCarById(trip.car_id)
+            const carModel = carInfo.brand ? `${carInfo.brand} ${carInfo.model} ${carInfo.date_of_car} ` : "Information non disponible";
+            
             return {
               id: trip.id,
               time: trip.departure_time?.substring(0, 5) || "--:--",
