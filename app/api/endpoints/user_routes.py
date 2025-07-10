@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
 from app.db.database import get_db
 from app.db.schemas.user import UserResponse, UserResponseFind, UserUpdate, UsersType
 from typing import List
@@ -28,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/get_user_by_email/{email}", response_model=UserResponse)
-async def user_by_email(email: str, db: Session = Depends(get_db)):
+async def user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     """
     Récupère un utilisateur par son email.
     """
@@ -38,7 +40,7 @@ async def user_by_email(email: str, db: Session = Depends(get_db)):
 
 
 @router.get("/get_user_by_id/{id}", response_model=UserResponse)
-async def user_by_id(id: UUID, db: Session = Depends(get_db)):
+async def user_by_id(id: UUID, db: AsyncSession = Depends(get_db)):
     """
     Récupère un utilisateur par son ID.
     """
@@ -47,7 +49,7 @@ async def user_by_id(id: UUID, db: Session = Depends(get_db)):
     return user
 
 @router.get("/users", response_model=List)
-async def users(db: Session = Depends(get_db)):
+async def users(db: AsyncSession = Depends(get_db)):
     """
     Endpoint pour récupérer tous les utilisateurs.
     """
@@ -56,7 +58,7 @@ async def users(db: Session = Depends(get_db)):
 
 
 @router.put("/put_user_by_id/{user_id}", response_model=UserResponse)
-async def update_user_route(user_id: UUID, user: UserUpdate, db: Session = Depends(get_db)):
+async def update_user_route(user_id: UUID, user: UserUpdate, db: AsyncSession = Depends(get_db)):
     """
     Endpoint pour mettre à jour un utilisateur par son ID.
     """
@@ -66,7 +68,7 @@ async def update_user_route(user_id: UUID, user: UserUpdate, db: Session = Depen
     return updated_user
 
 @router.delete("/delete_user_by_id/{user_id}")
-async def delete_user_route(user_id: UUID, db: Session = Depends(get_db)):
+async def delete_user_route(user_id: UUID, db: AsyncSession = Depends(get_db)):
 
     """
     Endpoint pour supprimer un utilisateur par son ID.

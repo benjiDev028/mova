@@ -2,8 +2,11 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime,date 
 from uuid import UUID
 from typing import Optional
+from app.db.schemas.car import CarResponse
 from enum import Enum
-# Schéma pour la notification d'email (ex. code de vérification)
+from typing import List
+# Schéma pour la notification d
+# 'email (ex. code de vérification)
 class NotificationRequest(BaseModel):
     email: EmailStr
     code: int
@@ -74,6 +77,7 @@ class UserCreate(UserBase):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 # Schéma pour l'utilisateur renvoyé après création ou récupération
@@ -82,14 +86,20 @@ class UserResponse(UserBase):
     is_active: str
     created_at: datetime
     updated_at: datetime
+    cars: Optional[List[CarResponse]] = [] # Liste des véhicules associés à l'utilisateur
+    
+
 
     class Config:
         orm_mode = True
+        from_attributes = True
+
 
 
 # Schéma pour un utilisateur à partir de son ID
 class UserFindById(BaseModel):
     id: UUID
+    cars: Optional[List[CarResponse]] =[]# Liste des véhicules associés à l'utilisateur
 
     class Config:
         orm_mode = True
@@ -109,6 +119,7 @@ class UserResponseFind(UserBase):
     created_at: datetime
     date_of_birth: Optional[str]  # Date de naissance au format datetime
     updated_at: datetime
+    cars: Optional[List[CarResponse]]=[] # Liste des véhicules associés à l'utilisateur
 
     class Config:
         orm_mode = True

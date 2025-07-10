@@ -18,14 +18,19 @@ import aio_pika
 import json
 import random
 from datetime import datetime, timedelta
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
 
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Exemple d'authentification après réinitialisation
-async def login_user(db: Session, email: str, password: str):
-    user = db.query(User).filter(User.email == email).one_or_none()
+async def login_user(db: AsyncSession, email: str, password: str):
+    
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=400, detail="Mot de passe ou Identifiant incorrect.")
     

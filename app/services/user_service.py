@@ -8,11 +8,14 @@ from app.db.models.user import User
 from app.core.security import get_password_hash, hash_password
 import aio_pika
 import json
+from sqlalchemy.orm import selectinload
 import uuid
 import os
 from typing import List
 import bcrypt
 from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 
 
@@ -80,66 +83,64 @@ async def send_id_verfication(user_dict: dict) -> None:
         logging.error(f"Erreur lors de l'envoi du message RabbitMQ : {str(e)}")
 
 
-async def create_user(db: Session, user: UserCreate) -> UserResponse:
-    """
-    Crée un nouvel utilisateur dans la base de données.
-    """
-    existing_user = db.query(User).filter(User.email == user.email).first()
-    if existing_user:
-        logging.error(f"Un utilisateur avec l'email {user.email} existe déjà.")
-        raise HTTPException(status_code=400, detail="Un utilisateur avec cet email existe déjà.")
-    
-    logging.info("Création d'un nouvel utilisateur...")
+from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 
-    # Hachage du mot de passe et génération du "salt"
-    # hashed_password, salt = (user.password)
+async def create_user(db: AsyncSession, user: UserCreate) -> UserResponse:
+    result = await db.execute(select(User).where(User.email == user.email))
+    existing_user = result.scalar_one_or_none()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Un utilisateur avec cet email existe déjà.")
+
     hashed_password = hash_password(user.password)
 
-    # Créer un nouvel utilisateur
     new_user = User(
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
-        town =user.town,
-        user_role="passenger",  # Convertir l'énumération en chaîne de caractères
+        town=user.town,
+        user_role="passenger",
         phone_number=user.phone_number,
         date_of_birth=user.date_of_birth,
         password_hash=hashed_password,
-       
-        is_active="pending",  # Par défaut, l'utilisateur est actif
-        created_at=datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M"),
-        updated_at=datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M")
+        is_active="pending",
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
     )
 
     try:
-        # Ajouter l'utilisateur à la base de données
         db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        logging.info(f"Nouvel utilisateur créé avec succès : {new_user.email}")
+        await db.commit()
+        await db.refresh(new_user)
 
         user_dict = {
             "email": new_user.email,
-            "id": str(new_user.id),  # UUID -> string pour sérialisation JSON
-           }
+            "id": str(new_user.id),
+        }
 
-        # Envoi d'un message à RabbitMQ pour activer le compte utilisateur
         await send_activation_email(user_dict)
         await send_id_verfication(user_dict)
 
-    except Exception as e:
-        logging.error(f"Erreur lors de la création de l'utilisateur : {str(e)}")
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Erreur interne lors de la création de l'utilisateur.")
-    
-    return new_user
+        # ⚠️ Recharge AVEC `cars` préchargés (sinon boom avec Pydantic)
+        result = await db.execute(
+            select(User).options(selectinload(User.cars)).where(User.id == new_user.id)
+        )
+        user_with_cars = result.scalar_one()
 
-async def get_user_by_email(db: Session, email: str) -> UserResponseFind:
+        return UserResponse.model_validate(user_with_cars)
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Erreur interne lors de la création de l'utilisateur.")
+
+async def get_user_by_email(db: AsyncSession, email: str) -> UserResponseFind:
     """
     Récupère un utilisateur par son email.
     """
     try:
-        user = db.query(User).filter(User.email == email).first()
+        
+        result = await db.execute(select(User).options(selectinload(User.cars)).where(User.email == email))
+        user = result.scalar_one_or_none()
         if not user:
             logging.error(f"Utilisateur introuvable avec l'email {email}")
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
@@ -151,9 +152,12 @@ async def get_user_by_email(db: Session, email: str) -> UserResponseFind:
     return user
 
 
-async def get_user_by_id(db: Session, user_id: uuid) -> User:
+async def get_user_by_id(db: AsyncSession, user_id: uuid) -> UserResponse:
     try:
-        user = db.query(User).filter(User.id == user_id).first()
+        result = await db.execute(select(User).options(selectinload(User.cars)).where(User.id == user_id))
+        user = result.scalar_one_or_none()
+        
+        
         if not user:
             logging.error(f"Utilisateur introuvable avec l'id {user_id}")
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")

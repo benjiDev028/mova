@@ -28,7 +28,7 @@ class Car(Base) :
     color = Column(String, nullable=False)
     license_plate = Column(String, nullable=False, unique=True)
     seats = Column(Integer, nullable=False)
-    date_of_Car = Column(Date, nullable=False)
+    date_of_car = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M"))
     updated_at = Column(DateTime, default=datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M"))
 

@@ -9,6 +9,8 @@ from app.services.user_service import get_user_by_email, get_user_by_id,get_user
 from app.services.password_service import send_reset_code_to_user,verify_code,update_user_code,update_user_password
 from fastapi import FastAPI, HTTPException, Depends, Request
 from starlette.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import verify_password
 from uuid import UUID
 import logging
@@ -29,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.put("/reset-password-step1")
-async def reset_password_step1(request :ResetPasswordRequest, db: Session = Depends(get_db)):
+async def reset_password_step1(request :ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
     """
     Envoie un code de réinitialisation de mot de passe à l'utilisateur.
     """
@@ -39,7 +41,7 @@ async def reset_password_step1(request :ResetPasswordRequest, db: Session = Depe
 
 @router.put("/reset-password-step2")
 async def reset_password_endpoint(
-    user: CodeResetPasswordRequest, db: Session = Depends(get_db)
+    user: CodeResetPasswordRequest, db: AsyncSession = Depends(get_db)
 ):
     """
     EndPoint pour Verifier le code 
@@ -52,7 +54,7 @@ async def reset_password_endpoint(
 
 @router.put("/reset-password-step3")
 async def reset_password_endpoint(
-    user: UpdatePasswordRequest, db: Session = Depends(get_db)
+    user: UpdatePasswordRequest, db: AsyncSession = Depends(get_db)
 ):
     """
     EndPoint pour Reset le nouveau passé 

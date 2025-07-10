@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.database import get_db
 from app.db.schemas.user import UserResponse, UserCreate
 from app.services.user_service import create_user
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/register", response_model=UserResponse)
-async def earn_points(data: UserCreate, db: Session = Depends(get_db)):
+async def create_user_route(data: UserCreate, db: AsyncSession = Depends(get_db)):
     """
     Crée un nouvel utilisateur dans la base de données et lui attribue des points.
     """

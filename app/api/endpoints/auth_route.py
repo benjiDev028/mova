@@ -5,6 +5,8 @@ from app.db.database import get_db
 from app.services.user_service import get_user_by_email, get_user_by_id
 from app.services.auth_service import login_user
 from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 
 import logging
@@ -38,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-async def login_endpoint(user: UserLogin, db: Session = Depends(get_db)):
+async def login_endpoint(user: UserLogin, db: AsyncSession = Depends(get_db)):
     """
     Connecter un utilisateur existant.
     """

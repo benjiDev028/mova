@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 import os
 from dotenv import load_dotenv
 from fastapi import HTTPException
@@ -10,6 +11,10 @@ from app.core.security import get_password_hash
 from app.db.schemas.password import UpdatePasswordRequest
 import aio_pika
 import json
+from sqlalchemy import select
+
+from sqlalchemy.orm import selectinload
+
 import random
 from datetime import datetime, timedelta
 
@@ -45,11 +50,12 @@ async def send_activation_email(user_dict: dict) -> None:
         logging.error(f"Erreur lors de l'envoi du message RabbitMQ : {str(e)}")
 
 
-async def send_reset_code_to_user(db: Session, email: str):
+async def send_reset_code_to_user(db: AsyncSession, email: str):
     """
     Envoie le code à l'utilisateur via mail et sauvegarde
     """
-    reset_code =str(random.randint(100000, 999999))
+    reset_code = random.randint(100000, 999999)  # ✅ laisse-le en int !
+
 
     try:
         connection = await aio_pika.connect_robust(RABBITMQ_URL)
@@ -75,17 +81,18 @@ async def send_reset_code_to_user(db: Session, email: str):
 
     try:
         # Sauvegarder le code une fois envoyé
-        db_user = db.query(UserCode).filter(UserCode.email == email).first()
+        user = await db.execute(select(UserCode).where(UserCode.email == email))
+        db_user = user.scalar_one_or_none()
         if db_user:
-            db_user.code = reset_code  # Assure-toi que tu modifies le champ correct, ici `code`
+            db_user.code = reset_code 
             db_user.created_at = datetime.utcnow()  # Mise à jour de la date
-            db.commit()
-            db.refresh(db_user)
+            await db.commit()
+            await db.refresh(db_user)
         else:
             db_user = UserCode(email=email, code=reset_code, created_at=datetime.utcnow())
             db.add(db_user)
-            db.commit()
-            db.refresh(db_user)
+            await db.commit()
+            await db.refresh(db_user)
 
         logging.info(f"Code {reset_code} sauvegardé pour {email}")
     except Exception as e:
@@ -94,42 +101,41 @@ async def send_reset_code_to_user(db: Session, email: str):
 
     return {"message": "Code envoyé avec succès."}
 
-async def verify_code(db: Session, email: str, code: str):
+from datetime import datetime, timedelta
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+
+async def verify_code(db: AsyncSession, email: str, code: str):
     """
-    Vérifie le code de confirmation, qu'il est valide et qu'il a été généré
-    il y a moins de 5 minutes.
+    Vérifie le code de confirmation : valide, correct, non expiré (< 5 min),
+    puis le supprime s'il est OK.
     """
     try:
-        
-        query = db.query(UserCode).filter(UserCode.email == email).first()
-        
+        result = await db.execute(select(UserCode).where(UserCode.email == email))
+        user_code = result.scalar_one_or_none()
 
-        if not query:
+        if not user_code:
             raise HTTPException(status_code=404, detail="Code non trouvé.")
 
-        stored_code, created_at = query.code, query.created_at
-        if not stored_code or str(stored_code) != str(code):
+        if str(user_code.code) != str(code):
             raise HTTPException(status_code=400, detail="Code invalide.")
 
-        # Vérifiez que le code n'a pas expiré (5 minutes maximum)
-        if datetime.now() - created_at > timedelta(minutes=5):
+        if datetime.now() - user_code.created_at > timedelta(minutes=5):
             raise HTTPException(status_code=400, detail="Code expiré.")
 
-        # Supprimer le code une fois validé
-        
-        delete_query = db.query(UserCode).filter(UserCode.email == email).first()
-        db.delete(delete_query)
-        db.commit()
-        
+        await db.delete(user_code)
+        await db.commit()
 
         logging.info(f"Code validé avec succès pour {email}")
         return {"message": "Code validé avec succès."}
 
     except HTTPException as e:
-        logging.warning(f"Vérification du code pour {email} échouée: {e.detail}")
+        logging.warning(f"Échec vérification code pour {email} : {e.detail}")
         raise
     except Exception as e:
-        logging.error(f"Erreur lors de la vérification du code pour {email}: {e}")
+        logging.error(f"Erreur interne lors de la vérification du code pour {email}: {e}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la vérification du code.")
 
 
