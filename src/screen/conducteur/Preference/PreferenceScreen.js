@@ -27,13 +27,13 @@ const PreferencesScreen = () => {
   } = route.params;
 
   const [preferences, setPreferences] = useState({
-    smoker: null, // null = non défini, true = autorisé, false = interdit
-    pets: null,
+    smoker: false, // null = non défini, true = autorisé, false = interdit
+    pets: false,
     luggage: true, // Par défaut autorisé
     bikeRack: false,
     skiRack: false,
     ac: false,
-    paymentMethod: null, // 'cash', 'card', ou null
+    paymentMethod: "cash", // 'cash', 'card', ou null
   });
 
   const togglePreference = (key) => {
@@ -65,7 +65,7 @@ const PreferencesScreen = () => {
       bikeRack: false,
       skiRack: false,
       ac: true,
-      paymentMethod: 'virement',
+      paymentMethod: 'cash',
     });
   };
 
@@ -196,7 +196,7 @@ const PreferencesScreen = () => {
               active={preferences.paymentMethod === 'cash'}
               onPress={() => setPaymentMethod('cash')}
               icon="attach-money"
-              label="Espèces"
+              label="cash"
             />
             <ToggleBadge
               active={preferences.paymentMethod === 'card'}

@@ -67,7 +67,7 @@ const AddTrajetScreen = ({ navigation }) => {
   }, [departure, arrival, stops]);
 
   const addStop = () => {
-    if (stops.length < 5) {
+    if (stops.length < 15) {
       setStops([...stops, { id: Date.now(), location: null }]);
     }
   };

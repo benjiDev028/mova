@@ -105,56 +105,6 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 12,
   },
-  autocompleteContainer: {
-    position: 'relative',
-    zIndex: 1000,
-    marginBottom: 16,
-  },
-  
-  suggestionsContainer: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    zIndex: 1001,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderTopWidth: 0,
-    maxHeight: 200,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  
-  suggestionsList: {
-    maxHeight: 200,
-  },
-  
-  suggestionItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    backgroundColor: 'white',
-  },
-  
-  mainText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  
-  secondaryText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
 });
 
 export default PlaceAutocomplete;

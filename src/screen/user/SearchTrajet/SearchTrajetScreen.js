@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FilterModalScreen from '../../passager/FilterModal/FilterModalScreen';
 import GooglePlacesInput from '../../../composants/googleplaceSeach/GoogleplaceSearch';
+import { normalize } from '../../../composants/normalise/normalize';
 import {
   View,
   Text,
@@ -128,8 +129,8 @@ const SearchTrajetScreen = ({ navigation, route }) => {
       const formattedDate = moment(selectedDate).format('YYYY-MM-DD');
 
       const searchParams = {
-        departure: cleanDeparture,
-        arrival: cleanArrival,
+        departure: normalize(departure),
+        arrival: normalize(arrival),
         date: formattedDate,
         includeNearby,
         filters: appliedFilters,
@@ -140,8 +141,8 @@ const SearchTrajetScreen = ({ navigation, route }) => {
       console.log('🔍 Recherche avec paramètres nettoyés:', searchParams);
       
       navigation.navigate('ListFound', {
-        departure: cleanDeparture,
-        arrival: cleanArrival,
+        departure: normalize(departure),
+        arrival: normalize(arrival),
         date: formattedDate,
         includeNearby,
         filters: appliedFilters,

@@ -308,9 +308,10 @@ export default function ListFoundScreen({ navigation, route }) {
           <Text style={styles.carModel}>{item.carModel}</Text>
         </View>
         <View style={styles.durationContainer}>
-          <Text style={styles.duration}>{item.estimatedDuration}</Text>
+          {/* <Text style={styles.duration}>{item.estimatedDuration}</Text> */}
           <Text style={styles.paymentMode}>
-            {item.paymentMode === 'cash' ? 'Espèces' : 'Virement'}
+            {item.paymentMode === 'cash' ? 'cash' : 'Virement'}
+       
           </Text>
         </View>
       </View>

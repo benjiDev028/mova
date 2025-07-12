@@ -15,4 +15,36 @@ export const getCarById = async (carId) => {
   }
 };
 
-export default{getCarById}
+
+export const create_car = async (user_id, brand, model, seats, color, license_plate, date_of_car, type_of_car) => {
+  try {
+    const response = await fetch(`${API_URL}identity/create_cars?user_id=${user_id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id,
+        brand,
+        model,
+        seats,
+        color,
+        license_plate,
+        date_of_car,
+        type_of_car,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la création du véhicule");
+    }
+
+    const data = await response.json(); // si l'API retourne un JSON
+    return data;
+  } catch (error) {
+    console.error('Erreur API create_car:', error);
+    throw error;
+  }
+};
+
+export default{getCarById,create_car}

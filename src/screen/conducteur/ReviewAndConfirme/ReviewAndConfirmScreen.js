@@ -428,10 +428,10 @@ const confirmTrip = useCallback(async () => {
                 air_conditioning: tripData.preferences.ac,
                 bike_support: tripData.preferences.bikeRack,
                 ski_support: tripData.preferences.skiRack,
-                mode_payment: tripData.preferences.paymentMethod === 'card' ? 'virement' : 'espèces'
+                mode_payment: tripData.preferences.paymentMethod === 'card' ? 'virement' : 'cash'
               },
               stops: tripData.stops.map(stop => ({
-                destination_city: stop.city,
+                destination_city: stop.location,
                 price: stop.price
               }))
             };
@@ -474,6 +474,7 @@ const confirmTrip = useCallback(async () => {
   );
 }, [navigation, tripData, validateTripData, user]);
   // Render stop item
+
   const renderStopItem = useCallback(({ item }) => (
     <View style={styles.routePoint}>
       <View style={styles.routeLine} />
@@ -693,7 +694,7 @@ const confirmTrip = useCallback(async () => {
                   <View key={key} style={styles.preferenceItem}>
                     <PreferenceIcon type={key} active={true} />
                     <Text style={styles.preferenceText}>
-                      Paiement: {value === 'card' ? 'Carte' : 'Espèces'}
+                      Paiement: {value === 'card' ? 'Carte' : 'cash'}
                     </Text>
                   </View>
                 );
