@@ -232,6 +232,7 @@ const handleConfirm = () => {
                   <Text style={[styles.preferenceText, { color: config.color }]}>
                     {config.label}
                   </Text>
+                  
                 </View>
               );
             })

@@ -20,6 +20,31 @@ const BASE_URL = "http://192.168.2.13:8002/";
     throw error;
   }
 }
+
+const get_trip_by_driver_id =async  (user_id)=>{
+  try{
+
+    const response = await fetch(`${BASE_URL}tp/get_trip_by_driver_id/${user_id}`,{
+    
+    method:"GET",
+    headers:{
+      "content-type":"application/json",
+    },
+
+    });
+
+    if(!response.ok)
+    {
+      throw new Error('Erreur lors de la récupération des trips by driver id');
+    }
+    const data = response.json()
+    return data  
+
+  }catch(error){
+      console.error('Erreur de trips :', error.message);
+    throw error;
+  }
+}
 //avec filter
 
 export const searchTrips = async (departure, destination, date, includeNearby = false) => {
@@ -64,5 +89,5 @@ export const searchTrips = async (departure, destination, date, includeNearby = 
   }
 };
 export default{
-  searchTrips,getTrips
+  searchTrips,getTrips,get_trip_by_driver_id
 }

@@ -7,48 +7,89 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  RefreshControl
+  RefreshControl,
+  Alert,
+  Image
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../../hooks/useAuth';
+import service_trip from '../../../services/service_trip/service_trip';
+import service_vehicule from "../../../services/service_vehicule/service_vehicule";
 
 const MesTrajetsScreen = ({ navigation }) => {
   const [bookings, setBookings] = useState([]);
+  const [trips, setTrips] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
+
+  // Configuration des préférences
+  const PREFERENCES_CONFIG = {
+    air_conditioning: { icon: "ac-unit", label: "Climatisation", color: "#3B82F6" },
+    baggage: { icon: "luggage", label: "Bagages", color: "#8B5CF6" },
+    bike_support: { icon: "directions-bike", label: "Support vélo", color: "#10B981" },
+    pets_allowed: { icon: "pets", label: "Animaux", color: "#F59E0B" },
+    ski_support: { icon: "downhill-skiing", label: "Support ski", color: "#06B6D4" },
+    smoking_allowed: { icon: "smoking-rooms", label: "Fumeur", color: "#EF4444" }
+  };
 
   useEffect(() => {
-    loadBookings();
+    loadData();
   }, []);
 
-  const loadBookings = async () => {
+  const loadData = async () => {
     try {
-      const savedBookings = await AsyncStorage.getItem('userBookings');
-      if (savedBookings) {
-        const parsedBookings = JSON.parse(savedBookings);
-        // Trier par date (plus récent en premier)
-        const sortedBookings = parsedBookings.sort((a, b) => 
-          new Date(b.bookingDate) - new Date(a.bookingDate)
+      // Charger les trajets du conducteur
+      const driverTrips = await service_trip.get_trip_by_driver_id(user.id);
+      if (driverTrips && driverTrips.length > 0) {
+        // Enrichir les données avec les détails des voitures
+        const enrichedTrips = await Promise.all(
+          driverTrips.map(async (trip) => {
+            try {
+              const carDetails = await service_vehicule.getCarById(trip.car_id);
+              return {
+                ...trip,
+                carDetails: carDetails
+              };
+            } catch (error) {
+              console.error('Erreur lors de la récupération des détails de la voiture:', error);
+              return trip;
+            }
+          })
         );
-        setBookings(sortedBookings);
+        setTrips(enrichedTrips);
       }
+
+      // Charger les bookings (pour les passagers)
+      // Cette partie devrait être adaptée selon votre logique de récupération des bookings
+      // const userBookings = await service_booking.get_bookings_by_user_id(user.id);
+      // setBookings(userBookings || []);
     } catch (error) {
-      console.error('Erreur lors du chargement des réservations:', error);
+      console.error('Erreur lors du chargement des données:', error);
     }
   };
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    loadBookings().finally(() => setRefreshing(false));
+    loadData().finally(() => setRefreshing(false));
   }, []);
 
-  const isUpcoming = (booking) => {
-    const tripDate = new Date(booking.trip.date || new Date());
-    const today = new Date();
-    return tripDate >= today;
+  const isUpcoming = (item) => {
+    const itemDate = new Date(`${item.departure_date} ${item.departure_time}`);
+    const now = new Date();
+    return itemDate >= now;
   };
 
-  const upcomingBookings = bookings.filter(isUpcoming);
-  const pastBookings = bookings.filter(booking => !isUpcoming(booking));
+  const sortByDateTime = (items) => {
+    return items.sort((a, b) => {
+      const dateA = new Date(`${a.departure_date} ${a.departure_time}`);
+      const dateB = new Date(`${b.departure_date} ${b.departure_time}`);
+      return dateA - dateB;
+    });
+  };
+
+  const upcomingTrips = sortByDateTime(trips.filter(isUpcoming));
+  const pastTrips = sortByDateTime(trips.filter(trip => !isUpcoming(trip)));
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -57,6 +98,10 @@ const MesTrajetsScreen = ({ navigation }) => {
       day: 'numeric',
       month: 'short'
     });
+  };
+
+  const formatTime = (timeString) => {
+    return timeString.substring(0, 5); // Affiche HH:MM
   };
 
   const getStatusColor = (status) => {
@@ -69,8 +114,10 @@ const MesTrajetsScreen = ({ navigation }) => {
         return '#DC2626';
       case 'completed':
         return '#6B7280';
+      case 'ongoing':
+        return '#3B82F6';
       default:
-        return '#059669';
+        return '#F59E0B';
     }
   };
 
@@ -84,10 +131,186 @@ const MesTrajetsScreen = ({ navigation }) => {
         return 'Annulé';
       case 'completed':
         return 'Terminé';
+      case 'ongoing':
+        return 'En cours';
       default:
-        return 'Confirmé';
+        return 'En attente';
     }
   };
+
+  const handleTripLongPress = (trip) => {
+    Alert.alert(
+      'Actions du trajet',
+      'Que souhaitez-vous faire avec ce trajet ?',
+      [
+        {
+          text: 'Voir les détails',
+          onPress: () => navigation.navigate('TripDetails', { trip })
+        },
+        {
+          text: 'Marquer comme en cours',
+          onPress: () => updateTripStatus(trip.id, 'ongoing')
+        },
+        {
+          text: 'Marquer comme terminé',
+          onPress: () => updateTripStatus(trip.id, 'completed')
+        },
+        {
+          text: 'Annuler le trajet',
+          onPress: () => updateTripStatus(trip.id, 'cancelled'),
+          style: 'destructive'
+        },
+        {
+          text: 'Annuler',
+          style: 'cancel'
+        }
+      ]
+    );
+  };
+
+  const updateTripStatus = async (tripId, newStatus) => {
+    try {
+      // Ici vous devriez appeler votre service pour mettre à jour le statut
+      // await service_trip.updateTripStatus(tripId, newStatus);
+      
+      // Mettre à jour l'état local
+      setTrips(prevTrips => 
+        prevTrips.map(trip => 
+          trip.id === tripId ? { ...trip, status: newStatus } : trip
+        )
+      );
+      
+      Alert.alert('Succès', `Le trajet a été marqué comme ${getStatusText(newStatus).toLowerCase()}`);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      Alert.alert('Erreur', 'Impossible de mettre à jour le statut du trajet');
+    }
+  };
+
+  const renderTripCard = ({ item, isUpcoming = false }) => (
+    <TouchableOpacity
+      style={[styles.card, isUpcoming && styles.upcomingCard]}
+      onLongPress={() => handleTripLongPress(item)}
+      onPress={() => navigation.navigate('TripDetails', { trip: item })}
+    >
+
+      <View style={styles.cardHeader}>
+        <View style={styles.timeContainer}>
+          <MaterialIcons name="access-time" size={16} color="#007BFF" />
+          <Text style={styles.time}>{formatTime(item.departure_time)}</Text>
+        </View>
+        <View style={styles.priceContainer}>
+       
+          <Text style={styles.time}>{formatDate(item.departure_date)}</Text>
+        </View>
+      </View>
+
+      <View style={styles.routeContainer}>
+        <View style={styles.locationRow}>
+          <View style={styles.locationDot} />
+          <Text style={styles.locationText} numberOfLines={1}>{item.departure_city} - {item.departure_place}</Text>
+        </View>
+        <View style={styles.routeLine} />
+        
+        {item.stops && item.stops.map((stop, index) => (
+          <View key={`stop-${index}`}>
+            <View style={styles.stopRow}>
+              <View style={[styles.locationDot, styles.stopDot]} />
+              <View style={styles.stopInfo}>
+                <Text style={styles.stopPrice}>{stop.destination_city} {stop.price}$ CAD</Text>
+              </View>
+              
+            
+              
+            </View>
+            <View style={styles.routeLine} />
+            {index < item.stops.length - 1 && <View style={styles.routeLine} />}
+          </View>
+        ))}
+
+        <View style={styles.stopRow}>
+          <View style={[styles.locationDot, styles.destinationDot]} />
+          <Text style={styles.destinationText} numberOfLines={1}>{item.destination_city} - {item.destination_place} - {item.total_price}</Text>
+           <Text style={styles.price}>{item.total_price}$</Text>
+
+        </View>
+      </View>
+
+      <View style={styles.driverInfo}>
+        <View style={styles.driverDetails}>
+          <View style={styles.driverNameContainer}>
+            <FontAwesome name="user-circle" size={16} color="#6B7280" />
+            <Text style={styles.driverName}>Vous (Conducteur)</Text>
+            <View style={styles.verifiedBadge}>
+              <MaterialIcons name="verified" size={12} color="#059669" />
+              <Text style={styles.verifiedText}>Vérifié</Text>
+            </View>
+          </View>
+          <Text style={styles.carModel}>
+            {item.carDetails ? `${item.carDetails.brand} ${item.carDetails.model} ${item.carDetails.date_of_car}` : 'Véhicule'}
+          </Text>
+        </View>
+        <View style={styles.durationContainer}>
+          <Text style={styles.paymentMode}>
+            {item.preferences?.mode_payment === 'cash' ? 'Cash' : 
+             item.preferences?.mode_payment === 'espèces' ? 'Espèces' : 'Virement'}
+          </Text>
+        </View>
+      </View>
+
+      {item.message && (
+        <View style={styles.messageContainer}>
+          <MaterialIcons name="message" size={14} color="#1E40AF" />
+          <Text style={styles.messageText}>{item.message}</Text>
+        </View>
+      )}
+
+      <View style={styles.cardFooter}>
+        <View style={styles.seatsContainer}>
+          <MaterialIcons name="airline-seat-recline-normal" size={16} color="#6B7280" />
+          <Text style={styles.seatsText}>
+            {item.available_seats} places disponibles
+          </Text>
+        </View>
+        
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+        </View>
+      </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.preferencesScroll}
+        contentContainerStyle={styles.preferencesContainer}
+      >
+        {item.preferences && Object.entries(item.preferences).map(([key, value]) => {
+          if (key === 'mode_payment' || key === 'id' || !value) return null;
+          
+          const config = PREFERENCES_CONFIG[key] || { icon: "check-circle", label: key, color: "#6B7280" };
+          return (
+            <View key={key} style={[
+              styles.preferenceChip,
+              { borderColor: config.color }
+            ]}>
+              <MaterialIcons
+                name={config.icon}
+                size={12}
+                color={config.color}
+              />
+              <Text style={[styles.preferenceText, { color: config.color }]}>
+                {config.label}
+              </Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+
+      <View style={styles.actionHint}>
+        <Text style={styles.actionHintText}>Appuyez longuement pour plus d'actions</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   const BookingCard = ({ booking, isUpcoming = false }) => (
     <TouchableOpacity 
@@ -183,21 +406,21 @@ const MesTrajetsScreen = ({ navigation }) => {
           <View style={styles.sectionHeader}>
             <MaterialIcons name="upcoming" size={20} color="#003366" />
             <Text style={styles.sectionTitle}>Trajets à venir</Text>
-            {upcomingBookings.length > 0 && (
+            {upcomingTrips.length > 0 && (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{upcomingBookings.length}</Text>
+                <Text style={styles.badgeText}>{upcomingTrips.length}</Text>
               </View>
             )}
           </View>
 
-          {upcomingBookings.length > 0 ? (
-            upcomingBookings.map((booking, index) => (
-              <BookingCard key={booking.bookingId || index} booking={booking} isUpcoming={true} />
+          {upcomingTrips.length > 0 ? (
+            upcomingTrips.map((trip, index) => (
+              renderTripCard({ item: trip, isUpcoming: true })
             ))
           ) : (
             <EmptyState 
               title="Aucun trajet à venir"
-              subtitle="Vos prochaines réservations apparaîtront ici"
+              subtitle="Vos prochains trajets apparaîtront ici"
               icon="schedule"
             />
           )}
@@ -208,16 +431,16 @@ const MesTrajetsScreen = ({ navigation }) => {
           <View style={styles.sectionHeader}>
             <MaterialIcons name="history" size={20} color="#003366" />
             <Text style={styles.sectionTitle}>Historique</Text>
-            {pastBookings.length > 0 && (
+            {pastTrips.length > 0 && (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>{pastBookings.length}</Text>
+                <Text style={styles.badgeText}>{pastTrips.length}</Text>
               </View>
             )}
           </View>
 
-          {pastBookings.length > 0 ? (
-            pastBookings.map((booking, index) => (
-              <BookingCard key={booking.bookingId || index} booking={booking} />
+          {pastTrips.length > 0 ? (
+            pastTrips.map((trip, index) => (
+              renderTripCard({ item: trip, isUpcoming: false })
             ))
           ) : (
             <EmptyState 
@@ -287,7 +510,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
-  bookingCard: {
+  // Styles pour les cartes de trajets
+  card: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -313,12 +537,237 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    zIndex: 1,
   },
   upcomingText: {
     color: '#fff',
     fontSize: 10,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  time: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#003366',
+    marginLeft: 8,
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#059669',
+  },
+  priceLabel: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  routeContainer: {
+    marginVertical: 12,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 2,
+  },
+  locationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#003366',
+    marginRight: 12,
+  },
+  stopDot: {
+    backgroundColor: '#F59E0B',
+  },
+  destinationDot: {
+    backgroundColor: '#059669',
+  },
+  routeLine: {
+    width: 2,
+    height: 16,
+    backgroundColor: '#E5E7EB',
+    marginLeft: 3,
+    marginVertical: 2,
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#374151',
+    flex: 1,
+  },
+  stopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 2,
+  },
+  stopInfo: {
+    flex: 1,
+  },
+  stopLocationText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  stopPrice: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '600',
+  },
+  destinationText: {
+    fontSize: 14,
+    color: '#059669',
+    fontWeight: '600',
+    flex: 1,
+  },
+  driverInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  driverDetails: {
+    flex: 1,
+  },
+  driverNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  driverName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginLeft: 8,
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    backgroundColor: '#ECFDF5',
+    borderRadius: 8,
+  },
+  verifiedText: {
+    fontSize: 10,
+    color: '#059669',
+    marginLeft: 2,
+  },
+  carModel: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginLeft: 24,
+  },
+  durationContainer: {
+    alignItems: 'flex-end',
+  },
+  paymentMode: {
+    fontSize: 12,
+    color: '#374151',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    fontWeight: '500',
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#EBF8FF',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#1E40AF',
+  },
+  messageText: {
+    fontSize: 13,
+    color: '#1E40AF',
+    marginLeft: 8,
+    flex: 1,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  seatsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  seatsText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginLeft: 4,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  preferencesScroll: {
+    marginTop: 12,
+  },
+  preferencesContainer: {
+    paddingHorizontal: 0,
+  },
+  preferenceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginRight: 8,
+    backgroundColor: '#FAFAFA',
+  },
+  preferenceText: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  actionHint: {
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  actionHintText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    fontStyle: 'italic',
+  },
+  // Styles pour les cartes de booking (conservés pour compatibilité)
+  bookingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    position: 'relative',
   },
   bookingHeader: {
     flexDirection: 'row',
@@ -340,25 +789,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 2,
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 12,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  routeContainer: {
-    marginVertical: 12,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 2,
-  },
   dot: {
     width: 8,
     height: 8,
@@ -369,22 +799,6 @@ const styles = StyleSheet.create({
   dotDest: {
     backgroundColor: '#059669',
   },
-  routeLine: {
-    width: 2,
-    height: 16,
-    backgroundColor: '#E5E7EB',
-    marginLeft: 3,
-    marginVertical: 2,
-  },
-  locationText: {
-    fontSize: 14,
-    color: '#374151',
-    flex: 1,
-  },
-  destinationText: {
-    fontWeight: '600',
-    color: '#059669',
-  },
   bookingFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -393,11 +807,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
-  },
-  driverInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
   },
   avatar: {
     width: 24,
@@ -408,11 +817,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  driverName: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#374151',
-  },
   bookingDetails: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -421,11 +825,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 12,
-  },
-  seatsText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
   },
   totalAmount: {
     fontSize: 14,
