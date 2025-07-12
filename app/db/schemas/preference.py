@@ -10,7 +10,7 @@ class PreferenceBase(BaseModel):
     air_conditioning: bool = False
     bike_support: bool = False
     ski_support: bool = False
-    mode_payment: Literal["cash", "virement"] = "cash"
+    mode_payment: str
 
     class Config:
         orm_mode = True

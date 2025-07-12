@@ -550,3 +550,83 @@ car_id
 2025-07-10 00:17:40,500 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=sainteustache, date=2025-07-10, passenger_count=None, price_limit=None
 2025-07-10 00:18:08,089 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=sainteustache, date=2025-07-10, passenger_count=None, price_limit=None
 2025-07-10 00:18:16,575 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=saint-eustache, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:31:22,202 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 7737fd36-c67f-4152-a58e-5ea3713c151d
+2025-07-10 00:31:22,217 - INFO - Voyage créé avec succès : 
+2025-07-10 00:31:31,978 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:36:22,775 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:37:05,717 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:37:53,639 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 74332a3f-5fe6-4e8d-832b-d9c1c4d0977f
+2025-07-10 00:37:53,643 - INFO - Voyage créé avec succès : 
+2025-07-10 00:38:22,809 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:38:28,084 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:38:44,570 - INFO - Filtres de recherche reçus: departure_city=quebec, qc, canada, destination_city=montreal, qc, canada, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:38:50,819 - INFO - Filtres de recherche reçus: departure_city=montreal, qc, canada, destination_city=quebec, qc, canada, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:39:08,225 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:39:10,441 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:40:33,932 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:40:36,291 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 00:57:37,522 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:02:00,808 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=gatineau, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:02:02,864 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:02:04,929 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:03:52,197 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:11:28,395 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=gatineau, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:12:15,179 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:15:04,279 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=gatineau, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:20:19,559 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=enderby, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:20:22,587 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:22:25,732 - INFO - Filtres de recherche reçus: departure_city=quebec, qc, canada, destination_city=montreal, qc, canada, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:26:27,992 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 01:27:34,404 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 16:29:59,096 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 16:30:01,737 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 16:30:19,971 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=gatineau, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 16:30:23,767 - INFO - Filtres de recherche reçus: departure_city=gatineau, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 16:30:43,823 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=moncton, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 16:30:47,541 - INFO - Filtres de recherche reçus: departure_city=moncton, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 21:17:27,560 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 21:18:27,029 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 21:18:32,767 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 21:18:37,440 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-10 21:18:50,704 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-10, passenger_count=None, price_limit=None
+2025-07-11 03:31:28,626 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 96249e22-7653-409f-be35-4ad35e74d0e5
+2025-07-11 03:31:28,638 - INFO - Voyage créé avec succès : 
+2025-07-11 03:48:08,579 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 15:52:52,582 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 15:52:54,788 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 15:54:34,739 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 2835e1ae-13a0-4e29-adc2-4364feb9a5be
+2025-07-11 15:54:34,744 - INFO - Voyage créé avec succès : 
+2025-07-11 15:54:41,743 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 15:54:44,686 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 15:58:49,587 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: eda3a7c4-dc0b-4f13-9ced-8e3b4ce8c4f8
+2025-07-11 15:58:49,591 - INFO - Voyage créé avec succès : 
+2025-07-11 15:59:46,654 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 004ca28d-cadb-4957-8e1f-860206bafd08
+2025-07-11 15:59:46,663 - INFO - Voyage créé avec succès : 
+2025-07-11 16:01:15,712 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 9776aedd-a6fe-4e79-a0e5-4e1350fd9d11
+2025-07-11 16:01:15,725 - INFO - Voyage créé avec succès : 
+2025-07-11 16:01:27,402 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 16:10:23,146 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 1001deb3-994f-4343-be67-19b2bebef727
+2025-07-11 16:10:23,152 - INFO - Voyage créé avec succès : 
+2025-07-11 16:13:31,620 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 16:13:34,867 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=quebec, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 16:19:18,428 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: d389269a-0bb9-4744-a795-3c2e101fb581
+2025-07-11 16:19:18,432 - INFO - Voyage créé avec succès : 
+2025-07-11 16:19:38,021 - INFO - Filtres de recherche reçus: departure_city=de quen-nord, destination_city=restoule, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 16:20:36,146 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: a65a3097-513d-4df7-8407-31a4e76ec38b
+2025-07-11 16:20:36,153 - INFO - Voyage créé avec succès : 
+2025-07-11 16:20:39,931 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 16:26:41,326 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 0f9234df-856f-4f64-8497-892a4d2a4f5d
+2025-07-11 16:26:41,331 - INFO - Voyage créé avec succès : 
+2025-07-11 16:27:04,492 - INFO - Filtres de recherche reçus: departure_city=bouchette, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 16:34:59,246 - INFO - Filtres de recherche reçus: departure_city=bouchette, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 21:02:47,502 - INFO - Filtres de recherche reçus: departure_city=montreal, destination_city=gatineau, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 21:02:53,211 - INFO - Filtres de recherche reçus: departure_city=gatineau, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 21:03:02,761 - INFO - Filtres de recherche reçus: departure_city=quebec, destination_city=montreal, date=2025-07-11, passenger_count=None, price_limit=None
+2025-07-11 21:14:22,229 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 078e320a-e29d-4e29-8d88-fde47c3078d2
+2025-07-11 21:14:22,235 - INFO - Voyage créé avec succès : 
+2025-07-11 21:15:20,735 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 3b1a4dcd-0a76-4a62-8399-189ce9c8b5a5
+2025-07-11 21:15:20,742 - INFO - Voyage créé avec succès : 
+2025-07-11 21:32:42,823 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: 57eb296a-919e-4f72-a710-edb8cdc2c796
+2025-07-11 21:32:42,833 - INFO - Voyage créé avec succès : 
+2025-07-11 21:34:02,636 - INFO - Message envoyé à RabbitMQ pour la création du voyage ID: e5fad4cd-2c04-4559-95d7-c94fddfe860b
+2025-07-11 21:34:02,640 - INFO - Voyage créé avec succès : 
