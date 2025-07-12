@@ -15,6 +15,7 @@ class CarBase(BaseModel):
     license_plate: str = Field(..., description="Plaque d'immatriculation de la voiture")
     seats: int = Field(..., description="Nombre de sièges dans la voiture")
     date_of_car: int = Field(..., description="Date de la voiture")
+    type_of_car:  str = Field(..., description="type de la voiture")
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
    
@@ -24,9 +25,15 @@ class CarBase(BaseModel):
 
 
 # Schéma pour la création d'une voiture
-class CarCreate(CarBase):
-
-    pass
+class CarCreate(BaseModel):
+    user_id: UUID
+    brand: str
+    model: str
+    color: str
+    license_plate: str
+    seats: int
+    date_of_car: int
+    type_of_car: Optional[str] = None
 
 # Schéma pour la mise à jour d'une voiture
 class CarUpdate(CarBase):
@@ -40,8 +47,10 @@ class CarResponse(CarBase):
     brand: str = Field(..., description="Marque de la voiture") 
     model: str = Field(..., description="Modèle de la voiture")
     color: str = Field(..., description="Couleur de la voiture")
+    type_of_car:  str = Field(..., description="type de la voiture")
     license_plate: str = Field(..., description="Plaque d'immatriculation de la voiture")
     seats: int = Field(..., description="Nombre de sièges dans la voiture")
+
     date_of_car: int = Field(..., description="Date de la voiture")
     created_at: datetime = Field(default_factory=lambda: datetime.now().replace(microsecond=0), description="Date de création de l'enregistrement")
     updated_at: datetime = Field(default_factory=lambda: datetime.now().replace(microsecond=0), description="Date de la dernière mise à jour de l'enregistrement")

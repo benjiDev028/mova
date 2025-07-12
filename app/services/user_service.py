@@ -11,6 +11,7 @@ import json
 from sqlalchemy.orm import selectinload
 import uuid
 import os
+import traceback
 from typing import List
 import bcrypt
 from passlib.context import CryptContext
@@ -144,12 +145,14 @@ async def get_user_by_email(db: AsyncSession, email: str) -> UserResponseFind:
         if not user:
             logging.error(f"Utilisateur introuvable avec l'email {email}")
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
+        return user
     except Exception as e:
         logging.error(f"Erreur lors de la recherche de l'utilisateur : {str(e)}")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche de l utilisateur")
                             
     
-    return user
+  
 
 
 async def get_user_by_id(db: AsyncSession, user_id: uuid) -> UserResponse:
@@ -165,6 +168,8 @@ async def get_user_by_id(db: AsyncSession, user_id: uuid) -> UserResponse:
     except Exception as e:
         logging.error(f"Erreur lors de la recherche de l'utilisateur : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche de l'utilisateur")
+    
+   
    
 
 async def get_users_by_user_type(db: Session, user_type: UsersType) -> List[UserResponseFind]:

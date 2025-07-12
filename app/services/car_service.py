@@ -23,7 +23,7 @@ from sqlalchemy import select
 from app.db.schemas.car import CarResponse, CarCreate
 from app.db.models.car import Car
 from app.db.schemas.password import UpdatePasswordRequest
-
+import traceback
 
 # Configuration du logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s',
@@ -33,6 +33,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
     ])
 
 
+ 
+  
 load_dotenv()
 
 # URL de RabbitMQ
@@ -50,7 +52,8 @@ async def create_car_service(db: AsyncSession, user_id: uuid.UUID, car_data: Car
     """
     try:
         # Vérifier si l'utilisateur existe
-        user = await get_user_by_id(db, user_id)
+        result = await db.execute(select(User).where(User.id ==user_id))
+        user = result.scalar_one_or_none()
         if not user:
             logging.error(f"Utilisateur introuvable avec l'id {user_id}")
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
@@ -72,8 +75,10 @@ async def create_car_service(db: AsyncSession, user_id: uuid.UUID, car_data: Car
             color=car_data.color,
             license_plate=car_data.license_plate,
             seats=car_data.seats,
+            type_of_car =car_data.type_of_car,
             date_of_car=car_data.date_of_car,
             created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
             
             
         )
@@ -84,9 +89,10 @@ async def create_car_service(db: AsyncSession, user_id: uuid.UUID, car_data: Car
 
         return new_car  # 🔵 On retourne bien le véhicule créé
 
-    except HTTPException:
-        raise  # relancer les erreurs HTTP telles quelles
+   
     except Exception as e:
+    
+        logging.error("Traceback complet:\n" + traceback.format_exc())
         logging.error(f"Erreur lors de la création du véhicule : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la création du véhicule.")
     

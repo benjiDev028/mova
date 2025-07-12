@@ -29,7 +29,7 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@router.post("/cars", response_model=CarResponse, status_code=201)
+@router.post("/create_cars", response_model=CarResponse, status_code=201)
 async def create_car(user_id: UUID, data_car: CarCreate, db: AsyncSession = Depends(get_db)):
     """
     Ajoute une voiture à un utilisateur donné (user_id dans query params).
