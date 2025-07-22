@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   avatar: {
-    backgroundColor: "#2E5BFF",
+    backgroundColor: "#003DA5",
     width: 100,
     height: 100,
     borderRadius: 50,

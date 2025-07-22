@@ -21,7 +21,7 @@ const BASE_URL = "http://192.168.2.13:8002/";
   }
 }
 
-const get_trip_by_driver_id =async  (user_id)=>{
+const get_trip_by_driver_id = async  (user_id)=>{
   try{
 
     const response = await fetch(`${BASE_URL}tp/get_trip_by_driver_id/${user_id}`,{
@@ -46,6 +46,32 @@ const get_trip_by_driver_id =async  (user_id)=>{
   }
 }
 //avec filter
+
+const update_trip_status_by_ongoing = async (trip_id,new_status)=>{
+  try{
+    const response = await fetch(`${BASE_URL}tp/trip/${trip_id}/status`,{
+      method:"PUT",
+      headers:{
+        "contenT-type":"application/json"
+      },
+       body: JSON.stringify({
+        new_status:new_status,
+       })
+    })
+    if(!response.ok){
+     const errorData =await response.json()
+    
+     const errorMessage =errorData
+      console.log(errorMessage)
+      throw new Error(errorMessage.detail);
+    }
+    return response
+
+  }catch(error){
+     console.error('Erreur du changement de stauts  :', error);
+    throw error;
+  }
+} 
 
 export const searchTrips = async (departure, destination, date, includeNearby = false) => {
   try {
@@ -89,5 +115,5 @@ export const searchTrips = async (departure, destination, date, includeNearby = 
   }
 };
 export default{
-  searchTrips,getTrips,get_trip_by_driver_id
+  searchTrips,getTrips,get_trip_by_driver_id,update_trip_status_by_ongoing
 }

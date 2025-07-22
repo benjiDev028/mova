@@ -41,6 +41,7 @@ const MesTrajetsScreen = ({ navigation }) => {
     try {
       // Charger les trajets du conducteur
       const driverTrips = await service_trip.get_trip_by_driver_id(user.id);
+      console.log("driver ",driverTrips)
       if (driverTrips && driverTrips.length > 0) {
         // Enrichir les données avec les détails des voitures
         const enrichedTrips = await Promise.all(
@@ -171,7 +172,7 @@ const MesTrajetsScreen = ({ navigation }) => {
   const updateTripStatus = async (tripId, newStatus) => {
     try {
       // Ici vous devriez appeler votre service pour mettre à jour le statut
-      // await service_trip.updateTripStatus(tripId, newStatus);
+      await service_trip.update_trip_status_by_ongoing(tripId, newStatus);
       
       // Mettre à jour l'état local
       setTrips(prevTrips => 
@@ -183,7 +184,7 @@ const MesTrajetsScreen = ({ navigation }) => {
       Alert.alert('Succès', `Le trajet a été marqué comme ${getStatusText(newStatus).toLowerCase()}`);
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
-      Alert.alert('Erreur', 'Impossible de mettre à jour le statut du trajet');
+      Alert.alert('Erreur',error.message);
     }
   };
 
@@ -199,8 +200,7 @@ const MesTrajetsScreen = ({ navigation }) => {
           <MaterialIcons name="access-time" size={16} color="#007BFF" />
           <Text style={styles.time}>{formatTime(item.departure_time)}</Text>
         </View>
-        <View style={styles.priceContainer}>
-       
+        <View style={styles.priceContainer}>      
           <Text style={styles.time}>{formatDate(item.departure_date)}</Text>
         </View>
       </View>

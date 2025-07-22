@@ -14,7 +14,8 @@ import {
 import {styles} from "./styles";
 import { Ionicons } from '@expo/vector-icons';
 import {register} from '../../../services/Register'; // Assurez-vous d'avoir un service d'authentification
-
+import GooglePlacesInput from '../../../composants/googleplaceSeach/GoogleplaceSearch';
+import { normalize } from '../../../composants/normalise/normalize';
 
 const RegisterScreen = ({ navigation }) => {
   // États du formulaire
@@ -119,12 +120,20 @@ const RegisterScreen = ({ navigation }) => {
           {/* Ville */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Ville</Text>
-            <TextInput
+            {/* <TextInput
               style={styles.input}
               placeholder="Moncton"
               value={formData.city}
               onChangeText={text => handleChange('city', text)}
-            />
+            /> */}
+                        <GooglePlacesInput
+    style={styles.input}
+    placeholder="Ville de résidence"
+    onSelect={(place) => handleChange('city', normalize(place.city))}
+    initialValue={formData.city}
+    types={['(cities)']}
+    country="ca"
+  />
           </View>
 
           {/* Email */}
@@ -157,7 +166,7 @@ const RegisterScreen = ({ navigation }) => {
             <Text style={styles.label}>Date of birth</Text>
             <TextInput
               style={styles.input}
-              placeholder="xxxx"
+              placeholder="AAAA"
               keyboardType="default"
               autoCapitalize="none"
               value={formData.date_of_birth}
