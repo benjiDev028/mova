@@ -139,39 +139,43 @@ async def verify_code(db: AsyncSession, email: str, code: str):
         raise HTTPException(status_code=500, detail="Erreur interne lors de la vérification du code.")
 
 
-async def get_code_by_email(db: Session, email: str) :
+async def get_code_by_email(db: AsyncSession, email: str) :
     """
     Récupère un code par son email.
     """
     try:
-        return db.query(UserCode).filter(UserCode.email == email).first()
+        # return db.query(UserCode).filter(UserCode.email == email).first()
+        return await db.execute(select(UserCode).where(UserCode.email==email))
+    
     except Exception as e:  
         logging.error(f"Erreur lors de la recherche du code : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche du code")
 
-async def create_user_code(db:Session , email:str, code:int):
+async def create_user_code(db:AsyncSession , email:str, code:int):
 
     """
     Crée un code pour un utilisateur
     """
     try:
-        new_code = UserCode(email=email, code=code)
-        db.add(new_code)
-        db.commit()
+        new_code =await  UserCode(email=email, code=code)
+        await db.add(new_code)
+        await db.commit()
     except Exception as e:
         logging.error(f"Erreur lors de la création du code : {str(e)}")
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail="Erreur interne lors de la création du code")
     
-async def update_user_code(db:Session , email:str, code:int):
+async def update_user_code(db:AsyncSession , email:str, code:int):
     """
     Met à jour le code pour un utilisateur
     """
    
     
     try:
-        result = db.query(UserCode).filter(UserCode.email == email).first()
-        user_code = result.scalars().first()
+        # result = db.query(UserCode).filter(UserCode.email == email).first()
+        result =await db.execute(select(UserCode).where(UserCode.email ==email))
+        user_code = result.scalar_one_or_none()
+        # user_code = result.scalars().first()
         db.refresh(user_code)
         
         if user_code :
@@ -186,33 +190,37 @@ async def update_user_code(db:Session , email:str, code:int):
         
     except Exception as e:
         logging.error(f"Erreur lors de la mise à jour du code : {str(e)}")
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail="Erreur interne lors de la mise à jour du code")
     
-async def delete_user_code(db:Session , email:str): 
+async def delete_user_code(db:AsyncSession , email:str): 
     
     """
     Supprime un code pour un utilisateur
     """
     try:
-        user_code = db.query(UserCode).filter(UserCode.email == email).first()
+        # user_code = db.query(UserCode).filter(UserCode.email == email).first()
+        result =await db.execute(select(UserCode).where(UserCode.email==email))
+        user_code = result.scalar_one_or_none()
         if user_code:
-            db.delete(user_code)
-            db.commit()
+            await db.delete(user_code)
+            await db.commit()
         else:
             raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     except Exception as e:
         logging.error(f"Erreur lors de la suppression du code : {str(e)}")
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail="Erreur interne lors de la suppression du code")
     
 
-async def update_user_password(db: Session, email: str, new_password: str):
+async def update_user_password(db: AsyncSession, email: str, new_password: str):
     """
     Fonction pour mettre à jour le mot de passe d'un utilisateur.
     """
     try:
-        user = db.query(User).filter(User.email == email).first()
+        # user = db.query(User).filter(User.email == email).first()
+        result = await db.execute(select(User).where(User.email ==email))
+        user= result.scalar_one_or_none()
         if not user:
             logging.warning("Password update failed for user ID: %s", email)
             raise RuntimeError("User not found.")
@@ -221,13 +229,13 @@ async def update_user_password(db: Session, email: str, new_password: str):
         user.password_hash = pwd_context.hash(new_password)
         
         # Commit et refresh
-        db.commit()
-        db.refresh(user)  # Rafraîchir l'objet utilisateur
+        await db.commit()
+        await db.refresh(user)  # Rafraîchir l'objet utilisateur
         
         logging.info("Password updated successfully for user ID: %s", email)
         return {"id": str(user.id)}
         
     except Exception as e:
         logging.error("Error updating password for user ID %s: %s", email, str(e))
-        db.rollback()
+        await db.rollback()
         raise RuntimeError(f"Error updating password: {e}")

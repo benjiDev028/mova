@@ -151,10 +151,6 @@ async def get_user_by_email(db: AsyncSession, email: str) -> UserResponseFind:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche de l utilisateur")
                             
-    
-  
-
-
 async def get_user_by_id(db: AsyncSession, user_id: uuid) -> UserResponse:
     try:
         result = await db.execute(select(User).options(selectinload(User.cars)).where(User.id == user_id))
@@ -172,12 +168,14 @@ async def get_user_by_id(db: AsyncSession, user_id: uuid) -> UserResponse:
    
    
 
-async def get_users_by_user_type(db: Session, user_type: UsersType) -> List[UserResponseFind]:
+async def get_users_by_user_type(db: AsyncSession, user_type: UsersType) -> List[UserResponseFind]:
     """
     Récupère tous les utilisateurs d'un type spécifique.
     """
     try:
-        users = db.query(User).filter(User.user_type == user_type.value).all()
+        # users = db.query(User).filter(User.user_type == user_type.value).all()
+        result = await db.execute(select(User).where(User.user_type==user_type.value))
+        users = result.all
         if not users:
             logging.warning(f"Aucun utilisateur trouvé avec le type {user_type.value}.")
             raise HTTPException(status_code=404, detail="Aucun utilisateur trouvé.")
@@ -186,12 +184,14 @@ async def get_users_by_user_type(db: Session, user_type: UsersType) -> List[User
         logging.error(f"Erreur lors de la recherche des utilisateurs : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche des utilisateurs.")
 
-async def get_users(db: Session) -> List[UserResponseFind]:
+async def get_users(db: AsyncSession) -> List[UserResponseFind]:
     """
     Récupère tous les utilisateurs.
     """
     try:
-        users = db.query(User).all()
+        # users = db.query(User).all()
+        result = await db.execute(select(User))
+        users = result.all()
         if not users:
             logging.error("Aucun utilisateur trouvé.")
             raise HTTPException(status_code=404, detail="Aucun utilisateur trouvé.")
@@ -203,13 +203,15 @@ async def get_users(db: Session) -> List[UserResponseFind]:
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche des utilisateurs.")
 
 
-async def update_user(db: Session, user_id: uuid, user: UserUpdate) -> UserResponse:
+async def update_user(db: AsyncSession, user_id: uuid, user: UserUpdate) -> UserResponse:
     """
     Met à jour les informations d'un utilisateur.
     """
     try:
         # On récupère l'utilisateur existant via user_id
-        existing_user = db.query(User).filter(User.id == user_id).first()
+        # existing_user = db.query(User).filter(User.id == user_id).first()
+        result = await db.execute(select(User).where(User.id ==user_id))
+        existing_user = result.scalar_one_or_none()
         if not existing_user:
             logging.error(f"Utilisateur introuvable avec l'id {user_id}")
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
@@ -239,45 +241,49 @@ async def update_user(db: Session, user_id: uuid, user: UserUpdate) -> UserRespo
        
 
         # Enregistrement des modifications
-        db.commit()
-        db.refresh(existing_user)
+        await db.commit()
+        await db.refresh(existing_user)
 
         logging.info(f"Utilisateur mis à jour avec succès : {existing_user.email}")
 
         return existing_user  # Doit correspondre au modèle `UserResponse`
 
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logging.error(f"Erreur lors de la mise à jour de l'utilisateur : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la mise à jour de l'utilisateur.")
 
-async def delete_user(db: Session, user_id: uuid) -> None:
+async def delete_user(db: AsyncSession, user_id: uuid) -> None:
     """
     Supprime un utilisateur de la base de données.
     """
     try:
         # On récupère l'utilisateur existant via user_id
-        existing_user = db.query(User).filter(User.id == user_id).first()
+        # existing_user = db.query(User).filter(User.id == user_id).first()
+        result = await db.execute(select(User).where(User.id ==user_id))
+        existing_user = result.scalar_one_or_none()
         if not existing_user:
             logging.error(f"Utilisateur introuvable avec l'id {user_id}")
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
         
         # Suppression de l'utilisateur
-        db.delete(existing_user)
-        db.commit()
+        await db.delete(existing_user)
+        await db.commit()
         logging.info(f"Utilisateur supprimé avec succès : {existing_user.email}")
         return True
 
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logging.error(f"Erreur lors de la suppression de l'utilisateur : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la suppression de l utisateur.")
     
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def update_user_password(db: Session, user_email: str, new_password: str):
+async def update_user_password(db: AsyncSession, user_email: str, new_password: str):
     try:
-        user = db.query(User).filter(User.email == user_email).one_or_none()
+        # user = db.query(User).filter(User.email == user_email).one_or_none()
+        result = await db.execute(select(User).where(User.email==user_email))
+        user = result.scalar_one_or_none()
         if not user:
             logging.warning("Password update failed: User with email %s not found", user_email)
             raise RuntimeError("User not found.")
@@ -290,14 +296,14 @@ def update_user_password(db: Session, user_email: str, new_password: str):
         user.password_hash = hashed_password
         user.password_salt = salt  
 
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
 
         logging.info("Password updated successfully for user email: %s", user_email)
         return {"email": user.email}
 
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logging.error("Database error while updating password for %s: %s", user_email, str(e))
         raise RuntimeError(f"Database error: {e}")
 
@@ -305,9 +311,11 @@ def update_user_password(db: Session, user_email: str, new_password: str):
         logging.error("Unexpected error updating password for %s: %s", user_email, str(e))
         raise RuntimeError(f"Error updating password: {e}")
 
-def reset_password_request(db: Session, user: UpdatePasswordRequest):
+async def reset_password_request(db: AsyncSession, user: UpdatePasswordRequest):
     try:
-        user_record = db.query(User).filter(User.email == user.email).first()
+        # user_record = db.query(User).filter(User.email == user.email).first()
+        result = await db.execute(select(User).where(User.email ==user.email))
+        user_record = result.scalar_one_or_none()
         if not user_record:
             logging.warning("User not found for password reset: %s", user.email)
             raise HTTPException(status_code=404, detail="User not found")
