@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query
 from typing import List
 from app.db.models.trip import Trip
 from app.db.models.stop import Stop
-from app.db.schemas.trip import TripCreate
+from app.db.schemas.trip import TripCreate,StatusTripUpdate
 from app.services.trip_service import get_trip_by_id_service, create_trip_service, get_all_trips_service,get_trip_by_status_service, search_trips_service, get_trip_by_driver_id_service, get_trips_with_stop_service,update_trip_status_service,get_upcoming_trips_by_driver_service,get_trips_by_stop_city_service,get_today_trips_service,get_driver_trip_history_service
 
 from fastapi import FastAPI, HTTPException, Depends, Request
@@ -153,7 +153,7 @@ async def search_trips_service(
 
         # Filtres sur les préférences
         if smoking_allowed is not None:
-            query = query.join(Trip.preferences).filter(
+            TripPreferences = query.join(Trip.preferences).filter(
                 TripPreferences.smoking_allowed == smoking_allowed
             )
             logging.info(f"Filtrage par fumeur: {smoking_allowed}")
@@ -184,7 +184,7 @@ async def search_trips_service(
 
         if payment_method:
             query = query.join(Trip.preferences).filter(
-                TripPreferences.mode_payment == payment_method
+                Trip.Preferences.mode_payment == payment_method
             )
             logging.info(f"Filtrage par méthode de paiement: {payment_method}")
 
@@ -212,7 +212,7 @@ async def search_trips_service(
         raise HTTPException(status_code=500, detail=f"Erreur lors de la recherche: {str(e)}")
 
 
-@router.get("/search_trips_advanced", response_model=List[TripResponse])
+@router.get("/search_trips_av", response_model=List[TripResponse])
 async def search_trips_advanced_service(
     departure_date: date,
     status: str,
@@ -393,8 +393,8 @@ async def get_trips_with_stop_endpoint(city: str, db: Session = Depends(get_db))
 
 
 @router.put("/trip/{trip_id}/status", response_model=TripResponse)
-async def update_trip_status_endpoint(trip_id: UUID, new_status: str, db: Session = Depends(get_db)):
-    return await update_trip_status_service(db, trip_id, new_status)
+async def update_trip_status_endpoint(trip_id: UUID, data: StatusTripUpdate, db: Session = Depends(get_db)):
+    return await update_trip_status_service(db, trip_id, data.new_status)
 
 @router.get("/trips/upcoming/driver/{driver_id}", response_model=List[TripResponse])
 async def get_upcoming_trips_by_driver_endpoint(driver_id: UUID, db: Session = Depends(get_db)):

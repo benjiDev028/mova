@@ -27,7 +27,7 @@ engine = create_engine(DATABASE_URL)
 # Configurer la session
 Session = sessionmaker(bind=engine)
 
-class Statude(Enum):
+class Status(Enum):
     pending = "pending"
     ongoing = "ongoing"
     completed = "completed"

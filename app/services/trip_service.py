@@ -13,7 +13,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy import or_
 from typing import List
 from datetime import datetime, time, date
-from app.db.schemas.trip import TripCreate, TripResponse
+from app.db.schemas.trip import TripCreate, TripResponse,StatusTripUpdate
 from app.db.schemas.preference import PreferenceResponse
 from app.db.schemas.stop import StopResponse
 from typing import Optional 
@@ -369,16 +369,52 @@ async def get_trips_with_stop_service(db: Session, city: str) -> List[Trip]:
         logging.info(f"Aucun trajet trouvé passant par la ville : {city}")
     return trips
 
-async def update_trip_status_service(db: Session, trip_id: uuid.UUID, new_status: str) -> Trip:
+from enum import Enum
+from datetime import datetime
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+import uuid
+
+class TripStatus(str, Enum):
+    PENDING = "pending"
+    ONGOING = "ongoing"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+async def update_trip_status_service(db: Session, trip_id: uuid.UUID, new_status: TripStatus) -> Trip:
+    # Récupérer le trajet
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
     if not trip:
-        raise HTTPException(status_code=404, detail="Trajet non trouvé.")
+        raise HTTPException(status_code=404, detail="Trajet non trouvé")
     
+    # Valider la transition d'état
+    if not is_valid_transition(trip.status, new_status):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Transition non autorisée de {trip.status} à {new_status}"
+        )
+    
+    # Mettre à jour le statut
     trip.status = new_status
     trip.updated_at = datetime.now().replace(microsecond=0)
+    
     db.commit()
     db.refresh(trip)
     return trip
+
+def is_valid_transition(current_status: TripStatus, new_status: TripStatus) -> bool:
+    """
+    Définit les transitions d'état autorisées
+    """
+    transitions = {
+        TripStatus.PENDING: [TripStatus.ONGOING, TripStatus.CANCELLED],
+        TripStatus.ONGOING: [TripStatus.COMPLETED],
+        TripStatus.COMPLETED: [],  # Aucun changement après complétion
+        TripStatus.CANCELLED: []   # Aucun changement après annulation
+    }
+    
+    return new_status in transitions.get(current_status, [])
+
 
 async def get_upcoming_trips_by_driver_service(db: Session, driver_id: uuid) -> List[Trip]:
     today = date.today()

@@ -43,6 +43,10 @@ class TripUpdate(TripBase):
     id: UUID
 
 
+class StatusTripUpdate(BaseModel):
+    new_status:str
+
+    
 class TripResponse(TripBase):
     id: UUID
     car_id:UUID
