@@ -8,9 +8,14 @@ DATABASE_URL = settings.DATABASE_URL
 engine = create_async_engine(
     DATABASE_URL,
     pool_size=20,        # ← augmente le nombre de connexions simultanées
-    max_overflow=50,     # ← tolérance temporaire supplémentaire
-    pool_timeout=30,     # ← temps max pour attendre une connexion
-    echo=False           # ← mets à True pour debug SQL
+    max_overflow=5,     # ← tolérance temporaire supplémentaire
+    pool_timeout=30,
+    pool_recycle=1800,  # Recyclage toutes les 30 minutes
+    pool_pre_ping=True,  # Vérification des connexions
+    echo=False,
+    future=True # ← pour utiliser les fonctionnalités futures de SQLAlchemy
+            # ← temps max pour attendre une connexion
+            # ← mets à True pour debug SQL
 )
 
 # ✅ Créer une session async
@@ -20,6 +25,7 @@ async_session = sessionmaker(
     expire_on_commit=False,
     autoflush=False,
     autocommit=False,
+    
 )
 
 # ✅ Base des modèles

@@ -82,7 +82,7 @@ async def login_endpoint(user: UserLogin, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/refresh-token", status_code=status.HTTP_200_OK)
-async def refresh_access_token(refresh_token: RefreshToken, db: asyncpg.Connection = Depends(get_db)):
+async def refresh_access_token(refresh_token: RefreshToken, db: AsyncSession = Depends(get_db)):
     """
     Renouvelle l'access token en utilisant un refresh token valide.
     """
