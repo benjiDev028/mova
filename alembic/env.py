@@ -47,8 +47,8 @@ async def run_migrations_online():
     """Exécuter les migrations en mode online (asyncpg)."""
     connectable = create_async_engine(
         DATABASE_URL,
-        poolclass=pool.NullPool,
-        future=True,
+    
+        
     )
 
     async with connectable.connect() as connection:

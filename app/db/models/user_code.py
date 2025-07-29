@@ -52,16 +52,5 @@ class UserCode(Base):
 
     def __repr__(self):
         return f"<UserCode(email={self.email}, code={self.code}, created_at={self.created_at})>"
-# Supprimer et recréer uniquement la table "users" si elle existe
-if __name__ == "__main__":
-    print("Vérification et suppression de la table 'users' si elle existe...")
-
-    inspector = inspect(engine)
-    
-    # Vérifier si la table existe
-    if "users" in inspector.get_table_names():
-        print("Table 'users' existante trouvée. Suppression en cours...")
-        UserCode.__table__.drop(engine)  # Supprimer la table 'users'
-    # Supprimer la table 'user_codes' si elle existe
 
     

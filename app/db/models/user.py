@@ -15,8 +15,8 @@ from sqlalchemy.orm import sessionmaker,relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, inspect
 import uuid
-from datetime import datetime,date
-from sqlalchemy.sql import func
+from datetime import datetime
+
 from app.db.base import Base
 from dotenv import load_dotenv
 
@@ -65,22 +65,3 @@ class User(Base):
    
     cars = relationship("Car", back_populates="user", cascade="all, delete-orphan")
 
-
-# Supprimer et recréer uniquement la table "users" si elle existe
-if __name__ == "__main__":
-    print("Vérification et suppression de la table 'users' si elle existe...")
-
-    inspector = inspect(engine)
-    
-    # Vérifier si la table existe
-    if "users" in inspector.get_table_names():
-        print("Table 'users' existante trouvée. Suppression en cours...")
-        User.__table__.drop(engine)  # Supprimer la table 'users'
-    # Supprimer la table 'user_codes' si elle existe
-
-    
-    
-    # Créer la table
-    print("Création de la table 'users'...")
-    Base.metadata.create_all(engine)
-    print("Table 'users' créée avec succès.")
