@@ -1,0 +1,35 @@
+2025-10-07 10:13:09,854 - ERROR - Erreur SQLAlchemy : (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.updated_at does not exist
+HINT:  Perhaps you meant to reference the column "bookings.created_at".
+[SQL: SELECT bookings.id, bookings.id_user, bookings.id_trip, bookings.id_stop, bookings.number_of_seats, bookings.price_per_seat, bookings.reservation_fee_per_seat, bookings.total_trip_price, bookings.total_reservation_fee, bookings.total_to_pay, bookings.status, bookings.chauffeur_payment_method, bookings.payment_method_used, bookings.created_at, bookings.updated_at 
+FROM bookings 
+WHERE bookings.id_user = $1::UUID AND bookings.id_trip = $2::UUID AND bookings.status = $3::VARCHAR]
+[parameters: (UUID('a94a1c51-574b-4317-9e7c-623547028bc5'), UUID('d0cea17b-e4e4-4db4-aa31-00b7b0b1436e'), 'completed')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-10-07 10:16:14,524 - ERROR - Erreur SQLAlchemy : (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.updated_at does not exist
+HINT:  Perhaps you meant to reference the column "bookings.created_at".
+[SQL: SELECT bookings.id, bookings.id_user, bookings.id_trip, bookings.id_stop, bookings.number_of_seats, bookings.price_per_seat, bookings.reservation_fee_per_seat, bookings.total_trip_price, bookings.total_reservation_fee, bookings.total_to_pay, bookings.status, bookings.chauffeur_payment_method, bookings.payment_method_used, bookings.created_at, bookings.updated_at 
+FROM bookings 
+WHERE bookings.id_user = $1::UUID AND bookings.id_trip = $2::UUID AND bookings.status = $3::VARCHAR]
+[parameters: (UUID('a94a1c51-574b-4317-9e7c-623547028bc5'), UUID('d0cea17b-e4e4-4db4-aa31-00b7b0b1436e'), 'completed')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-10-07 10:20:23,256 - ERROR - Erreur SQLAlchemy : (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedTableError'>: relation "bookings" does not exist
+[SQL: SELECT bookings.id, bookings.id_user, bookings.id_trip, bookings.id_stop, bookings.number_of_seats, bookings.price_per_seat, bookings.reservation_fee_per_seat, bookings.total_trip_price, bookings.total_reservation_fee, bookings.total_to_pay, bookings.status, bookings.chauffeur_payment_method, bookings.payment_method_used, bookings.created_at, bookings.updated_at 
+FROM bookings 
+WHERE bookings.id_user = $1::UUID AND bookings.id_trip = $2::UUID AND bookings.status = $3::VARCHAR]
+[parameters: (UUID('a94a1c51-574b-4317-9e7c-623547028bc5'), UUID('d0cea17b-e4e4-4db4-aa31-00b7b0b1436e'), 'completed')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-10-07 23:53:18,275 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': 'a4c17b2f-644e-4203-8985-a5d8b5324707', 'number_of_seats': 1}
+2025-10-07 23:53:18,277 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '3fe855a5-e55c-4a47-8897-25fd25899a94', 'number_of_seats': 1}
+2025-10-07 23:53:46,032 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '06204f7b-f9e3-4c48-b2a4-ba0bb7a9aae4', 'number_of_seats': 1}
+2025-10-07 23:54:16,982 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '31c0c585-0764-468a-a261-1be83cbf64a5', 'number_of_seats': 1}
+2025-10-07 23:55:29,318 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '96d63ab0-e6ab-489e-b35a-fe69acbd4af3', 'number_of_seats': 1}
+2025-10-07 23:56:19,642 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '9de93dfc-854d-4972-a1dc-4d3c7c62f1f8', 'number_of_seats': 1}
+2025-10-07 23:58:10,628 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '4ba3359f-8edd-4df9-b9ea-83d540cf08dd', 'number_of_seats': 1}
+2025-10-08 00:01:49,880 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '16de4bf1-4224-441e-b0c9-2754fd80ff7c', 'number_of_seats': 1}
+2025-10-08 00:08:30,635 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': 'b5013f13-7ba9-4fae-97f8-5bd1a11304af', 'number_of_seats': 1}
+2025-10-08 00:20:19,073 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '2f0269da-62b8-4e95-b101-088eab62fe50', 'number_of_seats': 1}
+2025-10-08 00:26:44,608 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 00:28:17,415 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 00:31:14,346 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 01:54:37,741 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 500 Internal Server Error"
+2025-10-08 02:17:26,771 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
