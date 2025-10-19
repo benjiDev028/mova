@@ -16,6 +16,14 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState(null);
+ const [isSelected, setIsSelected] = useState(false);
+
+useEffect(() => {
+  if (typeof onValidityChange === 'function') {
+    onValidityChange(isSelected);
+  }
+}, [isSelected]);
+
 
   // Fonction debounce pour limiter les appels API
   const fetchSuggestionsDebounced = (searchText) => {
@@ -70,7 +78,9 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
 
       setQuery(cityName);
       setResults([]); // Ferme immédiatement la liste des suggestions
+      setIsSelected(true);
       onSelect(result);
+      
       console.log("resssss",)
     } catch (err) {
       console.error("Erreur lors de la sélection:", err);
@@ -79,6 +89,7 @@ const GooglePlacesInput = ({ placeholder, onSelect, style, types = '(cities)', c
 
   const handleChangeText = (text) => {
     setQuery(text);
+    setIsSelected(false); 
     fetchSuggestionsDebounced(text);
   };
 

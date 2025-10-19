@@ -1,14 +1,13 @@
-
-
-const url = 'http://192.168.2.13:8001/';
-
-
+import { API_URL } from '@env'
+// AdminService.js
+//const url = API_URL
+const url =  "http://192.168.2.13:8001";
 
 
 export const register =async(first_name, last_name,town, email,phone_number,date_of_birth, password,) => {
 
     try{
-        const respponse = await fetch(url+ 'identity/register', {
+        const respponse = await fetch(url+ '/identity/register', {
             method:'POST',
             headers: {
                 'Content-Type': 'application/json',

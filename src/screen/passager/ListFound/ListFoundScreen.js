@@ -1,3 +1,4 @@
+// screens/client/list/ListFoundScreen.js
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -11,12 +12,7 @@ import {
   ScrollView,
   Image
 } from "react-native";
-import {
-  Ionicons,
-  MaterialIcons,
-  FontAwesome5,
-  FontAwesome
-} from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import service_vehicule from "../../../services/service_vehicule/service_vehicule";
 import { searchTrips } from "../../../services/service_trip/service_trip";
 import user_services from "../../../services/services_user/user_services";
@@ -25,7 +21,7 @@ import 'moment/locale/fr';
 
 moment.locale('fr');
 
-// Configuration des préférences
+// Configuration des préférences (affichage)
 const PREFERENCES_CONFIG = {
   nonFumeur: { icon: "smoke-free", label: "Non fumeur", color: "#059669" },
   fumeur: { icon: "smoking-rooms", label: "Fumeur", color: "#DC2626" },
@@ -54,7 +50,6 @@ export default function ListFoundScreen({ navigation, route }) {
     const initialize = async () => {
       try {
         const params = route.params || {};
-        
         setSearchParams({
           departure: params.departure || '',
           arrival: params.arrival || '',
@@ -83,85 +78,133 @@ export default function ListFoundScreen({ navigation, route }) {
     try {
       setLoading(true);
       setError(null);
-      
-      const tripsData = await searchTrips(departure.trim(), arrival.trim(), date);
-      
-      if (!tripsData || tripsData.length === 0) {
+
+      const tripsData = await searchTrips(String(departure || '').trim(), String(arrival || '').trim(), date);
+      if (!Array.isArray(tripsData) || tripsData.length === 0) {
         setTrips([]);
         return;
       }
+
+      // Cache local pour les voitures
+      const carCache = new Map();
 
       const tripsWithDetails = await Promise.all(
         tripsData.map(async (trip) => {
           try {
             const userData = await user_services.getUserById(trip.driver_id);
-            
-            if (!matchesFilters(trip, filters)) {
-              return null;
-            }
 
-            // Calcul des places disponibles
+            if (!matchesFilters(trip, filters)) return null;
+
+            // --- PLACES ---
             const totalSeats = trip.total_seats ?? trip.available_seats ?? 3;
             const availableSeats = trip.available_seats ?? totalSeats;
-            const reservedSeats = totalSeats - availableSeats;
+            const reservedSeats = Math.max(0, totalSeats - availableSeats);
 
-            // Construction des arrêts
+            // --- ARRETS ---
             const stops = [];
-            if (trip.stops && trip.stops.length > 0) {
+            if (Array.isArray(trip.stops) && trip.stops.length > 0) {
               trip.stops.forEach(stop => {
                 stops.push({
                   location: stop.destination_city || "Arrêt non spécifié",
-                  price: stop.price || 0,
-                  id : stop.id
+                  price: Number(stop.price || 0),
+                  id: stop.id,
                 });
               });
             }
-            
             stops.push({
               location: `${trip.destination_city} - ${trip.destination_place}`,
-              price: trip.total_price,
-              isFinalDestination: true
+              price: Number(trip.total_price || 0),
+              isFinalDestination: true,
             });
 
-            // const carInfo = userData.cars?.[0] || {};
-            const carInfo = await service_vehicule.getCarById(trip.car_id)
-            const carModel = carInfo.brand ? `${carInfo.brand} ${carInfo.model} ${carInfo.date_of_car} ` : "Information non disponible";
-            
+            // --- VEHICULE (robuste, n’échoue jamais le rendu) ---
+            let carInfo = {};
+            const carId = String(trip.car_id || '').trim();
+            if (carId) {
+              try {
+                if (carCache.has(carId)) {
+                  carInfo = carCache.get(carId);
+                } else {
+                  // Utilise le wrapper SÛR (ne throw jamais)
+                  const fallbackFromProfile =
+                    (userData.cars || []).find(c => String(c.id) === carId) ||
+                    (userData.cars || [])[0] || {};
+                  const fetched = await service_vehicule.safeGetCarById(carId, fallbackFromProfile);
+                  carInfo = fetched;
+                  carCache.set(carId, carInfo);
+                }
+              } catch {
+                // Par sécurité (safeGetCarById ne throw pas en pratique)
+                const fb = (userData.cars || [])[0] || {};
+                carInfo = service_vehicule.normalizeCar(fb, carId);
+              }
+            } else {
+              const fb = (userData.cars || [])[0] || {};
+              carInfo = service_vehicule.normalizeCar(fb, carId);
+            }
+
+            const carModel =
+              carInfo.brand
+                ? `${carInfo.brand} ${carInfo.model}${carInfo.date_of_car ? ' ' + carInfo.date_of_car : ''}`.trim()
+                : 'Information non disponible';
+
             return {
-              id: trip.id,
-              time: trip.departure_time?.substring(0, 5) || "--:--",
+              id: trip.id, // UUID
+              time: (trip.departure_time || '').substring(0, 5) || "--:--",
               date: trip.departure_date,
               departure: `${trip.departure_city} - ${trip.departure_place}`,
               arrival: `${trip.destination_city} - ${trip.destination_place}`,
-              price: trip.total_price,
+              price: Number(trip.total_price || 0),
+
               rating: userData.rating || 4.5,
               reviews: userData.reviews_count || Math.floor(Math.random() * 100) + 50,
-              availableSeats: availableSeats,
-              reservedSeats: reservedSeats,
-              totalSeats: totalSeats,
-   
+              availableSeats,
+              reservedSeats,
+              totalSeats,
+
               driverName: `${userData.first_name || 'Prénom'} ${userData.last_name || 'Nom'}`,
               driverPhoto: userData.profile_picture || null,
-              carModel: carModel,
+              carModel,
               preferences: convertPreferencesToArray(trip.preferences),
               estimatedDuration: calculateEstimatedDuration(trip.departure_city, trip.destination_city),
-              verified: userData.verified || false,
-              stops: stops,
+              verified: !!userData.verified,
+              stops,
               message: trip.message || '',
-              status: "pending",
-              paymentMode: trip.preferences?.mode_payment || 'virement'
+              status: trip.status || "pending",
+              paymentMode: (trip.preferences && trip.preferences.mode_payment) || 'virement',
             };
-          } catch (error) {
-            console.error(`Error processing trip ${trip.id}:`, error);
-            return null;
+          } catch (err) {
+            console.error(`Error processing trip ${trip?.id}:`, err);
+            // Carte minimaliste en fallback
+            return {
+              id: trip?.id,
+              time: (trip?.departure_time || '').substring(0, 5) || "--:--",
+              date: trip?.departure_date,
+              departure: `${trip?.departure_city} - ${trip?.departure_place}`,
+              arrival: `${trip?.destination_city} - ${trip?.destination_place}`,
+              price: Number(trip?.total_price || 0),
+              availableSeats: trip?.available_seats ?? 0,
+              totalSeats: trip?.total_seats ?? trip?.available_seats ?? 0,
+              reservedSeats: 0,
+              driverName: 'Conducteur',
+              driverPhoto: null,
+              carModel: 'Information non disponible',
+              preferences: [],
+              estimatedDuration: calculateEstimatedDuration(trip?.departure_city || '', trip?.destination_city || ''),
+              verified: false,
+              stops: [],
+              message: trip?.message || '',
+              status: trip?.status || "pending",
+              paymentMode: (trip?.preferences && trip.preferences.mode_payment) || 'virement',
+            };
           }
         })
       );
 
-      setTrips(tripsWithDetails.filter(trip => trip !== null));
+      setTrips(tripsWithDetails.filter(Boolean));
     } catch (err) {
       console.error("Fetch error:", err);
-      setError(err.message);
+      setError(err.message || 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
@@ -169,21 +212,20 @@ export default function ListFoundScreen({ navigation, route }) {
 
   const matchesFilters = (trip, filters) => {
     if (!filters || Object.keys(filters).length === 0) return true;
-
     const prefs = trip.preferences || {};
-    
     for (const [filterKey, filterValue] of Object.entries(filters)) {
       if (filterValue === null || filterValue === undefined) continue;
-
       switch (filterKey) {
-        case 'priceRange':
+        case 'priceRange': {
           const maxPrice = typeof filterValue === 'object' ? filterValue.max : filterValue;
           if (maxPrice !== undefined && trip.total_price > maxPrice) return false;
           break;
-        case 'minSeats':
+        }
+        case 'minSeats': {
           const availableSeats = (trip.available_seats || 0) - (trip.reserved_seats || 0);
           if (availableSeats < filterValue) return false;
           break;
+        }
         case 'smoking':
           if (prefs.smoking_allowed !== filterValue) return false;
           break;
@@ -205,9 +247,10 @@ export default function ListFoundScreen({ navigation, route }) {
         case 'paymentMode':
           if (filterValue && prefs.mode_payment !== filterValue) return false;
           break;
+        default:
+          break;
       }
     }
-    
     return true;
   };
 
@@ -221,35 +264,22 @@ export default function ListFoundScreen({ navigation, route }) {
       'laval-montreal': '30min',
       'longueuil-montreal': '20min'
     };
-    
-    const key = `${departure.trim().toLowerCase()}-${destination.trim().toLowerCase()}`;
+    const key = `${String(departure || '').trim().toLowerCase()}-${String(destination || '').trim().toLowerCase()}`;
     return distances[key] || '2h';
   };
 
   const convertPreferencesToArray = (prefs) => {
     if (!prefs) return [];
-    
-    const preferencesArray = [];
-    
-    if (prefs.air_conditioning) preferencesArray.push("climatisation");
-    if (prefs.baggage) preferencesArray.push("valise");
-    if (prefs.bike_support) preferencesArray.push("vélo");
-    if (prefs.ski_support) preferencesArray.push("ski");
-    if (prefs.pets_allowed) preferencesArray.push("animaux");
-    
-    if (prefs.smoking_allowed) {
-      preferencesArray.push("fumeur");
-    } else {
-      preferencesArray.push("nonFumeur");
-    }
-    
-    if (prefs.mode_payment === "cash") {
-      preferencesArray.push("paiementCash");
-    } else if (prefs.mode_payment === "virement") {
-      preferencesArray.push("virement");
-    }
-    
-    return preferencesArray;
+    const arr = [];
+    if (prefs.air_conditioning) arr.push("climatisation");
+    if (prefs.baggage) arr.push("valise");
+    if (prefs.bike_support) arr.push("vélo");
+    if (prefs.ski_support) arr.push("ski");
+    if (prefs.pets_allowed) arr.push("animaux");
+    if (prefs.smoking_allowed) arr.push("fumeur"); else arr.push("nonFumeur");
+    if (prefs.mode_payment === "cash") arr.push("paiementCash");
+    else if (prefs.mode_payment === "virement") arr.push("virement");
+    return arr;
   };
 
   const renderTripCard = ({ item }) => (
@@ -271,12 +301,11 @@ export default function ListFoundScreen({ navigation, route }) {
           <Text style={styles.locationText} numberOfLines={1}>{item.departure}</Text>
         </View>
         <View style={styles.routeLine} />
-        
         {item.stops.map((stop, index) => (
           <View key={`stop-${index}`}>
             <View style={styles.stopRow}>
               <View style={[
-                styles.locationDot, 
+                styles.locationDot,
                 stop.isFinalDestination ? styles.destinationDot : styles.stopDot
               ]} />
               <View style={styles.stopInfo}>
@@ -311,29 +340,28 @@ export default function ListFoundScreen({ navigation, route }) {
           <Text style={styles.duration}>{item.estimatedDuration}</Text>
           <Text style={styles.paymentMode}>
             {item.paymentMode === 'cash' ? 'cash' : 'Virement'}
-       
           </Text>
         </View>
       </View>
 
-      {item.message && (
+      {item.message ? (
         <View style={styles.messageContainer}>
           <MaterialIcons name="message" size={14} color="#1E40AF" />
           <Text style={styles.messageText}>{item.message}</Text>
         </View>
-      )}
+      ) : null}
 
       <View style={styles.cardFooter}>
         <View style={styles.ratingContainer}>
           <MaterialIcons name="star" size={14} color="#FFC107" />
-          <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
+          <Text style={styles.rating}>{Number(item.rating || 0).toFixed(1)}</Text>
           <Text style={styles.reviews}>({item.reviews}+ avis)</Text>
         </View>
 
         <View style={styles.seatsContainer}>
           <MaterialIcons name="airline-seat-recline-normal" size={16} color="#6B7280" />
           <Text style={styles.seatsText}>
-             {item.totalSeats - item.availableSeats} / {item.totalSeats} places
+            {item.totalSeats - item.availableSeats} / {item.totalSeats} places
           </Text>
         </View>
       </View>
@@ -347,28 +375,16 @@ export default function ListFoundScreen({ navigation, route }) {
         {item.preferences.map((pref, index) => {
           const config = PREFERENCES_CONFIG[pref] || { icon: "check-circle", label: pref, color: "#6B7280" };
           return (
-            <View key={`pref-${index}`} style={[
-              styles.preferenceChip,
-              { borderColor: config.color }
-            ]}>
-              <MaterialIcons
-                name={config.icon}
-                size={12}
-                color={config.color}
-              />
-              <Text style={[styles.preferenceText, { color: config.color }]}>
-                {config.label}
-              </Text>
+            <View key={`pref-${index}`} style={[styles.preferenceChip, { borderColor: config.color }]}>
+              <MaterialIcons name={config.icon} size={12} color={config.color} />
+              <Text style={[styles.preferenceText, { color: config.color }]}>{config.label}</Text>
             </View>
           );
         })}
       </ScrollView>
 
-      <TouchableOpacity 
-        style={[
-          styles.bookButton,
-          item.availableSeats <= 0 && styles.disabledButton
-        ]}
+      <TouchableOpacity
+        style={[styles.bookButton, item.availableSeats <= 0 && styles.disabledButton]}
         onPress={() => navigation.navigate("DetailTrip", { trip: item })}
         activeOpacity={0.7}
         disabled={item.availableSeats <= 0}
@@ -395,7 +411,7 @@ export default function ListFoundScreen({ navigation, route }) {
       <View style={styles.errorContainer}>
         <MaterialIcons name="error-outline" size={48} color="#EF4444" />
         <Text style={styles.errorText}>Erreur: {error}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.retryButton}
           onPress={() => fetchTripsWithDriverInfo(
             searchParams.departure,
@@ -413,12 +429,8 @@ export default function ListFoundScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#003366" />
         </TouchableOpacity>
         <Text style={styles.textHeader}>Trajets disponibles</Text>
@@ -438,10 +450,8 @@ export default function ListFoundScreen({ navigation, route }) {
         <View style={styles.emptyContainer}>
           <MaterialIcons name="search-off" size={48} color="#9CA3AF" />
           <Text style={styles.emptyText}>Aucun trajet disponible</Text>
-          <Text style={styles.emptySubText}>
-            Essayez de modifier vos critères de recherche ou vos filtres
-          </Text>
-          <TouchableOpacity 
+          <Text style={styles.emptySubText}>Essayez de modifier vos critères de recherche ou vos filtres</Text>
+          <TouchableOpacity
             style={styles.modifySearchButton}
             onPress={() => navigation.navigate('SearchTrajet', searchParams)}
           >
@@ -451,7 +461,7 @@ export default function ListFoundScreen({ navigation, route }) {
       ) : (
         <FlatList
           data={trips}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => String(item.id)}
           renderItem={renderTripCard}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
@@ -462,364 +472,113 @@ export default function ListFoundScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
+  container: { flex: 1, backgroundColor: '#F8F9FA' },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 12,
+    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
   },
   textHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#003366',
-    flex: 1,
-    textAlign: 'center',
-    marginRight: 24
+    fontSize: 18, fontWeight: '700', color: '#003366',
+    flex: 1, textAlign: 'center', marginRight: 24
   },
-  backButton: {
-    padding: 8,
-  },
+  backButton: { padding: 8 },
+
   resultsHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
   },
-  resultsCount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  resultsDate: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  listContainer: {
-    padding: 16,
-  },
+  resultsCount: { fontSize: 16, fontWeight: '600', color: '#111827' },
+  resultsDate: { fontSize: 14, color: '#6B7280', marginTop: 2 },
+
+  listContainer: { padding: 16 },
+
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 16,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 8, elevation: 4, borderWidth: 1, borderColor: '#F3F4F6',
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F8FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F8FF',
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
   },
-  time: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#003366',
-    marginLeft: 4,
-  },
-  priceContainer: {
-    alignItems: 'flex-end',
-  },
-  price: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#059669',
-  },
-  priceLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  routeContainer: {
-    marginVertical: 12,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  stopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  locationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#003366',
-    marginRight: 12,
-  },
-  stopDot: {
-    backgroundColor: '#FFC107',
-    width: 6,
-    height: 6,
-  },
-  destinationDot: {
-    backgroundColor: '#059669',
-  },
-  routeLine: {
-    width: 2,
-    height: 20,
-    backgroundColor: '#E5E7EB',
-    marginLeft: 3,
-    marginVertical: 2,
-  },
-  locationText: {
-    fontSize: 14,
-    color: '#374151',
-    flex: 1,
-    fontWeight: '500',
-  },
-  stopInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  stopLocationText: {
-    fontSize: 13,
-    color: '#374151',
-    fontWeight: '500',
-    flex: 1,
-  },
+  time: { fontSize: 16, fontWeight: '700', color: '#003366', marginLeft: 4 },
+  priceContainer: { alignItems: 'flex-end' },
+  price: { fontSize: 24, fontWeight: '800', color: '#059669' },
+  priceLabel: { fontSize: 12, color: '#6B7280', fontWeight: '500' },
+
+  routeContainer: { marginVertical: 12 },
+  locationRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 4 },
+  stopRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 4 },
+  locationDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#003366', marginRight: 12 },
+  stopDot: { backgroundColor: '#FFC107', width: 6, height: 6 },
+  destinationDot: { backgroundColor: '#059669' },
+  routeLine: { width: 2, height: 20, backgroundColor: '#E5E7EB', marginLeft: 3, marginVertical: 2 },
+  locationText: { fontSize: 14, color: '#374151', flex: 1, fontWeight: '500' },
+  stopInfo: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  stopLocationText: { fontSize: 13, color: '#374151', fontWeight: '500', flex: 1 },
   stopPrice: {
-    fontSize: 14,
-    color: '#059669',
-    fontWeight: '700',
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginLeft: 8,
+    fontSize: 14, color: '#059669', fontWeight: '700',
+    backgroundColor: '#F0FDF4', paddingHorizontal: 8, paddingVertical: 2,
+    borderRadius: 8, marginLeft: 8,
   },
+
   driverInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 8,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginVertical: 12, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: '#F9FAFB', borderRadius: 8,
   },
-  driverDetails: {
-    flex: 1,
-  },
-  driverNameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  driverAvatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  driverName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginRight: 4,
-  },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  verifiedText: {
-    color: '#065F46',
-    fontSize: 10,
-    fontWeight: '600',
-    marginLeft: 2,
-  },
-  carModel: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  durationContainer: {
-    alignItems: 'flex-end',
-  },
-  duration: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '500',
-  },
-  paymentMode: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-  },
+  driverDetails: { flex: 1 },
+  driverNameContainer: { flexDirection: 'row', alignItems: 'center' },
+  driverAvatar: { width: 24, height: 24, borderRadius: 12, marginRight: 8 },
+  driverName: { fontSize: 14, fontWeight: '600', color: '#374151', marginRight: 4 },
+  verifiedBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#D1FAE5',
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 },
+  verifiedText: { color: '#065F46', fontSize: 10, fontWeight: '600', marginLeft: 2 },
+  carModel: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  durationContainer: { alignItems: 'flex-end' },
+  duration: { fontSize: 12, color: '#6B7280', fontWeight: '500' },
+  paymentMode: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+
   messageContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#EFF6FF',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'center',
+    flexDirection: 'row', backgroundColor: '#EFF6FF', padding: 8, borderRadius: 8,
+    marginBottom: 12, alignItems: 'center',
   },
-  messageText: {
-    fontSize: 12,
-    color: '#1E40AF',
-    fontStyle: 'italic',
-    marginLeft: 4,
-    flex: 1,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rating: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginLeft: 4,
-  },
-  reviews: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
-  },
-  seatsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  seatsText: {
-    fontSize: 14,
-    color: '#374151',
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  preferencesScroll: {
-    marginBottom: 12,
-    maxHeight: 30,
-  },
-  preferencesContainer: {
-    paddingRight: 16,
-  },
+  messageText: { fontSize: 12, color: '#1E40AF', fontStyle: 'italic', marginLeft: 4, flex: 1 },
+
+  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  ratingContainer: { flexDirection: 'row', alignItems: 'center' },
+  rating: { fontSize: 14, fontWeight: '600', color: '#374151', marginLeft: 4 },
+  reviews: { fontSize: 12, color: '#6B7280', marginLeft: 4 },
+  seatsContainer: { flexDirection: 'row', alignItems: 'center' },
+  seatsText: { fontSize: 14, color: '#374151', fontWeight: '500', marginLeft: 4 },
+
+  preferencesScroll: { marginBottom: 12, maxHeight: 30 },
+  preferencesContainer: { paddingRight: 16 },
   preferenceChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F8FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 6,
-    borderWidth: 1,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F8FF',
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, marginRight: 6, borderWidth: 1,
   },
-  preferenceText: {
-    fontSize: 10,
-    fontWeight: '500',
-    marginLeft: 3,
-  },
+  preferenceText: { fontSize: 10, fontWeight: '500', marginLeft: 3 },
+
   bookButton: {
-    backgroundColor: '#003366',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    backgroundColor: '#003366', flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 12, paddingHorizontal: 16, borderRadius: 12,
   },
-  disabledButton: {
-    backgroundColor: '#9CA3AF',
-  },
-  bookButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-    marginRight: 6,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    color: '#003366',
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    color: '#EF4444',
-    marginBottom: 20,
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  retryButton: {
-    backgroundColor: '#007BFF',
-    padding: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    marginTop: 16,
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  emptySubText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  modifySearchButton: {
-    marginTop: 20,
-    backgroundColor: '#003366',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  modifySearchText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  }
+  disabledButton: { backgroundColor: '#9CA3AF' },
+  bookButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', marginRight: 6 },
+
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 16, color: '#003366', fontSize: 16 },
+
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  errorText: { color: '#EF4444', marginBottom: 20, textAlign: 'center', fontSize: 16 },
+  retryButton: { backgroundColor: '#007BFF', padding: 12, borderRadius: 8 },
+  retryButtonText: { color: 'white', fontWeight: 'bold' },
+
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  emptyText: { marginTop: 16, color: '#6B7280', fontSize: 16, fontWeight: '600' },
+  emptySubText: { color: '#9CA3AF', fontSize: 14, marginTop: 4, textAlign: 'center' },
+  modifySearchButton: { marginTop: 20, backgroundColor: '#003366', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  modifySearchText: { color: '#FFFFFF', fontWeight: '600' },
 });

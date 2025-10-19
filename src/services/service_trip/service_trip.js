@@ -1,5 +1,5 @@
 // service_trip.js
-const BASE_URL = "http://192.168.2.13:8002/";
+const BASE_URL = "http://192.168.2.13:8003/";
 
  const getTrips = async () => {
   try {
@@ -36,6 +36,31 @@ const get_trip_by_driver_id = async  (user_id)=>{
     if(!response.ok)
     {
       throw new Error('Erreur lors de la récupération des trips by driver id');
+    }
+    const data = response.json()
+    return data  
+
+  }catch(error){
+      console.error('Erreur de trips :', error.message);
+    throw error;
+  }
+}
+
+const get_trip_by_id = async  (trip_id)=>{
+  try{
+
+    const response = await fetch(`${BASE_URL}tp/get_trip_by_id/${trip_id}`,{
+    
+    method:"GET",
+    headers:{
+      "content-type":"application/json",
+    },
+
+    });
+
+    if(!response.ok)
+    {
+      throw new Error('Erreur lors de la récupération des trips by id');
     }
     const data = response.json()
     return data  
@@ -115,5 +140,5 @@ export const searchTrips = async (departure, destination, date, includeNearby = 
   }
 };
 export default{
-  searchTrips,getTrips,get_trip_by_driver_id,update_trip_status_by_ongoing
-}
+  searchTrips,getTrips,get_trip_by_driver_id,update_trip_status_by_ongoing,get_trip_by_id
+};

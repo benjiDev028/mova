@@ -1,9 +1,10 @@
-const url ="http://192.168.2.13:8001/";
-
+import { API_URL } from '@env'
+const url =  "http://192.168.2.13:8001";
+//const url = API_URL;
 
 export const getUserById = async (userId) => {
   try {
-    const response = await fetch(`${url}identity/get_user_by_id/${userId}`, {
+    const response = await fetch(`${url}/identity/get_user_by_id/${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

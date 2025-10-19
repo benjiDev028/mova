@@ -702,7 +702,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFC72C',
+    backgroundColor: '#003DA5',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5E7',
   },
   saveButton: {
-    backgroundColor: '#FFC72C',
+    backgroundColor: '#003DA5',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',

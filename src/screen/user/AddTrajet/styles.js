@@ -1,5 +1,5 @@
-import { StyleSheet,Platform } from "react-native";
-
+// screen/user/AddTrajet/styles.js
+import { StyleSheet, Platform } from "react-native";
 
 export const styles = StyleSheet.create({
   safeArea: {

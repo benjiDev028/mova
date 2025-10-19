@@ -14,7 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 const FilterModalScreen = ({ visible, onClose, onApply }) => {
   const [passengerCount, setPassengerCount] = useState(1);
-  const [priceLimit, setPriceLimit] = useState(50);
+  const [priceLimit, setPriceLimit] = useState();
   const [smokingAllowed, setSmokingAllowed] = useState(null);
   const [petsAllowed, setPetsAllowed] = useState(null);
   const [acAvailable, setAcAvailable] = useState(false);

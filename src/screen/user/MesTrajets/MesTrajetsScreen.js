@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,295 +9,479 @@ import {
   StatusBar,
   RefreshControl,
   Alert,
-  Image
+  FlatList,
+  Linking,
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../../hooks/useAuth';
 import service_trip from '../../../services/service_trip/service_trip';
-import service_vehicule from "../../../services/service_vehicule/service_vehicule";
+import service_vehicule from '../../../services/service_vehicule/service_vehicule';
+import service_booking from '../../../services/service_booking/service_booking';
+import user_services from '../../../services/services_user/user_services';
+
+// Configuration des préférences de trajet avec icônes et couleurs
+const PREFERENCES_CONFIG = {
+  air_conditioning: { icon: 'ac-unit', label: 'Climatisation', color: '#3B82F6' },
+  baggage: { icon: 'luggage', label: 'Bagages', color: '#8B5CF6' },
+  bike_support: { icon: 'directions-bike', label: 'Support vélo', color: '#10B981' },
+  pets_allowed: { icon: 'pets', label: 'Animaux', color: '#F59E0B' },
+  ski_support: { icon: 'downhill-skiing', label: 'Support ski', color: '#06B6D4' },
+  smoking_allowed: { icon: 'smoking-rooms', label: 'Fumeur', color: '#EF4444' },
+};
 
 const MesTrajetsScreen = ({ navigation }) => {
-  const [bookings, setBookings] = useState([]);
-  const [trips, setTrips] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+  // États principaux
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('driver'); // 'driver' ou 'passenger'
+  const [trips, setTrips] = useState([]); // Trajets en tant que conducteur
+  const [bookings, setBookings] = useState([]); // Réservations en tant que passager
+  const [refreshing, setRefreshing] = useState(false); // État de rafraîchissement
+  const [loading, setLoading] = useState(true); // État de chargement initial
+  const [lastUpdated, setLastUpdated] = useState(null); // Dernière mise à jour
 
-  // Configuration des préférences
-  const PREFERENCES_CONFIG = {
-    air_conditioning: { icon: "ac-unit", label: "Climatisation", color: "#3B82F6" },
-    baggage: { icon: "luggage", label: "Bagages", color: "#8B5CF6" },
-    bike_support: { icon: "directions-bike", label: "Support vélo", color: "#10B981" },
-    pets_allowed: { icon: "pets", label: "Animaux", color: "#F59E0B" },
-    ski_support: { icon: "downhill-skiing", label: "Support ski", color: "#06B6D4" },
-    smoking_allowed: { icon: "smoking-rooms", label: "Fumeur", color: "#EF4444" }
-  };
+  // États pour la gestion des passagers
+  const [passengersByTrip, setPassengersByTrip] = useState({}); // Passagers par trajet
+  const [expandedTrips, setExpandedTrips] = useState({}); // Trajets dépliés
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Cache pour les voitures
+  const carCacheRef = useRef(new Map());
 
-  const loadData = async () => {
-    try {
-      // Charger les trajets du conducteur
-      const driverTrips = await service_trip.get_trip_by_driver_id(user.id);
-      console.log("driver ",driverTrips)
-      if (driverTrips && driverTrips.length > 0) {
-        // Enrichir les données avec les détails des voitures
-        const enrichedTrips = await Promise.all(
-          driverTrips.map(async (trip) => {
-            try {
-              const carDetails = await service_vehicule.getCarById(trip.car_id);
-              return {
-                ...trip,
-                carDetails: carDetails
-              };
-            } catch (error) {
-              console.error('Erreur lors de la récupération des détails de la voiture:', error);
-              return trip;
-            }
-          })
-        );
-        setTrips(enrichedTrips);
-      }
-
-      // Charger les bookings (pour les passagers)
-      // Cette partie devrait être adaptée selon votre logique de récupération des bookings
-      // const userBookings = await service_booking.get_bookings_by_user_id(user.id);
-      // setBookings(userBookings || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
+  /**
+   * Récupère les informations d'une voiture avec cache
+   */
+  const getCarInfo = useCallback(async (carId) => {
+    if (!carId) return null;
+    
+    const cacheKey = String(carId).trim();
+    
+    // Retourne depuis le cache si disponible
+    if (carCacheRef.current.has(cacheKey)) {
+      return carCacheRef.current.get(cacheKey);
     }
-  };
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    loadData().finally(() => setRefreshing(false));
+    try {
+      const carData = await service_vehicule.getCarById(encodeURIComponent(cacheKey));
+      
+      // Normalise les données de la voiture
+      const normalizedCar = carData && typeof carData === 'object' ? {
+        id: carData.id || cacheKey,
+        brand: carData.brand || carData.marque || '',
+        model: carData.model || carData.modele || '',
+        date_of_car: carData.date_of_car || carData.year || data.annee || '',
+        color: carData.color || carData.couleur || '',
+      } : null;
+
+      carCacheRef.current.set(cacheKey, normalizedCar);
+      return normalizedCar;
+    } catch (error) {
+      console.warn('Erreur chargement voiture:', error);
+      carCacheRef.current.set(cacheKey, null);
+      return null;
+    }
   }, []);
 
-  const isUpcoming = (item) => {
-    const itemDate = new Date(`${item.departure_date} ${item.departure_time}`);
+  /**
+   * Vérifie si un trajet est à venir
+   */
+  const isTripUpcoming = useCallback((trip) => {
+    if (!trip?.departure_date) return false;
+    
+    const time = (trip?.departure_time || '').slice(0, 5);
+    const [hours, minutes] = time.split(':').map(Number);
+    const [year, month, day] = trip.departure_date.split('-').map(Number);
+    
+    // CORRECTION : Utiliser la date locale pour la comparaison
+    const tripDate = new Date(year, month - 1, day, hours || 0, minutes || 0);
     const now = new Date();
-    return itemDate >= now;
-  };
+    
+    return tripDate >= now;
+  }, []);
 
-  const sortByDateTime = (items) => {
-    return items.sort((a, b) => {
-      const dateA = new Date(`${a.departure_date} ${a.departure_time}`);
-      const dateB = new Date(`${b.departure_date} ${b.departure_time}`);
+  /**
+   * Trie les trajets par date et heure
+   */
+  const sortTripsByDateTime = useCallback((tripsList) => {
+    return tripsList.slice().sort((a, b) => {
+      const getLocalDate = (trip) => {
+        if (!trip?.departure_date) return new Date(0);
+        
+        const time = (trip?.departure_time || '').slice(0, 5);
+        const [hours, minutes] = time.split(':').map(Number);
+        const [year, month, day] = trip.departure_date.split('-').map(Number);
+        
+        return new Date(year, month - 1, day, hours || 0, minutes || 0);
+      };
+      
+      const dateA = getLocalDate(a);
+      const dateB = getLocalDate(b);
+      
       return dateA - dateB;
     });
-  };
+  }, []);
 
-  const upcomingTrips = sortByDateTime(trips.filter(isUpcoming));
-  const pastTrips = sortByDateTime(trips.filter(trip => !isUpcoming(trip)));
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-CA', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short'
-    });
-  };
-
-  const formatTime = (timeString) => {
-    return timeString.substring(0, 5); // Affiche HH:MM
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return '#059669';
-      case 'pending':
-        return '#F59E0B';
-      case 'cancelled':
-        return '#DC2626';
-      case 'completed':
-        return '#6B7280';
-      case 'ongoing':
-        return '#3B82F6';
-      default:
-        return '#F59E0B';
+  /**
+   * Formate une date en français
+   */
+  const formatDate = useCallback((dateString) => {
+    if (!dateString) return '--';
+    
+    try {
+      // CORRECTION : Utiliser la date locale pour l'affichage
+      const [year, month, day] = dateString.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      
+      return date.toLocaleDateString('fr-FR', { 
+        weekday: 'short', 
+        day: 'numeric', 
+        month: 'short' 
+      });
+    } catch (error) {
+      console.warn('Erreur formatage date:', error);
+      return dateString;
     }
+  }, []);
+
+  /**
+   * Formate l'heure (HH:MM)
+   */
+  const formatTime = useCallback((timeString) => {
+    return (timeString || '--:--').substring(0, 5);
+  }, []);
+
+  /**
+   * Couleurs et textes pour les statuts
+   */
+  const getStatusInfo = (status) => {
+    const statusConfig = {
+      confirmed: { color: '#059669', text: 'Confirmé' },
+      pending: { color: '#F59E0B', text: 'En attente' },
+      cancelled: { color: '#DC2626', text: 'Annulé' },
+      completed: { color: '#6B7280', text: 'Terminé' },
+      ongoing: { color: '#3B82F6', text: 'En cours' },
+    };
+    
+    return statusConfig[status] || { color: '#F59E0B', text: 'En attente' };
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return 'Confirmé';
-      case 'pending':
-        return 'En attente';
-      case 'cancelled':
-        return 'Annulé';
-      case 'completed':
-        return 'Terminé';
-      case 'ongoing':
-        return 'En cours';
-      default:
-        return 'En attente';
+  /**
+   * Charge les trajets où l'utilisateur est conducteur
+   */
+  const loadDriverTrips = useCallback(async () => {
+    if (!user?.id) return [];
+    
+    try {
+      const driverTrips = await service_trip.get_trip_by_driver_id(user.id);
+      if (!driverTrips || driverTrips.length === 0) return [];
+
+      // Enrichit chaque trajet avec les infos de la voiture
+      const enrichedTrips = await Promise.all(
+        driverTrips.map(async (trip) => {
+          const carInfo = await getCarInfo(trip.car_id);
+          return { ...trip, carInfo };
+        })
+      );
+      
+      return enrichedTrips;
+    } catch (error) {
+      console.error('Erreur chargement trajets conducteur:', error);
+      return [];
     }
-  };
+  }, [user?.id, getCarInfo]);
 
-  const handleTripLongPress = (trip) => {
-    Alert.alert(
-      'Actions du trajet',
-      'Que souhaitez-vous faire avec ce trajet ?',
-      [
-        {
-          text: 'Voir les détails',
-          onPress: () => navigation.navigate('TripDetails', { trip })
-        },
-        {
-          text: 'Marquer comme en cours',
-          onPress: () => updateTripStatus(trip.id, 'ongoing')
-        },
-        {
-          text: 'Marquer comme terminé',
-          onPress: () => updateTripStatus(trip.id, 'completed')
-        },
-        {
-          text: 'Annuler le trajet',
-          onPress: () => updateTripStatus(trip.id, 'cancelled'),
-          style: 'destructive'
-        },
-        {
-          text: 'Annuler',
-          style: 'cancel'
+  /**
+   * Charge les réservations où l'utilisateur est passager
+   */
+  const loadPassengerBookings = useCallback(async () => {
+    if (!user?.id) return [];
+    
+    try {
+      const userBookings = await service_booking.get_bookings_by_user_id(user.id);
+      
+      // Enrichit chaque réservation avec les détails du trajet et du conducteur
+      const enrichedBookings = await Promise.all(
+        (userBookings || []).map(async (booking) => {
+          if (!booking?.id_trip) return booking;
+
+          try {
+            const tripDetails = await service_trip.get_trip_by_id(booking.id_trip);
+            let driverInfo = null;
+            
+            if (tripDetails?.driver_id) {
+              driverInfo = await user_services.getUserById(tripDetails.driver_id);
+            }
+            
+            return { ...booking, trip: tripDetails, driver: driverInfo };
+          } catch (error) {
+            console.warn(`Erreur enrichissement réservation ${booking.id}:`, error);
+            return booking;
+          }
+        })
+      );
+      
+      return enrichedBookings;
+    } catch (error) {
+      console.error('Erreur chargement réservations:', error);
+      return [];
+    }
+  }, [user?.id]);
+
+  /**
+   * Charge toutes les données
+   */
+  const loadAllData = useCallback(async () => {
+    setLoading(true);
+    
+    try {
+      const [driverTrips, passengerBookings] = await Promise.all([
+        loadDriverTrips(),
+        loadPassengerBookings(),
+      ]);
+      
+      setTrips(driverTrips || []);
+      setBookings(passengerBookings || []);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Erreur chargement général:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadDriverTrips, loadPassengerBookings]);
+
+  // Recharge les données quand l'écran est focus
+  useFocusEffect(
+    useCallback(() => {
+      loadAllData();
+    }, [loadAllData])
+  );
+
+  /**
+   * Gestion du pull-to-refresh
+   */
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadAllData().finally(() => setRefreshing(false));
+  }, [loadAllData]);
+
+  /**
+   * Charge les passagers d'un trajet quand on le déplie
+   */
+/**
+ * Charge les passagers d'un trajet quand on le déplie
+ */
+/**
+ * Charge les passagers d'un trajet quand on le déplie
+ */
+const toggleTripExpansion = useCallback(async (trip) => {
+  const tripId = trip?.id;
+  if (!tripId) return;
+
+  const isExpanding = !expandedTrips[tripId];
+  setExpandedTrips(prev => ({ ...prev, [tripId]: isExpanding }));
+
+  if (!isExpanding) return;
+
+  setPassengersByTrip(prev => ({
+    ...prev,
+    [tripId]: { loading: true, error: null, items: prev[tripId]?.items || [] },
+  }));
+
+  try {
+    console.log(`Chargement des passagers pour le trajet ${tripId}`);
+    
+    const passengersResponse = await service_booking.get_passengers_by_trip(tripId);
+    console.log('Réponse passagers:', passengersResponse);
+    
+    let passengers = [];
+    if (Array.isArray(passengersResponse)) {
+      passengers = passengersResponse;
+    } else if (passengersResponse && typeof passengersResponse === 'object') {
+      passengers = passengersResponse.data || passengersResponse.passengers || passengersResponse.items || [];
+    }
+    
+    console.log(`Nombre de passagers trouvés: ${passengers.length}`);
+
+    // CORRECTION : Meilleure gestion des erreurs pour l'enrichissement
+    const enrichedPassengers = await Promise.all(
+      passengers.map(async (passenger) => {
+        try {
+          let userData = null;
+          // Essayer de récupérer les infos utilisateur, mais continuer même en cas d'erreur
+          if (passenger?.id_user) {
+            try {
+              userData = await user_services.getUserById(passenger.id_user);
+            } catch (userError) {
+              console.warn(`Erreur récupération utilisateur ${passenger.id_user}:`, userError.message);
+              // Utiliser les données de base du passager si disponibles
+              userData = {
+                first_name: passenger.first_name,
+                last_name: passenger.last_name,
+                phone_number: passenger.phone_number
+              };
+            }
+          }
+          
+          // Recherche d'arrêt avec plus de flexibilité
+          let stopInfo = null;
+          if (passenger?.id_stop && Array.isArray(trip.stops)) {
+            stopInfo = trip.stops.find(stop => 
+              String(stop.id) === String(passenger.id_stop) ||
+              String(stop._id) === String(passenger.id_stop)
+            );
+          }
+          
+          return { 
+            ...passenger, 
+            user: userData,
+            stop: stopInfo,
+            // CORRECTION : Ajouter les champs directement accessibles
+            first_name: passenger.first_name || userData?.first_name,
+            last_name: passenger.last_name || userData?.last_name,
+            phone_number: passenger.phone_number || userData?.phone_number
+          };
+        } catch (error) {
+          console.error(`Erreur enrichissement passager ${passenger?.id}:`, error);
+          return { 
+            ...passenger, 
+            user: null,
+            stop: null,
+            first_name: passenger.first_name,
+            last_name: passenger.last_name,
+            phone_number: passenger.phone_number
+          };
         }
-      ]
+      })
+    );
+
+    setPassengersByTrip(prev => ({
+      ...prev,
+      [tripId]: { 
+        loading: false, 
+        error: null, 
+        items: enrichedPassengers 
+      },
+    }));
+    
+    console.log(`Passagers enrichis pour ${tripId}:`, enrichedPassengers.length);
+    
+  } catch (error) {
+    console.error('Erreur chargement passagers:', error);
+    setPassengersByTrip(prev => ({
+      ...prev,
+      [tripId]: { 
+        loading: false, 
+        error: error?.message || 'Erreur de chargement des passagers', 
+        items: [] 
+      },
+    }));
+  }
+}, [expandedTrips]);
+  /**
+   * Fonctions de contact
+   */
+  const callPhone = (phoneNumber) => {
+    if (!phoneNumber) {
+      Alert.alert('Erreur', 'Numéro de téléphone indisponible');
+      return;
+    }
+    Linking.openURL(`tel:${phoneNumber}`).catch(() => 
+      Alert.alert('Erreur', 'Impossible d\'ouvrir l\'application téléphone')
     );
   };
 
-  const updateTripStatus = async (tripId, newStatus) => {
-    try {
-      // Ici vous devriez appeler votre service pour mettre à jour le statut
-      await service_trip.update_trip_status_by_ongoing(tripId, newStatus);
-      
-      // Mettre à jour l'état local
-      setTrips(prevTrips => 
-        prevTrips.map(trip => 
-          trip.id === tripId ? { ...trip, status: newStatus } : trip
-        )
-      );
-      
-      Alert.alert('Succès', `Le trajet a été marqué comme ${getStatusText(newStatus).toLowerCase()}`);
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error);
-      Alert.alert('Erreur',error.message);
+  const sendSMS = (phoneNumber) => {
+    if (!phoneNumber) {
+      Alert.alert('Erreur', 'Numéro de téléphone indisponible');
+      return;
     }
+    Linking.openURL(`sms:${phoneNumber}`).catch(() => 
+      Alert.alert('Erreur', 'Impossible d\'ouvrir l\'application messages')
+    );
   };
 
-  const renderTripCard = ({ item, isUpcoming = false }) => (
+  /**
+   * Composant pour afficher un passager avec nom complet et destination
+   */
+/**
+ * Composant pour afficher un passager avec nom complet et destination
+ */
+const PassengerItem = ({ passenger, trip }) => {
+  // CORRECTION : Accéder directement aux champs du passager puisque user_services.getUserById échoue
+  const fullName = `${passenger?.first_name || ''} ${passenger?.last_name || ''}`.trim() || 'Passager';
+  const phone = passenger?.phone_number || passenger?.user?.phone_number || '';
+  const seats = passenger?.number_of_seats || 1;
+  
+  // Détermine la destination du passager
+  const getPassengerDestination = () => {
+    if (passenger?.stop) {
+      return passenger.stop.destination_city;
+    }
+    // Si pas d'arrêt spécifique, destination finale du trajet
+    return trip?.destination_city || 'Destination inconnue';
+  };
+
+  const passengerDestination = getPassengerDestination();
+
+  return (
     <TouchableOpacity
-      style={[styles.card, isUpcoming && styles.upcomingCard]}
-      onLongPress={() => handleTripLongPress(item)}
-      onPress={() => navigation.navigate('TripDetails', { trip: item })}
-    >
-
-      <View style={styles.cardHeader}>
-        <View style={styles.timeContainer}>
-          <MaterialIcons name="access-time" size={16} color="#007BFF" />
-          <Text style={styles.time}>{formatTime(item.departure_time)}</Text>
-        </View>
-        <View style={styles.priceContainer}>      
-          <Text style={styles.time}>{formatDate(item.departure_date)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.routeContainer}>
-        <View style={styles.locationRow}>
-          <View style={styles.locationDot} />
-          <Text style={styles.locationText} numberOfLines={1}>{item.departure_city} - {item.departure_place}</Text>
-        </View>
-        <View style={styles.routeLine} />
-        
-        {item.stops && item.stops.map((stop, index) => (
-          <View key={`stop-${index}`}>
-            <View style={styles.stopRow}>
-              <View style={[styles.locationDot, styles.stopDot]} />
-              <View style={styles.stopInfo}>
-                <Text style={styles.stopPrice}>{stop.destination_city} {stop.price}$ CAD</Text>
-              </View>
-              
-            
-              
-            </View>
-            <View style={styles.routeLine} />
-            {index < item.stops.length - 1 && <View style={styles.routeLine} />}
-          </View>
-        ))}
-
-        <View style={styles.stopRow}>
-          <View style={[styles.locationDot, styles.destinationDot]} />
-          <Text style={styles.destinationText} numberOfLines={1}>{item.destination_city} - {item.destination_place} - {item.total_price}</Text>
-           <Text style={styles.price}>{item.total_price}$</Text>
-
-        </View>
-      </View>
-
-      <View style={styles.driverInfo}>
-        <View style={styles.driverDetails}>
-          <View style={styles.driverNameContainer}>
-            <FontAwesome name="user-circle" size={16} color="#6B7280" />
-            <Text style={styles.driverName}>Vous (Conducteur)</Text>
-            <View style={styles.verifiedBadge}>
-              <MaterialIcons name="verified" size={12} color="#059669" />
-              <Text style={styles.verifiedText}>Vérifié</Text>
-            </View>
-          </View>
-          <Text style={styles.carModel}>
-            {item.carDetails ? `${item.carDetails.brand} ${item.carDetails.model} ${item.carDetails.date_of_car}` : 'Véhicule'}
-          </Text>
-        </View>
-        <View style={styles.durationContainer}>
-          <Text style={styles.paymentMode}>
-            {item.preferences?.mode_payment === 'cash' ? 'Cash' : 
-             item.preferences?.mode_payment === 'espèces' ? 'Espèces' : 'Virement'}
-          </Text>
-        </View>
-      </View>
-
-      {item.message && (
-        <View style={styles.messageContainer}>
-          <MaterialIcons name="message" size={14} color="#1E40AF" />
-          <Text style={styles.messageText}>{item.message}</Text>
-        </View>
+      onLongPress={() => Alert.alert(
+        `Contacter ${fullName}`,
+        `Destination: ${passengerDestination}\nSièges réservés: ${seats}`,
+        [
+          { text: '📞 Appeler', onPress: () => callPhone(phone) },
+          { text: '💬 SMS', onPress: () => sendSMS(phone) },
+          { text: 'Fermer', style: 'cancel' }
+        ]
       )}
-
-      <View style={styles.cardFooter}>
-        <View style={styles.seatsContainer}>
-          <MaterialIcons name="airline-seat-recline-normal" size={16} color="#6B7280" />
-          <Text style={styles.seatsText}>
-            {item.available_seats} places disponibles
-          </Text>
-        </View>
-        
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-        </View>
+      style={styles.passengerItem}
+    >
+      <View style={styles.passengerAvatar}>
+        <FontAwesome name="user" size={12} color="#fff" />
       </View>
+      
+      <View style={styles.passengerInfo}>
+        <Text style={styles.passengerName}>{fullName}</Text>
+        <Text style={styles.passengerDetails}>
+          → {passengerDestination} • {seats} siège{seats > 1 ? 's' : ''}
+        </Text>
+      </View>
+      
+      <View style={styles.passengerStatus}>
+        <View style={[
+          styles.statusIndicator, 
+          { backgroundColor: getStatusInfo(passenger.status).color }
+        ]} />
+      </View>
+    </TouchableOpacity>
+  );
+};
 
+  /**
+   * Affiche les préférences sous forme de chips
+   */
+  const renderPreferenceChips = (preferences) => {
+    if (!preferences || typeof preferences !== 'object') return null;
+
+    return (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.preferencesScroll}
-        contentContainerStyle={styles.preferencesContainer}
+        style={styles.preferencesContainer}
+        contentContainerStyle={styles.preferencesContent}
       >
-        {item.preferences && Object.entries(item.preferences).map(([key, value]) => {
+        {Object.entries(preferences).map(([key, value]) => {
+          // Ignore certains champs
           if (key === 'mode_payment' || key === 'id' || !value) return null;
           
-          const config = PREFERENCES_CONFIG[key] || { icon: "check-circle", label: key, color: "#6B7280" };
+          const config = PREFERENCES_CONFIG[key] || { 
+            icon: 'check-circle', 
+            label: key, 
+            color: '#6B7280' 
+          };
+
           return (
-            <View key={key} style={[
-              styles.preferenceChip,
-              { borderColor: config.color }
-            ]}>
-              <MaterialIcons
-                name={config.icon}
-                size={12}
-                color={config.color}
-              />
+            <View key={key} style={[styles.preferenceChip, { borderColor: config.color }]}>
+              <MaterialIcons name={config.icon} size={12} color={config.color} />
               <Text style={[styles.preferenceText, { color: config.color }]}>
                 {config.label}
               </Text>
@@ -305,156 +489,553 @@ const MesTrajetsScreen = ({ navigation }) => {
           );
         })}
       </ScrollView>
+    );
+  };
 
-      <View style={styles.actionHint}>
-        <Text style={styles.actionHintText}>Appuyez longuement pour plus d'actions</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  /**
+   * Met à jour le statut d'un trajet
+   */
+  const updateTripStatus = async (tripId, newStatus) => {
+    try {
+      await service_trip.update_trip_status_by_ongoing(tripId, newStatus);
+      setTrips(prev => prev.map(trip => 
+        trip.id === tripId ? { ...trip, status: newStatus } : trip
+      ));
+      
+      const statusInfo = getStatusInfo(newStatus);
+      Alert.alert('Succès', `Le trajet a été marqué comme ${statusInfo.text.toLowerCase()}`);
+    } catch (error) {
+      console.error('Erreur mise à jour statut:', error);
+      Alert.alert('Erreur', error?.message || 'Impossible de mettre à jour le statut');
+    }
+  };
 
-  const BookingCard = ({ booking, isUpcoming = false }) => (
-    <TouchableOpacity 
-      style={[styles.bookingCard, isUpcoming && styles.upcomingCard]}
-      onPress={() => navigation.navigate('BookingDetails', { booking })}
-    >
-      {isUpcoming && (
-        <View style={styles.upcomingBadge}>
-          <MaterialIcons name="schedule" size={12} color="#fff" />
-          <Text style={styles.upcomingText}>À venir</Text>
+  /**
+   * Carte d'un trajet (conducteur)
+   */
+  const TripCard = ({ trip }) => {
+    const isUpcomingTrip = isTripUpcoming(trip);
+    const isExpanded = !!expandedTrips[trip.id];
+    const statusInfo = getStatusInfo(trip.status);
+    const stops = Array.isArray(trip.stops) ? trip.stops : [];
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, isUpcomingTrip && styles.upcomingCard]}
+        onLongPress={() => {
+          Alert.alert(
+            'Actions du trajet',
+            'Que souhaitez-vous faire ?',
+            [
+              { 
+                text: 'Voir les détails', 
+                onPress: () => navigation.navigate('TripDetails', { trip }) 
+              },
+              { 
+                text: 'Marquer comme en cours', 
+                onPress: () => updateTripStatus(trip.id, 'ongoing') 
+              },
+              { 
+                text: 'Marquer comme terminé', 
+                onPress: () => updateTripStatus(trip.id, 'completed') 
+              },
+              { 
+                text: 'Annuler le trajet', 
+                onPress: () => updateTripStatus(trip.id, 'cancelled'), 
+                style: 'destructive' 
+              },
+              { text: 'Annuler', style: 'cancel' },
+            ]
+          );
+        }}
+        onPress={() => navigation.navigate('TripDetails', { trip })}
+      >
+        {/* En-tête avec heure et date */}
+        <View style={styles.cardHeader}>
+          <View style={styles.timeContainer}>
+            <MaterialIcons name="access-time" size={16} color="#007BFF" />
+            <Text style={styles.timeText}>{formatTime(trip.departure_time)}</Text>
+          </View>
+          <Text style={styles.dateText}>{formatDate(trip.departure_date)}</Text>
         </View>
-      )}
 
-      <View style={styles.bookingHeader}>
-        <View style={styles.dateContainer}>
-          <Text style={styles.bookingDate}>
-            {formatDate(booking.trip.date || booking.bookingDate)}
-          </Text>
-          <Text style={styles.bookingTime}>{booking.trip.time}</Text>
+        {/* Itinéraire */}
+        <View style={styles.routeContainer}>
+          {/* Départ */}
+          <View style={styles.locationRow}>
+            <View style={styles.departureDot} />
+            <Text style={styles.locationText}>
+              {trip.departure_city} - {trip.departure_place}
+            </Text>
+          </View>
+          <View style={styles.routeLine} />
+
+          {/* Arrêts intermédiaires */}
+          {stops.map((stop, index) => (
+            <View key={stop.id || `stop-${index}`}>
+              <View style={styles.stopRow}>
+                <View style={styles.stopDot} />
+                <View style={styles.stopInfo}>
+                  <Text style={styles.stopText}>{stop.destination_city}</Text>
+                  <Text style={styles.stopPrice}>
+                    {Number(stop.price || 0).toFixed(2)}$ CAD
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.routeLine} />
+            </View>
+          ))}
+
+          {/* Destination finale */}
+          <View style={styles.locationRow}>
+            <View style={styles.destinationDot} />
+            <Text style={styles.destinationText}>
+              {trip.destination_city} - {trip.destination_place}
+            </Text>
+            <Text style={styles.totalPrice}>
+              {Number(trip.total_price || 0).toFixed(2)}$
+            </Text>
+          </View>
+        </View>
+
+        {/* Informations conducteur et voiture */}
+        <View style={styles.driverSection}>
+          <View style={styles.driverInfo}>
+            <View style={styles.driverHeader}>
+              <FontAwesome name="user-circle" size={16} color="#6B7280" />
+              <Text style={styles.driverName}>Vous (Conducteur)</Text>
+              <View style={styles.verifiedBadge}>
+                <MaterialIcons name="verified" size={12} color="#059669" />
+                <Text style={styles.verifiedText}>Vérifié</Text>
+              </View>
+            </View>
+            <Text style={styles.carText}>
+              {trip.carInfo 
+                ? `${trip.carInfo.brand} ${trip.carInfo.model} ${trip.carInfo.date_of_car || ''}`.trim()
+                : 'Véhicule non spécifié'
+              }
+            </Text>
+          </View>
+          
+          <View style={styles.paymentContainer}>
+            <Text style={styles.paymentText}>
+              {trip.preferences?.mode_payment === 'cash' ? 'Cash' : 'Virement'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Message du conducteur */}
+        {trip.message && (
+          <View style={styles.messageContainer}>
+            <MaterialIcons name="message" size={14} color="#1E40AF" />
+            <Text style={styles.messageText}>{trip.message}</Text>
+          </View>
+        )}
+
+        {/* Places et statut */}
+        <View style={styles.cardFooter}>
+          <View style={styles.seatsContainer}>
+            <MaterialIcons name="airline-seat-recline-normal" size={16} color="#6B7280" />
+            <Text style={styles.seatsText}>
+              {trip.available_seats} place{trip.available_seats > 1 ? 's' : ''} disponible{trip.available_seats > 1 ? 's' : ''}
+            </Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
+            <Text style={styles.statusText}>{statusInfo.text}</Text>
+          </View>
+        </View>
+
+        {/* Préférences */}
+        {renderPreferenceChips(trip.preferences)}
+
+        {/* Section passagers */}
+        <View style={styles.passengersSection}>
+          <TouchableOpacity
+            style={styles.passengersToggle}
+            onPress={() => toggleTripExpansion(trip)}
+          >
+            <MaterialIcons name="group" size={18} color="#003366" />
+            <Text style={styles.passengersToggleText}>
+              Passagers ({passengersByTrip[trip.id]?.items?.length || 0})
+            </Text>
+            <MaterialIcons 
+              name={isExpanded ? 'expand-less' : 'expand-more'} 
+              size={20} 
+              color="#003366" 
+            />
+          </TouchableOpacity>
+
+          {isExpanded && (
+            <View style={styles.passengersList}>
+              {passengersByTrip[trip.id]?.loading ? (
+                <View style={styles.loadingContainer}>
+                  <MaterialIcons name="autorenew" size={16} color="#6B7280" />
+                  <Text style={styles.loadingText}>Chargement des passagers…</Text>
+                </View>
+              ) : passengersByTrip[trip.id]?.error ? (
+                <Text style={styles.errorText}>{passengersByTrip[trip.id].error}</Text>
+              ) : (passengersByTrip[trip.id]?.items || []).length === 0 ? (
+                <Text style={styles.emptyText}>Aucun passager pour ce trajet</Text>
+              ) : (
+                (passengersByTrip[trip.id]?.items || []).map((passenger) => (
+                  <PassengerItem 
+                    key={passenger.id} 
+                    passenger={passenger}
+                    trip={trip}
+                  />
+                ))
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Indication d'action longue */}
+        <View style={styles.hintContainer}>
+          <Text style={styles.hintText}>Appuyez longuement pour plus d'actions</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  /**
+   * Carte d'une réservation (passager)
+   */
+  const BookingCard = ({ booking }) => {
+    const trip = booking.trip;
+    const driver = booking.driver;
+    const statusInfo = getStatusInfo(booking.status);
+
+    // Annuler une réservation
+    const cancelBooking = async () => {
+      try {
+        await service_booking.cancel_booking(booking.id);
+        // Recharge les données
+        loadAllData();
+        Alert.alert('Succès', 'Votre réservation a été annulée');
+      } catch (error) {
+        console.error('Erreur annulation réservation:', error);
+        Alert.alert('Erreur', 'Impossible d\'annuler la réservation');
+      }
+    };
+
+    // Afficher les détails de la réservation
+    const showBookingDetails = () => {
+      Alert.alert(
+        'Détails de la réservation',
+        `📍 Trajet: ${trip?.departure_city} → ${trip?.destination_city}\n` +
+        `👥 Places réservées: ${booking.number_of_seats || 1}\n` +
+        `💰 Montant total: ${Number(booking.base_total || 0).toFixed(2)}$ CAD\n` +
+        `💳 Paiement: ${trip?.preferences?.mode_payment === 'cash' ? 'Cash' : 'Virement'}\n` +
+        `👤 Chauffeur: ${driver?.first_name || ''} ${driver?.last_name || ''}\n` +
+        `📱 Contact: ${driver?.phone_number || 'Non disponible'}\n` +
+        `📊 Statut: ${statusInfo.text}`,
+        [{ text: 'Fermer', style: 'cancel' }]
+      );
+    };
+
+    // Actions disponibles pour la réservation
+    const handleBookingActions = () => {
+      const actions = [
+        { 
+          text: '📋 Voir détails', 
+          onPress: showBookingDetails 
+        },
+      ];
+
+      // Ajouter l'annulation seulement si le statut le permet
+      if (booking.status === 'pending' || booking.status === 'confirmed') {
+        actions.push({
+          text: '❌ Annuler', 
+          onPress: () => {
+            Alert.alert(
+              'Confirmer l\'annulation',
+              'Êtes-vous sûr de vouloir annuler cette réservation ?',
+              [
+                { text: 'Non', style: 'cancel' },
+                { text: 'Oui', onPress: cancelBooking, style: 'destructive' }
+              ]
+            );
+          },
+          style: 'destructive'
+        });
+      }
+
+      actions.push({ text: 'Fermer', style: 'cancel' });
+
+      Alert.alert(
+        'Actions réservation',
+        'Que souhaitez-vous faire ?',
+        actions
+      );
+    };
+
+    // Détermine la destination à afficher
+    const getDestinationDisplay = () => {
+      if (booking?.id_stop && Array.isArray(trip?.stops)) {
+        const matchedStop = trip.stops.find(stop => stop.id === booking.id_stop);
+        if (matchedStop) {
+          return `${trip?.departure_city} → ${matchedStop.destination_city}`;
+        }
+      }
+      return `${trip?.departure_city} → ${trip?.destination_city}`;
+    };
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onLongPress={handleBookingActions}
+        onPress={showBookingDetails}
+      >
+        <Text style={styles.routeTitle}>
+          {getDestinationDisplay()}
+        </Text>
+        
+        <Text style={styles.departureText}>
+          Départ: {trip ? formatDate(trip.departure_date) : '--'} à {trip ? formatTime(trip.departure_time) : '--:--'}
+        </Text>
+        
+        <Text style={styles.driverText}>
+          Chauffeur: {driver ? `${driver.first_name} ${driver.last_name}` : 'Non spécifié'}
+        </Text>
+        
+        {/* Informations rapides de la réservation */}
+        <View style={styles.bookingQuickInfo}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Places:</Text>
+            <Text style={styles.infoValue}>{booking.number_of_seats || 1}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Montant:</Text>
+            <Text style={styles.infoValue}>{Number(booking.base_total || 0).toFixed(2)}$ CAD</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Paiement:</Text>
+            <Text style={styles.infoValue}>
+              {trip?.preferences?.mode_payment === 'cash' ? 'Cash' : 'Virement'}
+            </Text>
+          </View>
         </View>
         
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) }]}>
-          <Text style={styles.statusText}>{getStatusText(booking.status)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.routeContainer}>
-        <View style={styles.locationRow}>
-          <View style={styles.dot} />
-          <Text style={styles.locationText} numberOfLines={1}>
-            {booking.trip.departure}
+        <View style={styles.bookingFooter}>
+          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
+            <Text style={styles.statusText}>{statusInfo.text}</Text>
+          </View>
+          
+          {/* Indication des actions disponibles */}
+          <Text style={styles.actionHint}>
+            Tap pour détails • Long press pour actions
           </Text>
         </View>
-        <View style={styles.routeLine} />
-        <View style={styles.locationRow}>
-          <View style={[styles.dot, styles.dotDest]} />
-          <Text style={[styles.locationText, styles.destinationText]} numberOfLines={1}>
-            {booking.selectedStop ? booking.selectedStop.location : booking.trip.arrival}
-          </Text>
-        </View>
-      </View>
+      </TouchableOpacity>
+    );
+  };
 
-      <View style={styles.bookingFooter}>
-        <View style={styles.driverInfo}>
-          <View style={styles.avatar}>
-            <FontAwesome name="user" size={12} color="#fff" />
-          </View>
-          <Text style={styles.driverName}>{booking.trip.driverName}</Text>
-        </View>
-
-        <View style={styles.bookingDetails}>
-          <View style={styles.seatsInfo}>
-            <MaterialIcons name="person" size={14} color="#6B7280" />
-            <Text style={styles.seatsText}>{booking.seats} place{booking.seats > 1 ? 's' : ''}</Text>
-          </View>
-          <Text style={styles.totalAmount}>{booking.total}$</Text>
-        </View>
-      </View>
-
-      <View style={styles.bookingId}>
-        <Text style={styles.bookingIdText}>Réf: {booking.bookingId}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const EmptyState = ({ title, subtitle, icon }) => (
+  /**
+   * État vide
+   */
+  const EmptyState = ({ title, description, icon }) => (
     <View style={styles.emptyState}>
       <MaterialIcons name={icon} size={48} color="#9CA3AF" />
       <Text style={styles.emptyTitle}>{title}</Text>
-      <Text style={styles.emptySubtitle}>{subtitle}</Text>
+      <Text style={styles.emptyDescription}>{description}</Text>
+    </View>
+  );
+
+  // Filtrage des trajets
+  const upcomingTrips = useMemo(() => 
+    sortTripsByDateTime(trips.filter(isTripUpcoming)), 
+    [trips, sortTripsByDateTime, isTripUpcoming]
+  );
+  
+  const pastTrips = useMemo(() => 
+    sortTripsByDateTime(trips.filter(trip => !isTripUpcoming(trip))), 
+    [trips, sortTripsByDateTime, isTripUpcoming]
+  );
+
+  /**
+   * Section conducteur
+   */
+  const DriverSection = () => (
+    <View style={styles.section}>
+      {/* Trajets à venir */}
+      <View style={styles.subsection}>
+        <View style={styles.sectionHeader}>
+          <MaterialIcons name="upcoming" size={20} color="#003366" />
+          <Text style={styles.sectionTitle}>Trajets à venir</Text>
+          {upcomingTrips.length > 0 && (
+            <View style={styles.countBadge}>
+              <Text style={styles.countText}>{upcomingTrips.length}</Text>
+            </View>
+          )}
+        </View>
+
+        {upcomingTrips.length === 0 ? (
+          <EmptyState 
+            title="Aucun trajet à venir" 
+            description="Vos prochains trajets apparaîtront ici"
+            icon="schedule"
+          />
+        ) : (
+          <FlatList
+            data={upcomingTrips}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => <TripCard trip={item} />}
+            scrollEnabled={false}
+          />
+        )}
+      </View>
+
+      {/* Historique */}
+      <View style={styles.subsection}>
+        <View style={styles.sectionHeader}>
+          <MaterialIcons name="history" size={20} color="#003366" />
+          <Text style={styles.sectionTitle}>Historique</Text>
+          {pastTrips.length > 0 && (
+            <View style={styles.countBadge}>
+              <Text style={styles.countText}>{pastTrips.length}</Text>
+            </View>
+          )}
+        </View>
+
+        {pastTrips.length === 0 ? (
+          <EmptyState 
+            title="Aucun trajet passé" 
+            description="Vos trajets terminés apparaîtront ici"
+            icon="history"
+          />
+        ) : (
+          <FlatList
+            data={pastTrips}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => <TripCard trip={item} />}
+            scrollEnabled={false}
+          />
+        )}
+      </View>
+    </View>
+  );
+
+  /**
+   * Section passager
+   */
+  const PassengerSection = () => (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <MaterialIcons name="confirmation-number" size={20} color="#003366" />
+        <Text style={styles.sectionTitle}>Mes réservations</Text>
+        {bookings.length > 0 && (
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{bookings.length}</Text>
+          </View>
+        )}
+      </View>
+
+      {bookings.length === 0 ? (
+        <EmptyState 
+          title="Aucune réservation" 
+          description="Vos trajets réservés apparaîtront ici"
+          icon="confirmation-number"
+        />
+      ) : (
+        <FlatList
+          data={bookings}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={({ item }) => <BookingCard booking={item} />}
+          scrollEnabled={false}
+        />
+      )}
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
-      
+
+      {/* En-tête */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mes Trajets</Text>
-        <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
-          <Ionicons name="refresh" size={24} color="#003366" />
+        <View style={styles.headerActions}>
+          {lastUpdated && (
+            <Text style={styles.updateTime}>
+              MAJ {lastUpdated.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </Text>
+          )}
+          <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
+            <Ionicons name="refresh" size={22} color="#003366" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Onglets */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity 
+          style={[
+            styles.tab, 
+            activeTab === 'driver' && styles.activeTab
+          ]}
+          onPress={() => setActiveTab('driver')}
+        >
+          <MaterialIcons 
+            name="directions-car" 
+            size={18} 
+            color={activeTab === 'driver' ? '#fff' : '#003366'} 
+          />
+          <Text style={[
+            styles.tabText,
+            activeTab === 'driver' && styles.activeTabText
+          ]}>
+            Je conduis
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[
+            styles.tab, 
+            activeTab === 'passenger' && styles.activeTab
+          ]}
+          onPress={() => setActiveTab('passenger')}
+        >
+          <MaterialIcons 
+            name="event-seat" 
+            size={18} 
+            color={activeTab === 'passenger' ? '#fff' : '#003366'} 
+          />
+          <Text style={[
+            styles.tabText,
+            activeTab === 'passenger' && styles.activeTabText
+          ]}>
+            Je voyage
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
+      {/* Contenu principal */}
+      <ScrollView
+        style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        {/* Trajets à venir */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <MaterialIcons name="upcoming" size={20} color="#003366" />
-            <Text style={styles.sectionTitle}>Trajets à venir</Text>
-            {upcomingTrips.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{upcomingTrips.length}</Text>
-              </View>
-            )}
-          </View>
-
-          {upcomingTrips.length > 0 ? (
-            upcomingTrips.map((trip, index) => (
-              renderTripCard({ item: trip, isUpcoming: true })
-            ))
-          ) : (
-            <EmptyState 
-              title="Aucun trajet à venir"
-              subtitle="Vos prochains trajets apparaîtront ici"
-              icon="schedule"
-            />
-          )}
-        </View>
-
-        {/* Historique */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <MaterialIcons name="history" size={20} color="#003366" />
-            <Text style={styles.sectionTitle}>Historique</Text>
-            {pastTrips.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{pastTrips.length}</Text>
-              </View>
-            )}
-          </View>
-
-          {pastTrips.length > 0 ? (
-            pastTrips.map((trip, index) => (
-              renderTripCard({ item: trip, isUpcoming: false })
-            ))
-          ) : (
-            <EmptyState 
-              title="Aucun historique"
-              subtitle="Vos trajets passés apparaîtront ici"
-              icon="history"
-            />
-          )}
-        </View>
+        {loading ? (
+          <EmptyState 
+            title="Chargement..." 
+            description="Récupération de vos trajets"
+            icon="hourglass-empty"
+          />
+        ) : activeTab === 'driver' ? (
+          <DriverSection />
+        ) : (
+          <PassengerSection />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+// Styles (conservés identiques)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -475,19 +1056,58 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#003366',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  updateTime: {
+    color: '#6B7280',
+    fontSize: 12,
+    marginRight: 8,
+  },
   refreshButton: {
     padding: 4,
   },
-  scrollView: {
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E7EB',
+    margin: 12,
+    padding: 4,
+    borderRadius: 10,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  activeTab: {
+    backgroundColor: '#003366',
+  },
+  tabText: {
+    marginLeft: 6,
+    color: '#003366',
+    fontWeight: '700',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  content: {
     flex: 1,
   },
   section: {
-    marginTop: 16,
-    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  subsection: {
+    marginBottom: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
     marginBottom: 12,
   },
   sectionTitle: {
@@ -497,7 +1117,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     flex: 1,
   },
-  badge: {
+  countBadge: {
     backgroundColor: '#003366',
     borderRadius: 12,
     paddingHorizontal: 8,
@@ -505,83 +1125,56 @@ const styles = StyleSheet.create({
     minWidth: 24,
     alignItems: 'center',
   },
-  badgeText: {
+  countText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
   },
-  // Styles pour les cartes de trajets
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
+    marginHorizontal: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3,
-    position: 'relative',
   },
   upcomingCard: {
     borderLeftWidth: 4,
     borderLeftColor: '#059669',
   },
-  upcomingBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#059669',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    zIndex: 1,
-  },
-  upcomingText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  time: {
+  timeText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#003366',
     marginLeft: 8,
   },
-  priceContainer: {
-    alignItems: 'flex-end',
-  },
-  price: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#059669',
-  },
-  priceLabel: {
-    fontSize: 12,
+  dateText: {
+    fontSize: 14,
     color: '#6B7280',
   },
   routeContainer: {
-    marginVertical: 12,
+    marginVertical: 8,
   },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 2,
+    marginVertical: 4,
   },
-  locationDot: {
+  departureDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -589,10 +1182,18 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   stopDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#F59E0B',
+    marginRight: 12,
   },
   destinationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#059669',
+    marginRight: 12,
   },
   routeLine: {
     width: 2,
@@ -609,15 +1210,20 @@ const styles = StyleSheet.create({
   stopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 2,
+    marginVertical: 4,
   },
   stopInfo: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  stopLocationText: {
+  stopText: {
     fontSize: 14,
     color: '#374151',
     fontWeight: '500',
+    flex: 1,
+    marginRight: 8,
   },
   stopPrice: {
     fontSize: 12,
@@ -630,16 +1236,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  driverInfo: {
+  totalPrice: {
+    fontSize: 14,
+    color: '#059669',
+    fontWeight: '700',
+  },
+  driverSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 12,
   },
-  driverDetails: {
+  driverInfo: {
     flex: 1,
   },
-  driverNameContainer: {
+  driverHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
@@ -664,15 +1275,15 @@ const styles = StyleSheet.create({
     color: '#059669',
     marginLeft: 2,
   },
-  carModel: {
+  carText: {
     fontSize: 12,
     color: '#6B7280',
     marginLeft: 24,
   },
-  durationContainer: {
+  paymentContainer: {
     alignItems: 'flex-end',
   },
-  paymentMode: {
+  paymentText: {
     fontSize: 12,
     color: '#374151',
     backgroundColor: '#F3F4F6',
@@ -685,8 +1296,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    padding: 12,
     backgroundColor: '#EBF8FF',
     borderRadius: 8,
     borderLeftWidth: 3,
@@ -726,10 +1336,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  preferencesScroll: {
+  preferencesContainer: {
     marginTop: 12,
   },
-  preferencesContainer: {
+  preferencesContent: {
     paddingHorizontal: 0,
   },
   preferenceChip: {
@@ -747,102 +1357,155 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 4,
   },
-  actionHint: {
-    alignItems: 'center',
-    marginTop: 8,
+  passengersSection: {
+    marginTop: 12,
   },
-  actionHintText: {
+  passengersToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EFF6FF',
+    padding: 12,
+    borderRadius: 10,
+  },
+  passengersToggleText: {
+    color: '#003366',
+    fontWeight: '700',
+    marginLeft: 8,
+    flex: 1,
+  },
+  passengersList: {
+    marginTop: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    padding: 12,
+  },
+  passengerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  passengerAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#003366',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  passengerInfo: {
+    flex: 1,
+  },
+  passengerName: {
+    color: '#111827',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  passengerDetails: {
+    color: '#6B7280',
+    fontSize: 12,
+  },
+  passengerStatus: {
+    marginLeft: 8,
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  loadingText: {
+    marginLeft: 8,
+    color: '#6B7280',
+    fontSize: 14,
+  },
+  errorText: {
+    color: '#DC2626',
+    padding: 8,
+    fontSize: 14,
+  },
+  emptyText: {
+    color: '#6B7280',
+    padding: 8,
+    fontStyle: 'italic',
+    fontSize: 14,
+  },
+  hintContainer: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  hintText: {
     fontSize: 10,
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
-  // Styles pour les cartes de booking (conservés pour compatibilité)
-  bookingCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    position: 'relative',
-  },
-  bookingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  dateContainer: {
-    flex: 1,
-  },
-  bookingDate: {
+  // Styles pour les réservations (passager)
+  routeTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#003366',
-    textTransform: 'capitalize',
+    marginBottom: 8,
   },
-  bookingTime: {
+  departureText: {
+    color: '#374151',
     fontSize: 14,
+    marginBottom: 4,
+  },
+  driverText: {
+    color: '#059669',
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  bookingQuickInfo: {
+    backgroundColor: '#F8F9FA',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  infoLabel: {
+    fontSize: 13,
     color: '#6B7280',
-    marginTop: 2,
+    fontWeight: '500',
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#003366',
-    marginRight: 12,
-  },
-  dotDest: {
-    backgroundColor: '#059669',
+  infoValue: {
+    fontSize: 13,
+    color: '#374151',
+    fontWeight: '600',
   },
   bookingFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  avatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#003366',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  bookingDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  seatsInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  totalAmount: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#003366',
-  },
-  bookingId: {
     marginTop: 8,
-    alignItems: 'flex-end',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
-  bookingIdText: {
-    fontSize: 11,
+  actionHint: {
+    fontSize: 10,
     color: '#9CA3AF',
     fontStyle: 'italic',
+    textAlign: 'right',
+    flex: 1,
+    marginLeft: 8,
   },
+  // État vide
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 40,
     paddingHorizontal: 24,
   },
   emptyTitle: {
@@ -852,12 +1515,18 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
   },
-  emptySubtitle: {
+  emptyDescription: {
     fontSize: 14,
     color: '#6B7280',
-    marginTop: 4,
+    marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  stopInfo: {
+    color: '#8B5CF6',
+    fontSize: 13,
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
 });
 

@@ -53,7 +53,7 @@ const VehicleSummaryScreen = ({ navigation }) => {
       >
         <View style={styles.cardContent}>
           <View style={styles.vehicleIcon}>
-            <Ionicons name="car" size={24} color="#FFC72C" />
+            <Ionicons name="car" size={24} color="#003DA5" />
           </View>
           
           <View style={styles.vehicleInfo}>
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   selectedCard: {
     borderWidth: 2,
-    borderColor: '#FFC72C',
+    borderColor: '#003DA5',
   },
   cardContent: {
     flexDirection: 'row',
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   principalLabel: {
     fontSize: 12,
-    color: '#FFC72C',
+    color: '#003DA5',
     fontWeight: '600',
     marginTop: 4,
   },
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFC72C',
+    backgroundColor: '#003DA5',
     margin: 20,
     padding: 16,
     borderRadius: 12,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFC72C',
+    backgroundColor: '#003DA5',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E5E7',
   },
   saveButton: {
-    backgroundColor: '#FFC72C',
+    backgroundColor: '#003DA5',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',

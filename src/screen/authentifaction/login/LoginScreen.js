@@ -52,36 +52,47 @@ const LoginScreen = ({ navigation }) => {
     ]).start();
   }, []);
 
+  // const handleLogin = async () => {
+  //   if (!email || !password) {
+  //     Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+  //     return;
+  //   }
+  
+  //   setIsLoading(true);
+  
+  //   try {
+  //     const response = await login(email, password);
+  
+  //     // Stockage du token (si tu veux)
+  //     // await AsyncStorage.setItem('access_token', response.access_token);
+  //     // await AsyncStorage.setItem('user_id', response.user_id);
+  
+  //     console.log("Login réussi:", response);
+  
+  //     // navigation.reset({
+  //     //   index: 0,
+  //     //   routes: [{ name: 'ClientStack' }],
+  //     // });
+  
+  //   } catch (error) {
+  //     Alert.alert('Erreur', error.message || 'Erreur de connexion');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+  
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
-      return;
-    }
-  
-    setIsLoading(true);
-  
-    try {
-      const response = await login(email, password);
-  
-      // Stockage du token (si tu veux)
-      // await AsyncStorage.setItem('access_token', response.access_token);
-      // await AsyncStorage.setItem('user_id', response.user_id);
-  
-      console.log("Login réussi:", response);
-  
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'ClientStack' }],
-      });
-  
-    } catch (error) {
-      Alert.alert('Erreur', error.message || 'Erreur de connexion');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  
+  if (!email || !password) return Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+  setIsLoading(true);
+  try {
+    await login(email, password);   // <- met isAuthenticated=true dans le AuthContext
+    // 🚫 pas de navigation.reset ici
+  } catch (e) {
+    Alert.alert('Erreur', e.message || 'Erreur de connexion');
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleForgotPassword = () => {
     navigation.navigate('EmailVerified');
     

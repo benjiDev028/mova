@@ -1,11 +1,12 @@
-const url ="http://192.168.2.13:8001/";
-
-
+import { API_URL } from '@env'
+// AdminService.js
+//const url = API_URL
+const url =  "http://192.168.2.13:8001";
 
 export const CheckEmail = async(email) =>{
 
     try{
-        const response = await fetch(`${url}identity/reset-password-step1`, {
+        const response = await fetch(`${url}/identity/reset-password-step1`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,7 +28,7 @@ export const CheckEmail = async(email) =>{
 
 async function CheckCode(email, code) {
     try {
-        const response = await fetch(url + "identity/reset-password-step2", {
+        const response = await fetch(url + "/identity/reset-password-step2", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -75,7 +76,7 @@ async function CheckCode(email, code) {
 
 async function NewPassword(email, new_password) {
     try {
-        const response = await fetch(`${url}identity/reset-password-step3`, {
+        const response = await fetch(`${url}/identity/reset-password-step3`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
