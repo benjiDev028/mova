@@ -1,75 +1,128 @@
 import logging
-from sqlalchemy.orm import Session
 import os
+import uuid
+import json
+from datetime import datetime, date
+from enum import Enum
+from typing import List, Optional
+
 from dotenv import load_dotenv
 from fastapi import HTTPException
+from sqlalchemy import select, update, or_
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
+import aio_pika
+
+# 🧩 Imports internes
 from app.db.models.trip import Trip
 from app.db.models.preference import Preference
 from app.db.models.stop import Stop
-import aio_pika
-import json
-import uuid
-from sqlalchemy.orm import joinedload
-from sqlalchemy import or_
-from typing import List
-from datetime import datetime, time, date
-from app.db.schemas.trip import TripCreate, TripResponse,StatusTripUpdate
+from app.db.schemas.trip import (
+    TripCreate,
+    TripResponse,
+    StatusTripUpdate,
+    TripReserveSeat,
+    TripCancelSeat,
+)
 from app.db.schemas.preference import PreferenceResponse
 from app.db.schemas.stop import StopResponse
-from typing import Optional 
 
-
-# Configuration du logger
+# ==============================
+# LOGGING CONFIGURATION
+# ==============================
 logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("trip_logs.log"),
-        logging.StreamHandler()
-    ]
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("trip_logs.log"), logging.StreamHandler()],
 )
 
 load_dotenv()
 
-# URL de RabbitMQ
 RABBITMQ_URL = os.getenv("RABBITMQ_URL")
 QUEUE_NAME = os.getenv("QUEUE_NAME", "trip_notifications")
-QUEUE_NAME_VERIFICATION = os.getenv("QUEUE_NAME_VERIFICATION", "trip_verification")
 
 
+# =========================================================
+# 🔧 MISE À JOUR DU NOMBRE DE PLACES DISPONIBLES
+# =========================================================
+async def update_available_seats(db: AsyncSession, trip_id: str, delta: int):
+    """
+    🔁 Met à jour de manière sécurisée le nombre de places disponibles pour un trajet.
+    delta peut être positif (+) ou négatif (-).
+    """
+    try:
+        query = select(Trip).where(Trip.id == trip_id)
+        result = await db.execute(query)
+        trip = result.scalars().first()
+
+        if not trip:
+            logging.error(f"[TripService] ❌ Trajet {trip_id} introuvable.")
+            raise HTTPException(status_code=404, detail="Trajet introuvable")
+
+        new_value = trip.available_seats + delta
+
+        if new_value < 0:
+            logging.warning(
+                f"[TripService] ⚠️ Tentative de retirer trop de places : {trip.available_seats} dispo, delta={delta}"
+            )
+            raise HTTPException(status_code=400, detail="Pas assez de places disponibles")
+
+        if hasattr(trip, "max_seats"):
+            new_value = min(new_value, trip.max_seats)
+
+        trip.available_seats = new_value
+        trip.updated_at = datetime.utcnow()
+
+        await db.commit()
+        await db.refresh(trip)
+
+        logging.info(
+            f"[TripService] ✅ Trajet {trip_id}: places modifiées ({delta:+d}), "
+            f"nouvelles disponibles: {trip.available_seats}"
+        )
+
+        return trip
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logging.error(f"[TripService] ❌ Erreur lors de la mise à jour des places: {e}")
+        raise HTTPException(status_code=500, detail="Erreur interne lors de la mise à jour du trajet")
+
+
+# =========================================================
+# 📩 ENVOI NOTIFICATION CRÉATION TRAJET
+# =========================================================
 async def send_trip_creation_notification(trip_data: dict) -> None:
     """Envoi d'un message structuré à RabbitMQ pour la création d'un voyage."""
     try:
-        # Connexion à RabbitMQ
         connection = await aio_pika.connect_robust(RABBITMQ_URL)
         async with connection:
             channel = await connection.channel()
             queue = await channel.declare_queue(QUEUE_NAME, durable=True)
 
-            # Sérialiser le message en JSON
-            message_json = json.dumps(trip_data, default=str)  # default=str pour les UUID/datetime
-            
-            # Création du message RabbitMQ
+            message_json = json.dumps(trip_data, default=str)
             message = aio_pika.Message(
                 body=message_json.encode(),
-                delivery_mode=aio_pika.DeliveryMode.PERSISTENT  # Message persistant
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
             )
 
-            # Envoi du message à RabbitMQ
             await channel.default_exchange.publish(message, routing_key=queue.name)
-            logging.info(f"Message envoyé à RabbitMQ pour la création du voyage ID: {trip_data.get('id')}")
+            logging.info(f"📤 Message envoyé à RabbitMQ pour le voyage ID: {trip_data.get('id')}")
 
     except Exception as e:
         logging.error(f"Erreur lors de l'envoi du message RabbitMQ : {str(e)}")
-        # Ne pas lever l'exception pour éviter d'interrompre la création du voyage
-        # si le service de notification est indisponible
 
-async def create_trip_service(db: Session, trip_data: TripCreate) -> TripResponse:
-    # Création du voyage
+
+# =========================================================
+# 🚗 CRÉATION DE TRAJET
+# =========================================================
+async def create_trip_service(db: AsyncSession, trip_data: TripCreate) -> TripResponse:
     trip_id = uuid.uuid4()
     trip = Trip(
         id=trip_id,
-        car_id = trip_data.car_id,
+        car_id=trip_data.car_id,
         driver_id=trip_data.driver_id,
         departure_city=trip_data.departure_city,
         destination_city=trip_data.destination_city,
@@ -81,15 +134,14 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
         available_seats=trip_data.available_seats,
         message=trip_data.message,
         status=trip_data.status,
-        created_at=datetime.now().replace(microsecond=0),
-        updated_at=datetime.now().replace(microsecond=0),
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
     )
 
     try:
         db.add(trip)
-        db.flush()  # Important pour obtenir l'ID
+        await db.flush()
 
-        # Création des préférences
         preferences = Preference(
             id=uuid.uuid4(),
             trip_id=trip_id,
@@ -103,7 +155,6 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
         )
         db.add(preferences)
 
-        # Création des arrêts
         stops = []
         if trip_data.stops:
             for stop_data in trip_data.stops:
@@ -112,14 +163,12 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
                     trip_id=trip_id,
                     destination_city=stop_data.destination_city,
                     price=stop_data.price,
-                    # Ajoutez ici les autres champs nécessaires
                 )
                 db.add(stop)
                 stops.append(stop)
 
-        db.commit()
+        await db.commit()
 
-        # Notification
         try:
             await send_trip_creation_notification({
                 "id": str(trip.id),
@@ -128,15 +177,13 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
                 "destination_city": trip.destination_city,
                 "departure_date": trip.departure_date.isoformat(),
                 "departure_time": trip.departure_time.isoformat(),
-                "created_at": trip.created_at.isoformat()
+                "created_at": trip.created_at.isoformat(),
             })
         except Exception as e:
-            logging.warning(f"Échec de la notification: {str(e)}")
+            logging.warning(f"Échec notification RabbitMQ: {e}")
 
-        # Construction de la réponse
         return TripResponse(
             id=trip.id,
-        
             driver_id=trip.driver_id,
             car_id=trip.car_id,
             departure_city=trip.departure_city,
@@ -160,314 +207,321 @@ async def create_trip_service(db: Session, trip_data: TripCreate) -> TripRespons
                 air_conditioning=preferences.air_conditioning,
                 bike_support=preferences.bike_support,
                 ski_support=preferences.ski_support,
-                mode_payment=preferences.mode_payment
+                mode_payment=preferences.mode_payment,
             ),
-            stops=[StopResponse(
-                id=s.id,
-                trip_id=s.trip_id,
-                destination_city=s.destination_city,
-                price=s.price
-            ) for s in stops]
+            stops=[
+                StopResponse(
+                    id=s.id,
+                    trip_id=s.trip_id,
+                    destination_city=s.destination_city,
+                    price=s.price,
+                )
+                for s in stops
+            ],
         )
 
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logging.error(f"Erreur création trajet: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erreur lors de la création du trajet: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la création du trajet: {e}")
 
-# Service corrigé pour get_trip_by_id_service
-async def get_trip_by_id_service(db: Session, trip_id: uuid) -> TripResponse:
-    # Utiliser joinedload au lieu de join explicite
-    trip = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(Trip.id == trip_id).first()
-    
+
+# =========================================================
+# 🔎 RECHERCHE ET CONSULTATION DE TRAJETS
+# =========================================================
+async def get_trip_by_id_service(db: AsyncSession, trip_id: uuid.UUID) -> TripResponse:
+    query = (
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(Trip.id == trip_id)
+    )
+    result = await db.execute(query)
+    trip = result.scalars().first()
+
     if not trip:
-        logging.error(f"Voyage avec l'ID {trip_id} non trouvé.")
+        logging.error(f"Voyage {trip_id} non trouvé.")
         raise HTTPException(status_code=404, detail="Voyage non trouvé.")
-    
-    # Construction de la réponse
     return trip
 
-# Service function version (if you prefer separation of concerns)
-async def search_trips_service(
-    db: Session,
-    departure_city: Optional[str],
-    destination_city: Optional[str],
-    departure_date: date,
-    status: str = "pending",  # Default value
-    skip: int = 0,
-    limit: int = 100
-) -> List[TripResponse]:
-    """
-    Service function for searching trips.
-    Can be called from multiple endpoints.
-    """
-    query = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    )
-    
-    # Required filters
-    query = query.filter(
-        Trip.status == status,
-        Trip.departure_date == departure_date
-    )
-    
-    # Optional filters
-    if departure_city:
-        query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
-    
-
-    
-    trips = query.offset(skip).limit(limit).all()
-    
-    if not trips:
-        logging.info(f"🔎 Aucun trajet trouvé avec les filtres : departure_city={departure_city}, destination_city={destination_city}, departure_date={departure_date}")
-    else:
-        logging.info(f"✅ {len(trips)} trajet(s) trouvé(s)")
-    
-    return trips
-
-async def search_trips_advanced_service(
-    db: Session,
-    departure_city: Optional[str],
-    destination_city: Optional[str],
-    departure_date: date,
-    status: str = "pending",  # Default value
-    skip: int = 0,
-    limit: int = 100
-) -> List[TripResponse]:
-    """
-    Service function for searching trips.
-    Can be called from multiple endpoints.
-    """
-    query = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    )
-    
-    # Required filters
-    query = query.filter(
-        Trip.status == status,
-        Trip.departure_date == departure_date
-    )
-    
-    # Optional filters
-    if departure_city:
-        query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
-    
-    if destination_city:
-        query = query.filter(
-            or_(
-                Trip.destination_city.ilike(f"%{destination_city}%"),
-                Trip.stops.any(Stop.destination_city.ilike(f"%{destination_city}%"))
-            )
-        )
-    
-    trips = query.offset(skip).limit(limit).all()
-    
-    if not trips:
-        logging.info(f"🔎 Aucun trajet trouvé avec les filtres : departure_city={departure_city}, destination_city={destination_city}, departure_date={departure_date}")
-    else:
-        logging.info(f"✅ {len(trips)} trajet(s) trouvé(s)")
-    
-    return trips
-
-async def get_all_trips_service(db: Session) -> List[TripResponse]:
-    trips = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).all()
-    
-    if not trips:
-        logging.info("Aucun voyage trouvé.")
-        return []
-    
-    # Construction de la réponse
-    return trips
-
-async def get_trip_by_status_service(db: Session, status: str) -> List[TripResponse]:
-
-    # Vérification du statut
-    valid_statuses = ["pending", "ongoing", "completed", "cancelled"]
-    if status not in valid_statuses:
-        logging.error(f"Statut invalide: {status}. Statuts valides: {valid_statuses}")
-        raise HTTPException(status_code=400, detail=f"Statut invalide. Statuts valides: {valid_statuses}")
-    
-    # Utiliser joinedload pour charger les relations
-    trips = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(Trip.status == status).all()
-    
-    if not trips:
-        logging.info(f"Aucun voyage trouvé avec le statut {status}.")
-        return []
-    
-    # Construction de la réponse
-    return trips
 
 async def search_trips_service(
-    db: Session,
+    db: AsyncSession,
     departure_city: Optional[str],
     destination_city: Optional[str],
     departure_date: date,
-    status: str,  # Plus optionnel, valeur par défaut gérée dans l'endpoint
-    skip: int,
-    limit: int
+    status: str = "pending",
+    skip: int = 0,
+    limit: int = 100,
 ) -> List[TripResponse]:
-    query = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
+    query = (
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .filter(Trip.status == status, Trip.departure_date == departure_date)
     )
-
-    # Filtrage obligatoire par statut
-    query = query.filter(Trip.status == status, Trip.departure_date == departure_date)
 
     if departure_city:
         query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
     if destination_city:
         query = query.filter(Trip.destination_city.ilike(f"%{destination_city}%"))
-    if date:
-        query = query.filter(Trip.departure_date == date)
 
-    trips = query.offset(skip).limit(limit).all()
+    result = await db.execute(query.offset(skip).limit(limit))
+    trips = result.scalars().unique().all()
 
-    if not trips:
-        logging.info(f"🔎 Aucun trajet trouvé avec les filtres : {departure_city=}, {destination_city=}, {date=}")
-
+    logging.info(f"🔍 {len(trips)} trajet(s) trouvé(s)")
     return trips
 
-async def get_trip_by_driver_id_service(db: Session, driver_id: uuid) -> List[TripResponse]:
 
-    trips = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(Trip.driver_id == driver_id).all()
-    
-    if not trips:
-        logging.info(f"Aucun voyage trouvé pour le conducteur avec l'ID {driver_id}.")
-        return []
-    
-    # Construction de la réponse
+async def search_trips_advanced_service(
+    db: AsyncSession,
+    departure_city: Optional[str],
+    destination_city: Optional[str],
+    departure_date: date,
+    status: str = "pending",
+    skip: int = 0,
+    limit: int = 100,
+) -> List[TripResponse]:
+    query = (
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .filter(Trip.status == status, Trip.departure_date == departure_date)
+    )
+
+    if departure_city:
+        query = query.filter(Trip.departure_city.ilike(f"%{departure_city}%"))
+    if destination_city:
+        query = query.filter(
+            or_(
+                Trip.destination_city.ilike(f"%{destination_city}%"),
+                Trip.stops.any(Stop.destination_city.ilike(f"%{destination_city}%")),
+            )
+        )
+
+    result = await db.execute(query.offset(skip).limit(limit))
+    trips = result.scalars().unique().all()
+    logging.info(f"🔍 {len(trips)} trajet(s) trouvé(s)")
     return trips
 
-async def get_trips_with_stop_service(db: Session, city: str) -> List[Trip]:
-    trips = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).join(Trip.stops).filter(
-        Trip.stops.any(destination_city=city)
-    ).all()
 
-    if not trips:
-        logging.info(f"Aucun trajet trouvé passant par la ville : {city}")
+async def get_all_trips_service(db: AsyncSession) -> List[TripResponse]:
+    result = await db.execute(
+        select(Trip).options(joinedload(Trip.preferences), joinedload(Trip.stops))
+    )
+    trips = result.scalars().unique().all()
     return trips
 
-from enum import Enum
-from datetime import datetime
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-import uuid
 
+async def get_trip_by_status_service(db: AsyncSession, status: str) -> List[TripResponse]:
+    valid_statuses = ["pending", "ongoing", "completed", "cancelled"]
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Statut invalide: {status}")
+
+    result = await db.execute(
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(Trip.status == status)
+    )
+    trips = result.scalars().unique().all()
+    return trips
+
+
+async def get_trip_by_driver_id_service(db: AsyncSession, driver_id: uuid.UUID) -> List[TripResponse]:
+    result = await db.execute(
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(Trip.driver_id == driver_id)
+    )
+    return result.scalars().unique().all()
+
+
+# =========================================================
+# 🎟️ RÉSERVATION / ANNULATION DE PLACES
+# =========================================================
+async def reserve_seat_service(db: AsyncSession, data: TripReserveSeat) -> Trip:
+    query = select(Trip).where(Trip.id == data.trip_id)
+    result = await db.execute(query)
+    trip = result.scalars().first()
+
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trajet non trouvé")
+
+    if trip.available_seats <= 0 or trip.available_seats < data.seats:
+        raise HTTPException(status_code=400, detail="Aucune place disponible")
+
+    trip.available_seats -= data.seats
+    trip.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(trip)
+    return trip
+
+
+async def cancel_seat_reservation_service(db: AsyncSession, data: TripCancelSeat) -> Trip:
+    query = select(Trip).where(Trip.id == data.trip_id)
+    result = await db.execute(query)
+    trip = result.scalars().first()
+
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trajet non trouvé")
+
+    trip.available_seats += data.seats
+    trip.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(trip)
+    return trip
+
+
+# =========================================================
+# 🧭 RECHERCHES AVANCÉES
+# =========================================================
+async def get_trips_with_stop_service(db: AsyncSession, city: str) -> List[Trip]:
+    query = (
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .filter(Trip.stops.any(destination_city=city))
+    )
+    result = await db.execute(query)
+    return result.scalars().unique().all()
+
+
+# =========================================================
+# 🔄 MISE À JOUR DU STATUT D’UN TRAJET
+# =========================================================
 class TripStatus(str, Enum):
     PENDING = "pending"
     ONGOING = "ongoing"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
-async def update_trip_status_service(db: Session, trip_id: uuid.UUID, new_status: TripStatus) -> Trip:
-    # Récupérer le trajet
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
-    if not trip:
-        raise HTTPException(status_code=404, detail="Trajet non trouvé")
-    
-    # Valider la transition d'état
-    if not is_valid_transition(trip.status, new_status):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Transition non autorisée de {trip.status} à {new_status}"
-        )
-    
-    # Mettre à jour le statut
-    trip.status = new_status
-    trip.updated_at = datetime.now().replace(microsecond=0)
-    
-    db.commit()
-    db.refresh(trip)
-    return trip
 
 def is_valid_transition(current_status: TripStatus, new_status: TripStatus) -> bool:
-    """
-    Définit les transitions d'état autorisées
-    """
     transitions = {
         TripStatus.PENDING: [TripStatus.ONGOING, TripStatus.CANCELLED],
         TripStatus.ONGOING: [TripStatus.COMPLETED],
-        TripStatus.COMPLETED: [],  # Aucun changement après complétion
-        TripStatus.CANCELLED: []   # Aucun changement après annulation
+        TripStatus.COMPLETED: [],
+        TripStatus.CANCELLED: [],
     }
-    
     return new_status in transitions.get(current_status, [])
 
 
-async def get_upcoming_trips_by_driver_service(db: Session, driver_id: uuid) -> List[Trip]:
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from app.db.schemas.trip import TripResponse, PreferenceResponse, StopResponse
+import uuid
+from fastapi import HTTPException
+
+async def update_trip_status_service(db: AsyncSession, trip_id: uuid.UUID, new_status: TripStatus) -> TripResponse:
+    # 1) lire le trip sans lazy
+    res = await db.execute(
+        select(Trip)
+        .options(selectinload(Trip.preferences), selectinload(Trip.stops))
+        .where(Trip.id == trip_id)
+    )
+    trip = res.scalars().first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trajet non trouvé")
+
+    if not is_valid_transition(trip.status, new_status):
+        raise HTTPException(status_code=400, detail=f"Transition non autorisée de {trip.status} à {new_status}")
+
+    # 2) update + commit
+    trip.status = new_status
+    trip.updated_at = datetime.utcnow()
+    await db.commit()
+
+    # 3) re-read avec selectinload pour sérialisation safe
+    res = await db.execute(
+        select(Trip)
+        .options(selectinload(Trip.preferences), selectinload(Trip.stops))
+        .where(Trip.id == trip_id)
+    )
+    trip = res.scalars().first()
+
+    # 4) map -> TripResponse (pas d’accès lazy ici)
+    return TripResponse(
+        id=trip.id,
+        driver_id=trip.driver_id,
+        car_id=trip.car_id,
+        departure_city=trip.departure_city,
+        destination_city=trip.destination_city,
+        departure_place=trip.departure_place,
+        destination_place=trip.destination_place,
+        departure_time=trip.departure_time,
+        departure_date=trip.departure_date,
+        total_price=trip.total_price,
+        available_seats=trip.available_seats,
+        message=trip.message,
+        status=trip.status,
+        created_at=trip.created_at,
+        updated_at=trip.updated_at,
+        preferences=PreferenceResponse(
+            id=trip.preferences.id,
+            trip_id=trip.preferences.trip_id,
+            baggage=trip.preferences.baggage,
+            pets_allowed=trip.preferences.pets_allowed,
+            smoking_allowed=trip.preferences.smoking_allowed,
+            air_conditioning=trip.preferences.air_conditioning,
+            bike_support=trip.preferences.bike_support,
+            ski_support=trip.preferences.ski_support,
+            mode_payment=trip.preferences.mode_payment,
+        ) if trip.preferences else None,
+        stops=[
+            StopResponse(
+                id=s.id,
+                trip_id=s.trip_id,
+                destination_city=s.destination_city,
+                price=s.price,
+            ) for s in trip.stops or []
+        ],
+    )
+
+# =========================================================
+# 📅 TRAJETS PAR DATE OU CONDUCTEUR
+# =========================================================
+async def get_upcoming_trips_by_driver_service(db: AsyncSession, driver_id: uuid.UUID) -> List[Trip]:
     today = date.today()
-    return db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(
-        Trip.driver_id == driver_id,
-        Trip.departure_date >= today
-    ).order_by(Trip.departure_date.asc(), Trip.departure_time.asc()).all()
+    result = await db.execute(
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(Trip.driver_id == driver_id, Trip.departure_date >= today)
+        .order_by(Trip.departure_date.asc(), Trip.departure_time.asc())
+    )
+    return result.scalars().unique().all()
 
-async def get_trips_by_stop_city_service(db: Session, stop_city: str) -> List[TripResponse]:
-    trips = db.query(Trip).join(Stop).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(
-        Stop.destination_city.ilike(f"%{stop_city}%"),
-        Trip.status == "pending"  # uniquement les trajets à venir
-    ).all()
 
-    if not trips:
-        logging.info(f"Aucun trajet trouvé avec un arrêt à {stop_city}.")
-        return []
+async def get_trips_by_stop_city_service(db: AsyncSession, stop_city: str) -> List[TripResponse]:
+    result = await db.execute(
+        select(Trip)
+        .join(Stop)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(
+            Stop.destination_city.ilike(f"%{stop_city}%"),
+            Trip.status == "pending",
+        )
+    )
+    return result.scalars().unique().all()
 
-    return trips
 
-async def get_today_trips_service(db: Session) -> List[TripResponse]:
+async def get_today_trips_service(db: AsyncSession) -> List[TripResponse]:
     today = date.today()
-    trips = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(Trip.departure_date == today).all()
-
-    if not trips:
-        logging.info("Aucun trajet trouvé pour aujourd'hui.")
-        return []
-
-    return trips
+    result = await db.execute(
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(Trip.departure_date == today)
+    )
+    return result.scalars().unique().all()
 
 
-# services/trip_service.py
-
-async def get_driver_trip_history_service(db: Session, driver_id: uuid) -> List[TripResponse]:
-    trips = db.query(Trip).options(
-        joinedload(Trip.preferences),
-        joinedload(Trip.stops)
-    ).filter(
-        Trip.driver_id == driver_id,
-        Trip.status.in_(["completed", "cancelled"])
-    ).all()
-
-    if not trips:
-        logging.info(f"Aucun historique trouvé pour le conducteur {driver_id}")
-        return []
-
-    return trips
+# =========================================================
+# 📜 HISTORIQUE DES TRAJETS
+# =========================================================
+async def get_driver_trip_history_service(db: AsyncSession, driver_id: uuid.UUID) -> List[TripResponse]:
+    result = await db.execute(
+        select(Trip)
+        .options(joinedload(Trip.preferences), joinedload(Trip.stops))
+        .where(
+            Trip.driver_id == driver_id,
+            Trip.status.in_(["completed", "cancelled"]),
+        )
+    )
+    return result.scalars().unique().all()

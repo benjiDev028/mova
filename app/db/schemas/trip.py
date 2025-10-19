@@ -46,6 +46,13 @@ class TripUpdate(TripBase):
 class StatusTripUpdate(BaseModel):
     new_status:str
 
+class TripReserveSeat(BaseModel):
+    trip_id:UUID
+    seats:int
+
+class TripCancelSeat(BaseModel):
+    trip_id:UUID
+    seats:int
     
 class TripResponse(TripBase):
     id: UUID
