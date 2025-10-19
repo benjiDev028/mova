@@ -1,28 +1,14 @@
 from datetime import datetime
 import logging
-from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from app.db.models.user import User
-from app.core.security import get_password_hash, hash_password
-import aio_pika
-import json
-from sqlalchemy.orm import selectinload
 import uuid
-import os
-from typing import List
-import bcrypt
-from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.schemas.user import UserResponse, UserCreate
-from app.services.user_service import get_user_by_email, get_user_by_id, get_users
 from sqlalchemy import select
-
-
-from app.db.schemas.car import CarResponse, CarCreate
+from app.db.schemas.car import CarResponse, CarCreate,CarUpdate
 from app.db.models.car import Car
-from app.db.schemas.password import UpdatePasswordRequest
 import traceback
 
 # Configuration du logger
@@ -97,6 +83,42 @@ async def create_car_service(db: AsyncSession, user_id: uuid.UUID, car_data: Car
         raise HTTPException(status_code=500, detail="Erreur interne lors de la création du véhicule.")
     
 
+
+async def update_car_service(db: AsyncSession, data: CarUpdate) -> CarResponse:
+    """
+    🔧 Met à jour une voiture existante dans la base.
+    """
+    try:
+        # 1️⃣ Vérifie si la voiture existe
+        result = await db.execute(select(Car).where(Car.id == data.id))
+        car = result.scalar_one_or_none()
+
+        if not car:
+            logging.error(f"[CarService] ❌ Voiture inexistante ID: {data.id}")
+            raise HTTPException(status_code=404, detail=f"Voiture inexistante ID: {data.id}")
+
+        # 2️⃣ Met à jour seulement les champs fournis
+        update_data = data.dict(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(car, key, value)
+
+        car.updated_at = datetime.utcnow()
+
+        # 3️⃣ Enregistre les modifications
+        await db.commit()
+        await db.refresh(car)
+
+        logging.info(f"[CarService] ✅ Voiture mise à jour : {car.id}")
+        return CarResponse.from_orm(car)
+
+    except HTTPException:
+        raise  # Laisse FastAPI gérer les erreurs HTTP
+    except Exception as e:
+        await db.rollback()
+        logging.error(f"[CarService] ❌ Erreur interne : {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur interne : {e}")
+    
+    
 async def get_car_by_id_service(db:AsyncSession,car_id:uuid.UUID)-> CarResponse :
     try:
 
@@ -111,3 +133,23 @@ async def get_car_by_id_service(db:AsyncSession,car_id:uuid.UUID)-> CarResponse 
         logging.error(f"Erreur lors de la recherche du vehicule : {str(e)}")
         raise HTTPException(status_code=500, detail="Erreur interne lors de la recherche de vehicule")
     
+
+async def del_car_by_id(db:AsyncSession,car_id:uuid.UUID):
+    try:
+
+        res = await db.execute(select(Car).where(Car.id==car_id))
+        query = res.scalar_one_or_none()
+        if not query:
+                logging.warning(f"Le véhicule existe pas .")
+                raise HTTPException(status_code=400, detail="Ce véhicule n existe pas.")
+        await db.delete()
+        await db.flush()
+        await db.refresh()
+    except Exception as e :
+
+        
+        logging.error(f"Erreur lors de la suppression du vehicule : {str(e)}")
+        raise HTTPException(status_code=500, detail="Erreur interne lors de la suppresion de vehicule")
+    
+
+

@@ -38,6 +38,15 @@ class CarCreate(BaseModel):
 # Schéma pour la mise à jour d'une voiture
 class CarUpdate(CarBase):
     id: Optional[UUID] = Field(default=None, description="Identifiant unique de la voiture (peut être omis lors de la mise à jour)")
+    brand:Optional[str]
+    model:Optional[str]
+    color:Optional[str]
+    license_plate: str
+    seats: int
+    date_of_car: int
+    type_of_car: Optional[str] = None
+
+
 
 
 # Schéma pour la réponse de la voiture
@@ -54,3 +63,6 @@ class CarResponse(CarBase):
     date_of_car: int = Field(..., description="Date de la voiture")
     created_at: datetime = Field(default_factory=lambda: datetime.now().replace(microsecond=0), description="Date de création de l'enregistrement")
     updated_at: datetime = Field(default_factory=lambda: datetime.now().replace(microsecond=0), description="Date de la dernière mise à jour de l'enregistrement")
+
+    class Config : 
+        from_attributes=True

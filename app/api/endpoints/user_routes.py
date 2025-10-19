@@ -6,7 +6,7 @@ from app.db.database import get_db
 from app.db.schemas.user import UserResponse, UserResponseFind, UserUpdate, UsersType
 from typing import List
 from app.db.models.user import User
-from app.services.user_service import get_user_by_email, get_user_by_id,get_users, update_user, delete_user,get_users_by_user_type
+from app.services.user_service import get_user_by_email, get_user_by_id,get_users, update_user, delete_user
 
 
 from fastapi import FastAPI, HTTPException, Depends, Request

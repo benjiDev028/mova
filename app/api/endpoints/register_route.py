@@ -6,7 +6,6 @@ from app.db.database import get_db
 from app.db.schemas.user import UserResponse, UserCreate
 from app.services.user_service import create_user
 
-
 from fastapi import FastAPI, HTTPException, Depends, Request
 from starlette.responses import JSONResponse
 from uuid import UUID

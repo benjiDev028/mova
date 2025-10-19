@@ -1,6 +1,5 @@
 from datetime import datetime
 import logging
-from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
 from fastapi import HTTPException
@@ -140,7 +139,7 @@ async def get_user_by_email(db: AsyncSession, email: str) -> UserResponseFind:
     """
     try:
         
-        result = await db.execute(select(User).options(selectinload(User.cars)).where(User.email == email))
+        result = await db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if not user:
             logging.error(f"Utilisateur introuvable avec l'email {email}")
