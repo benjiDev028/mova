@@ -1,0 +1,112 @@
+2025-10-07 10:13:09,854 - ERROR - Erreur SQLAlchemy : (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.updated_at does not exist
+HINT:  Perhaps you meant to reference the column "bookings.created_at".
+[SQL: SELECT bookings.id, bookings.id_user, bookings.id_trip, bookings.id_stop, bookings.number_of_seats, bookings.price_per_seat, bookings.reservation_fee_per_seat, bookings.total_trip_price, bookings.total_reservation_fee, bookings.total_to_pay, bookings.status, bookings.chauffeur_payment_method, bookings.payment_method_used, bookings.created_at, bookings.updated_at 
+FROM bookings 
+WHERE bookings.id_user = $1::UUID AND bookings.id_trip = $2::UUID AND bookings.status = $3::VARCHAR]
+[parameters: (UUID('a94a1c51-574b-4317-9e7c-623547028bc5'), UUID('d0cea17b-e4e4-4db4-aa31-00b7b0b1436e'), 'completed')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-10-07 10:16:14,524 - ERROR - Erreur SQLAlchemy : (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedColumnError'>: column bookings.updated_at does not exist
+HINT:  Perhaps you meant to reference the column "bookings.created_at".
+[SQL: SELECT bookings.id, bookings.id_user, bookings.id_trip, bookings.id_stop, bookings.number_of_seats, bookings.price_per_seat, bookings.reservation_fee_per_seat, bookings.total_trip_price, bookings.total_reservation_fee, bookings.total_to_pay, bookings.status, bookings.chauffeur_payment_method, bookings.payment_method_used, bookings.created_at, bookings.updated_at 
+FROM bookings 
+WHERE bookings.id_user = $1::UUID AND bookings.id_trip = $2::UUID AND bookings.status = $3::VARCHAR]
+[parameters: (UUID('a94a1c51-574b-4317-9e7c-623547028bc5'), UUID('d0cea17b-e4e4-4db4-aa31-00b7b0b1436e'), 'completed')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-10-07 10:20:23,256 - ERROR - Erreur SQLAlchemy : (sqlalchemy.dialects.postgresql.asyncpg.ProgrammingError) <class 'asyncpg.exceptions.UndefinedTableError'>: relation "bookings" does not exist
+[SQL: SELECT bookings.id, bookings.id_user, bookings.id_trip, bookings.id_stop, bookings.number_of_seats, bookings.price_per_seat, bookings.reservation_fee_per_seat, bookings.total_trip_price, bookings.total_reservation_fee, bookings.total_to_pay, bookings.status, bookings.chauffeur_payment_method, bookings.payment_method_used, bookings.created_at, bookings.updated_at 
+FROM bookings 
+WHERE bookings.id_user = $1::UUID AND bookings.id_trip = $2::UUID AND bookings.status = $3::VARCHAR]
+[parameters: (UUID('a94a1c51-574b-4317-9e7c-623547028bc5'), UUID('d0cea17b-e4e4-4db4-aa31-00b7b0b1436e'), 'completed')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-10-07 23:53:18,275 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': 'a4c17b2f-644e-4203-8985-a5d8b5324707', 'number_of_seats': 1}
+2025-10-07 23:53:18,277 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '3fe855a5-e55c-4a47-8897-25fd25899a94', 'number_of_seats': 1}
+2025-10-07 23:53:46,032 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '06204f7b-f9e3-4c48-b2a4-ba0bb7a9aae4', 'number_of_seats': 1}
+2025-10-07 23:54:16,982 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '31c0c585-0764-468a-a261-1be83cbf64a5', 'number_of_seats': 1}
+2025-10-07 23:55:29,318 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '96d63ab0-e6ab-489e-b35a-fe69acbd4af3', 'number_of_seats': 1}
+2025-10-07 23:56:19,642 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '9de93dfc-854d-4972-a1dc-4d3c7c62f1f8', 'number_of_seats': 1}
+2025-10-07 23:58:10,628 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '4ba3359f-8edd-4df9-b9ea-83d540cf08dd', 'number_of_seats': 1}
+2025-10-08 00:01:49,880 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '16de4bf1-4224-441e-b0c9-2754fd80ff7c', 'number_of_seats': 1}
+2025-10-08 00:08:30,635 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': 'b5013f13-7ba9-4fae-97f8-5bd1a11304af', 'number_of_seats': 1}
+2025-10-08 00:20:19,073 - INFO - Message envoyé à RabbitMQ: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': '2f0269da-62b8-4e95-b101-088eab62fe50', 'number_of_seats': 1}
+2025-10-08 00:26:44,608 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 00:28:17,415 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 00:31:14,346 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 01:54:37,741 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 500 Internal Server Error"
+2025-10-08 02:17:26,771 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 02:18:43,471 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/d0cea17b-e4e4-4db4-aa31-00b7b0b1436e "HTTP/1.1 200 OK"
+2025-10-08 02:18:43,732 - INFO - [RabbitMQ] Message envoyé: {'action': 'decrease_available_seats', 'trip_id': 'd0cea17b-e4e4-4db4-aa31-00b7b0b1436e', 'booking_id': 'f0449163-3b9b-49e7-bbb7-14cb380e376c', 'number_of_seats': 1}
+2025-10-08 03:58:46,823 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : object Booking can't be used in 'await' expression
+2025-10-08 04:12:23,013 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 'Booking' object has no attribute 'all'
+2025-10-08 04:29:53,238 - ERROR - Erreur lors de la recherche  de la de passager : 'function' object has no attribute 'all'
+2025-10-08 04:30:43,495 - ERROR -  passanger introuvable id  a94a1c51-574b-4317-9e7c-623547028bc5
+2025-10-08 04:30:43,496 - ERROR - Erreur lors de la recherche  de la de passager : 500: Erreur inattendue du serveur booking.
+2025-10-08 04:31:07,618 - ERROR -  passanger introuvable id  a94a1c51-574b-4317-9e7c-623547028bc5
+2025-10-08 04:31:07,618 - ERROR - Erreur lors de la recherche  de la de passager : 500: Erreur inattendue du serveur booking.
+2025-10-08 04:31:37,279 - ERROR -  passanger introuvable id  a94a1c51-574b-4317-9e7c-623547028bc5
+2025-10-08 04:31:37,279 - ERROR - Erreur lors de la recherche  de la de passager : 500: passanger introuvable id .
+2025-10-08 04:32:00,228 - ERROR -  passanger introuvable id  a94a1c51-574b-4317-9e7c-623547028bc5
+2025-10-08 04:32:00,229 - ERROR - Erreur lors de la recherche  de la de passager : 500: passanger introuvable id .
+2025-10-08 04:38:28,906 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:38:28,907 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:43:32,888 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:43:32,889 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:46:35,277 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:46:35,277 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:49:17,171 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:49:17,171 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:50:17,530 - ERROR -  passanger introuvable id  bed45788-6cc0-4c63-9d38-acdc6a77feaa
+2025-10-08 04:50:17,530 - ERROR - Erreur lors de la recherche  de la de passager : 500: trip du passanger introuvable id .
+2025-10-08 04:50:21,576 - ERROR -  passanger introuvable id  96b47972-8a26-4ad1-8a84-08df6d272787
+2025-10-08 04:50:21,577 - ERROR - Erreur lors de la recherche  de la de passager : 500: trip du passanger introuvable id .
+2025-10-08 04:53:20,314 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:53:20,315 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:54:14,682 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:54:14,683 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:55:00,526 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:55:00,526 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:55:59,751 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:55:59,752 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 04:56:57,563 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 04:56:57,563 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:01:20,536 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:01:20,537 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:02:16,985 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:02:16,985 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:02:56,545 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:02:56,568 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:11:46,956 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:11:46,957 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:11:56,100 - ERROR -  passanger introuvable id  4cbc402c-03e9-4c91-a94e-adc74a7701de
+2025-10-08 05:11:56,100 - ERROR - Erreur lors de la recherche  de la de passager : 500: trip du passanger introuvable id .
+2025-10-08 05:14:47,935 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:14:47,936 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:15:03,071 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:15:03,072 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:26:38,734 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:26:38,735 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:27:00,418 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:27:00,419 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 05:56:47,650 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 05:56:47,651 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 06:02:06,548 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 06:02:06,549 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 06:02:22,913 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 06:02:22,914 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 06:02:27,280 - ERROR -  passanger introuvable id  f9693848-f315-40df-99ff-ec114a9fb028
+2025-10-08 06:02:27,280 - ERROR - Erreur lors de la recherche  de la de passager : 500: trip du passanger introuvable id .
+2025-10-08 06:10:04,810 - INFO - HTTP Request: GET http://192.168.2.13:8003/tp/get_trip_by_id/f9693848-f315-40df-99ff-ec114a9fb028 "HTTP/1.1 200 OK"
+2025-10-08 06:10:04,869 - INFO - [RabbitMQ] Message envoyé: {'action': 'decrease_available_seats', 'trip_id': 'f9693848-f315-40df-99ff-ec114a9fb028', 'booking_id': '2b581967-2119-4bd8-96a9-d890628da8ab', 'number_of_seats': 2}
+2025-10-08 06:15:47,008 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 06:15:47,009 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 06:16:04,171 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 06:16:04,172 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 06:18:13,115 - ERROR -  passanger introuvable id  ec7a3885-19d9-4ad1-8998-0d58d10c8303
+2025-10-08 06:18:13,116 - ERROR - Erreur lors de la recherche  de la de passager : 500: trip du passanger introuvable id .
+2025-10-08 06:18:14,559 - ERROR -  passanger introuvable id  bbca77d1-a2de-4d74-a991-4ba705c956ed
+2025-10-08 06:18:14,560 - ERROR - Erreur lors de la recherche  de la de passager : 500: trip du passanger introuvable id .
+2025-10-08 06:20:22,755 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 06:20:22,756 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 08:14:28,610 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 08:14:28,613 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.
+2025-10-08 08:14:59,000 - ERROR -  la reservation de lutilsateur est introuvable id fe l'user 5b9009cc-00c6-4b17-8e1f-3115dd63d765
+2025-10-08 08:14:59,002 - ERROR - Erreur lors de la recherche  de la reservation de l'utilisateur : 500: Erreur inattendue du serveur Booking.

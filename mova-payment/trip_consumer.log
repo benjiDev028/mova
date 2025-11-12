@@ -1,0 +1,115 @@
+2025-11-12 08:57:08,408 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() done, defined at D:\CORE TECH\covoiturage\mova-payment\app\consumers\trip_consumer.py:51> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x000001C1F3B91FD0>()]>>
+2025-11-12 08:57:10,420 - INFO - message='Request to Stripe api' method=post url=https://api.stripe.com/v1/payment_intents
+2025-11-12 08:57:11,298 - INFO - message='Stripe API response' path=https://api.stripe.com/v1/payment_intents response_code=200
+2025-11-12 09:00:21,548 - INFO - message='Request to Stripe api' method=post url=https://api.stripe.com/v1/payment_intents
+2025-11-12 09:00:22,393 - INFO - message='Stripe API response' path=https://api.stripe.com/v1/payment_intents response_code=200
+2025-11-12 09:01:48,102 - INFO - message='Request to Stripe api' method=post url=https://api.stripe.com/v1/payment_intents
+2025-11-12 09:01:49,041 - INFO - message='Stripe API response' path=https://api.stripe.com/v1/payment_intents response_code=200
+2025-11-12 09:03:34,241 - WARNING - Action inconnue : None
+2025-11-12 09:05:05,774 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-11-12 09:05:05,792 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-82' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001C1EF096490>()]>>
+2025-11-12 09:07:29,095 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() done, defined at D:\CORE TECH\covoiturage\mova-payment\app\consumers\trip_consumer.py:51> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x0000018F4AF21FD0>()]>>
+2025-11-12 09:07:32,343 - INFO - message='Request to Stripe api' method=post url=https://api.stripe.com/v1/payment_intents
+2025-11-12 09:07:33,151 - INFO - message='Stripe API response' path=https://api.stripe.com/v1/payment_intents response_code=200
+2025-11-12 09:08:49,414 - INFO - message='Request to Stripe api' method=post url=https://api.stripe.com/v1/payment_intents
+2025-11-12 09:08:50,325 - INFO - message='Stripe API response' path=https://api.stripe.com/v1/payment_intents response_code=200
+2025-11-12 09:10:25,113 - WARNING - Action inconnue : None
+2025-11-12 09:12:03,128 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-11-12 09:12:03,132 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-68' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000018F4AD426A0>()]>>
+2025-11-12 09:12:51,714 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-11-12 09:12:51,723 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-19' coro=<Connection._on_reader_done.<locals>.close_writer_task() running at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:554> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x00000269FC8273A0>()]>>
