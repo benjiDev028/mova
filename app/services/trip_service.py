@@ -8,7 +8,7 @@ from typing import List, Optional
 
 from dotenv import load_dotenv
 from fastapi import HTTPException
-from sqlalchemy import select, update, or_
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 import aio_pika
@@ -20,7 +20,6 @@ from app.db.models.stop import Stop
 from app.db.schemas.trip import (
     TripCreate,
     TripResponse,
-    StatusTripUpdate,
     TripReserveSeat,
     TripCancelSeat,
 )
@@ -525,3 +524,5 @@ async def get_driver_trip_history_service(db: AsyncSession, driver_id: uuid.UUID
         )
     )
     return result.scalars().unique().all()
+
+

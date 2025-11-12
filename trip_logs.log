@@ -1295,3 +1295,279 @@ task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\
 2025-10-13 18:10:23,012 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
 2025-10-13 19:19:29,545 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x2098be09770> was stuck. No frames were received in 183 seconds.
 2025-10-13 19:19:30,068 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-19 17:41:49,850 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x0000021F7BCD2CA0>()]>>
+2025-10-19 21:35:46,580 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bac7540> was stuck. No frames were received in 183 seconds.
+2025-10-19 21:35:48,684 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-19 22:05:38,903 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bcb37c0> was stuck. No frames were received in 183 seconds.
+2025-10-19 22:05:42,073 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-20 02:12:16,554 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bcb3d60> was stuck. No frames were received in 183 seconds.
+2025-10-20 02:12:16,753 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-20 05:28:57,593 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bd73450> was stuck. No frames were received in 183 seconds.
+2025-10-20 05:28:59,553 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-20 19:13:20,957 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bd734f0> was stuck. No frames were received in 183 seconds.
+2025-10-20 19:13:21,452 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-21 01:33:17,543 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bddef40> was stuck. No frames were received in 183 seconds.
+2025-10-21 01:33:17,657 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-21 09:02:32,618 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7bddef90> was stuck. No frames were received in 183 seconds.
+2025-10-21 09:02:32,825 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-21 12:17:13,587 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7be63a40> was stuck. No frames were received in 183 seconds.
+2025-10-21 12:17:13,723 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-21 18:16:44,518 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21f7be63d60> was stuck. No frames were received in 183 seconds.
+2025-10-21 18:16:44,630 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-22 01:45:10,825 - INFO - Voyage créé avec succès : f9af2c5b-a1b8-4770-a415-9c797f99fb8d
+2025-10-22 02:22:11,650 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\main.py", line 579, in run
+    server.run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\windows_events.py", line 316, in run_forever
+    super().run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-10-22 02:22:11,680 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-2857' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000021F7BE204F0>()]>>
+2025-10-22 02:22:29,108 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x00000261AE9A2CA0>()]>>
+2025-10-22 07:00:50,631 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261ae7995e0> was stuck. No frames were received in 183 seconds.
+2025-10-22 07:00:50,693 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-22 07:58:23,635 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb0cb30> was stuck. No frames were received in 183 seconds.
+2025-10-22 07:58:23,675 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-22 13:06:01,529 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb4ed60> was stuck. No frames were received in 183 seconds.
+2025-10-22 13:06:01,658 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-22 16:27:15,571 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261ae7999a0> was stuck. No frames were received in 183 seconds.
+2025-10-22 16:27:15,940 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-22 20:44:35,563 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb5ad10> was stuck. No frames were received in 183 seconds.
+2025-10-22 20:44:35,729 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 02:54:41,651 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb5a7c0> was stuck. No frames were received in 183 seconds.
+2025-10-23 02:54:43,997 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 06:41:54,620 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb5bdb0> was stuck. No frames were received in 183 seconds.
+2025-10-23 06:41:54,821 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 10:32:38,584 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb5b630> was stuck. No frames were received in 183 seconds.
+2025-10-23 10:32:39,339 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 13:21:31,570 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb5b360> was stuck. No frames were received in 183 seconds.
+2025-10-23 13:21:31,578 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 14:45:16,578 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb14090> was stuck. No frames were received in 183 seconds.
+2025-10-23 14:45:16,702 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 17:30:19,618 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x261aeb14180> was stuck. No frames were received in 183 seconds.
+2025-10-23 17:30:19,802 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-23 23:04:22,911 - INFO - Voyage créé avec succès : eb9ea626-187b-4867-b89b-59ab76a61f65
+2025-10-25 08:49:51,688 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\main.py", line 579, in run
+    server.run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\windows_events.py", line 316, in run_forever
+    super().run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-10-25 08:49:51,745 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-7415' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x00000261AE6D9DF0>()]>>
+2025-10-25 08:50:06,938 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x0000021FE124E340>()]>>
+2025-10-25 08:51:15,980 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-10-25 08:51:15,984 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-80' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000021FE124E3A0>()]>>
+2025-10-25 08:51:45,284 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x0000021684BED2E0>()]>>
+2025-10-25 13:49:49,313 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684a356d0> was stuck. No frames were received in 183 seconds.
+2025-10-25 13:49:50,717 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-25 16:48:15,600 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684bd2f90> was stuck. No frames were received in 183 seconds.
+2025-10-25 16:48:15,694 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-25 19:10:25,536 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d4d0e0> was stuck. No frames were received in 183 seconds.
+2025-10-25 19:10:27,423 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-25 20:01:28,565 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d1eb30> was stuck. No frames were received in 183 seconds.
+2025-10-25 20:01:28,755 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-26 02:05:22,562 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d92040> was stuck. No frames were received in 183 seconds.
+2025-10-26 02:05:22,736 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-26 02:33:20,511 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d8af90> was stuck. No frames were received in 183 seconds.
+2025-10-26 02:33:22,299 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-26 06:15:04,585 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684daab80> was stuck. No frames were received in 183 seconds.
+2025-10-26 06:15:04,844 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-26 17:33:35,617 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684daa720> was stuck. No frames were received in 183 seconds.
+2025-10-26 17:33:36,358 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-26 20:09:06,578 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d4d0e0> was stuck. No frames were received in 183 seconds.
+2025-10-26 20:09:06,603 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-27 01:31:35,532 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d1e680> was stuck. No frames were received in 183 seconds.
+2025-10-27 01:31:35,600 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-27 09:30:59,576 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d8a9a0> was stuck. No frames were received in 183 seconds.
+2025-10-27 09:30:59,998 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-27 14:48:43,555 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684d926d0> was stuck. No frames were received in 183 seconds.
+2025-10-27 14:48:45,425 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-10-27 15:01:16,532 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x21684da27c0> was stuck. No frames were received in 183 seconds.
+2025-10-27 15:01:18,338 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-10 15:49:09,673 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x0000016E2FD96AC0>()]>>
+2025-11-10 16:02:55,013 - INFO - Voyage créé avec succès : f6246a13-4842-4e72-8e54-3bf4c60547ae
+2025-11-11 01:06:36,591 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x16e2f985ef0> was stuck. No frames were received in 183 seconds.
+2025-11-11 01:06:37,155 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-11 05:33:04,542 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x16e2fee1f40> was stuck. No frames were received in 183 seconds.
+2025-11-11 05:33:04,570 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-11 13:24:08,615 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x16e2fd918b0> was stuck. No frames were received in 183 seconds.
+2025-11-11 13:24:09,400 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-11 18:59:48,219 - INFO - Voyage créé avec succès : f888b123-ff6c-4a48-89d8-b0a64d54065b
+2025-11-11 19:01:02,586 - INFO - Voyage créé avec succès : dcdd42da-6d8f-4ec3-818d-0c16bd7d3946
+2025-11-11 19:08:01,265 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-5' coro=<RobustConnection.__connection_factory() running at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aio_pika\robust_connection.py:124> wait_for=<Future cancelled> cb=[gather.<locals>._done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:769]>
+2025-11-11 19:08:01,268 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-859' coro=<Connection.__reader() running at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:639> wait_for=<Future cancelled> cb=[FutureStore.__on_task_done.<locals>.remover() at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\base.py:33, <1 more>, gather.<locals>._done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:769]>
+2025-11-11 19:08:01,269 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-860' coro=<Connection.__writer() running at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:716> wait_for=<Future cancelled> cb=[FutureStore.__on_task_done.<locals>.remover() at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\base.py:33, gather.<locals>._done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:769]>
+2025-11-11 19:08:01,271 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-861' coro=<Connection.__heartbeat() running at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:693> wait_for=<Future cancelled> cb=[FutureStore.__on_task_done.<locals>.remover() at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\base.py:33, gather.<locals>._done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:769]>
+2025-11-11 19:08:01,273 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-862' coro=<Channel._reader() running at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\channel.py:437> wait_for=<Future cancelled> cb=[FutureStore.__on_task_done.<locals>.remover() at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\base.py:33, <1 more>, gather.<locals>._done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:769]>
+2025-11-11 19:10:07,528 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x000001E1CE27C2E0>()]>>
+2025-11-11 20:10:29,534 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x1e1ce0f5040> was stuck. No frames were received in 183 seconds.
+2025-11-11 20:10:31,769 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-11 23:22:01,555 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x1e1ce261ef0> was stuck. No frames were received in 183 seconds.
+2025-11-11 23:22:01,745 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-11 23:26:19,562 - WARNING - Server connection <Connection: "amqp://guest:******@localhost:5672/" at 0x1e1ce288180> was stuck. No frames were received in 183 seconds.
+2025-11-11 23:26:19,750 - INFO - Connection to amqp://guest:******@localhost:5672/ closed. Reconnecting after 5 seconds.
+2025-11-12 00:46:53,470 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-11-12 00:46:53,514 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-458' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x000001E1CDFD5B20>()]>>
+2025-11-12 00:46:58,529 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-4' coro=<start_rabbitmq_consumer() running at D:\CORE TECH\covoiturage\mova-trip\app\consumers\rabbitmq_consumer.py:56> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x0000022BD467D2E0>()]>>
+2025-11-12 00:47:45,302 - ERROR - Future exception was never retrieved
+future: <Future finished exception=CancelledError()>
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\_subprocess.py", line 80, in subprocess_started
+    target(sockets=sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 65, in run
+    return asyncio.run(self.serve(sockets=sockets))
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 603, in run_until_complete
+    self.run_forever()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 570, in run_forever
+    self._run_once()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\base_events.py", line 1859, in _run_once
+    handle._run()
+  File "C:\Users\Admin\.conda\envs\monenv\lib\asyncio\events.py", line 81, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 69, in serve
+    await self._serve(sockets)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\contextlib.py", line 120, in __exit__
+    next(self.gen)
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\uvicorn\server.py", line 328, in capture_signals
+    signal.raise_signal(captured_signal)
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py", line 551, in close_writer_task
+    exc = task.exception()
+asyncio.exceptions.CancelledError
+2025-11-12 00:47:45,309 - ERROR - Task was destroyed but it is pending!
+task: <Task pending name='Task-22' coro=<Connection._on_reader_done.<locals>.close_writer_task() done, defined at C:\Users\Admin\.conda\envs\monenv\lib\site-packages\aiormq\connection.py:546> wait_for=<Future pending cb=[shield.<locals>._outer_done_callback() at C:\Users\Admin\.conda\envs\monenv\lib\asyncio\tasks.py:902, <TaskWakeupMethWrapper object at 0x0000022BD44D7B80>()]>>
