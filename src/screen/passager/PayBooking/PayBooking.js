@@ -12,9 +12,11 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { useStripe } from "@stripe/stripe-react-native";
 import { useAuth } from '../../../hooks/useAuth'; // Import du hook d'authentification
 import service_booking from '../../../services/service_booking/service_booking'; // Import du service
 import service_trip from '../../../services/service_trip/service_trip';
+import service_payment from '../../../services/service_payment/service_payment';
 
 // Logos cartes (garde ces assets)
 const CARD_TYPES = {
@@ -28,7 +30,9 @@ const TAX_RATE_NB = 0.15;       // Taxes NB 15%
 const BOOKING_FEE_PER_SEAT = 3.50; // Frais plateforme fixes par place
 
 export default function PayBookingScreen({ route, navigation }) {
-  const { trip } = route.params || {};
+  const { trip,booking } = route.params || {};
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+
   console.log("trip ",trip)
   const { user } = useAuth(); // Récupère l'utilisateur connecté
   
@@ -44,6 +48,7 @@ export default function PayBookingScreen({ route, navigation }) {
   const [postalCode, setPostalCode] = useState('');
   const [cardType, setCardType] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
 
   /* ============================== Helpers UI ============================== */
   const formatCardNumber = (text) => {
@@ -124,114 +129,336 @@ export default function PayBookingScreen({ route, navigation }) {
     cardNumber.length >= 15 && expiry.length === 5 && cvv.length >= 3 && postalCode.length >= 6;
 
   /* ============================== Paiement (API réelle) ============================== */
+
 const handlePayment = async () => {
-  // Validations rapides
-  if (!isFormValid) {
-    Alert.alert('Erreur', 'Veuillez compléter les informations de paiement correctement.');
-    return;
-  }
-
-  if (!user?.id) {
-    Alert.alert('Erreur', 'Utilisateur non connecté');
-    return;
-  }
-
-  setIsProcessing(true);
   try {
-    // CORRECTION : Récupérer les détails complets du trajet avec driver_id
-    console.log('Récupération des détails du trajet...');
-    const tripDetails = await service_trip.get_trip_by_id(trip?.id);
-    
-    if (!tripDetails?.driver_id) {
-      throw new Error('Impossible de récupérer les informations du conducteur');
+    setIsProcessing(true);
+
+    // 1️⃣ Vérification utilisateur
+    if (!user?.id) {
+      Alert.alert("Erreur", "Utilisateur non connecté");
+      return;
     }
 
-    console.log('Détails complets du trajet:', tripDetails);
-
-    // Calcul de la date d'annulation gratuite (24h avant le départ)
-    const calculateFreeCancellationUntil = () => {
-      if (!tripDetails?.departure_date || !tripDetails?.departure_time) return null;
-      
-      const departureDate = new Date(`${tripDetails.departure_date}T${tripDetails.departure_time}`);
-      const freeCancellationDate = new Date(departureDate.getTime() - (24 * 60 * 60 * 1000));
-      
-      return freeCancellationDate.toISOString();
-    };
-
-    // Payload avec le driver_id récupéré
-    const bookingPayload = {
-      id_user: String(user.id),
-      id_trip: String(trip?.id),
-      id_driver: String(tripDetails.driver_id), // CORRECTION : driver_id de l'API
-      id_stop: selectedStop?.id ? String(selectedStop.id) : null,
-      number_of_seats: parseInt(seats, 10),
-      price_per_seat: parseFloat(pricePerSeat.toFixed(2)),
-      reservation_fee_per_seat: parseFloat(BOOKING_FEE_PER_SEAT.toFixed(2)),
-      currency: "CAD",
-      tax_rate: parseFloat(TAX_RATE_NB.toFixed(4)),
-      tax_region: "HST-NB",
-      chauffeur_payment_method: trip?.paymentMode === 'cash' ? 'cash' : 'virement',
-      payment_method_used: 'card',
-      free_cancellation_until: calculateFreeCancellationUntil()
-    };
-
-    console.log('=== PAYLOAD AVEC DRIVER_ID ===');
-    console.log(JSON.stringify(bookingPayload, null, 2));
-
-    // Appel API réel pour créer la réservation
-    const bookingResult = await service_booking.create_booking(bookingPayload);
+    // 2️⃣ Vérifier qu'on a bien un booking pending
+    const booking_id = booking?.id;
     
-    console.log('Réservation créée avec succès:', bookingResult);
+    if (!booking_id) {
+      Alert.alert("Erreur", "Réservation introuvable. Veuillez recommencer.");
+      navigation.goBack();
+      return;
+    }
 
+    console.log("💳 Paiement pour booking:", booking_id);
+    
+    // 3️⃣ Calcul du driver_payable selon la méthode de paiement
+    const driver_payable = paymentMode === 'cash' ? 0 : base; // Si cash, driver reçoit en main propre
+    
+    // 4️⃣ Construire la route
+    const departure_city = trip?.departure || "Ville départ";
+    const destination_city = selectedStop?.location || trip?.arrival || "Ville arrivée";
+    
+    // 5️⃣ Date/heure du trip (format ISO)
+    let trip_departure_date = null;
+    if (trip?.date && trip?.time) {
+      // Combiner date et heure : "2025-11-15" + "16:13" -> "2025-11-15T16:13:00"
+      trip_departure_date = `${trip.date}T${trip.time}:00`;
+    } else if (trip?.date) {
+      trip_departure_date = `${trip.date}T00:00:00`;
+    }
+
+    // 6️⃣ Nom du passager
+    const passenger_name = user.first_name && user.last_name 
+      ? `${user.first_name} ${user.last_name}` 
+      : user.first_name || user.last_name || `User ${user.id}`;
+
+
+
+
+    // 3️⃣ Préparation des données pour Stripe
+    const totalAmount = chargedNow.toFixed(2);
+
+    const paymentPayload = {
+      user_id: user.id,
+      driver_id: trip.driver_id,
+      trip_id: trip.id,
+      booking_id: booking_id,
+      
+      // Montants
+      amount: parseFloat(chargedNow.toFixed(2)), // Total à capturer par Stripe
+      currency: "CAD",
+      fee: parseFloat((seats * BOOKING_FEE_PER_SEAT).toFixed(2)),
+      tax_rate: TAX_RATE_NB,
+      tax_region: "HST-NB",
+      payment_method: "card",
+      
+      // 🆕 DÉNORMALISATION : Infos du booking
+      chauffeur_payment_method: paymentMode === 'cash' ? 'cash' : 'virement',
+      driver_payable: parseFloat(driver_payable.toFixed(2)),
+      
+      // 🆕 DÉNORMALISATION : Infos du trip
+      trip_departure_city: departure_city,
+      trip_destination_city: destination_city,
+      trip_departure_date: trip_departure_date,
+      
+      // 🆕 DÉNORMALISATION : Info passager
+      passenger_name: passenger_name,
+    };
+
+    // 4️⃣ Appel backend -> création du PaymentIntent Stripe
+    console.log("📡 Création PaymentIntent Stripe...");
+    const response = await service_payment.createPaymentIntent(paymentPayload);
+
+    if (!response?.client_secret) {
+      throw new Error("Impossible d'obtenir le client_secret Stripe");
+    }
+
+    console.log("✅ PaymentIntent créé");
+
+    // 5️⃣ Initialisation de la PaymentSheet Stripe
+    const initResponse = await initPaymentSheet({
+      paymentIntentClientSecret: response.client_secret,
+      merchantDisplayName: "MoVa by Core Technologies",
+      defaultBillingDetails: {
+        name: user.first_name || user.last_name,
+        email: user.email,
+      },
+      style: "automatic",
+    });
+
+    if (initResponse.error) {
+      throw new Error(`Erreur initPaymentSheet: ${initResponse.error.message}`);
+    }
+
+    console.log("✅ PaymentSheet initialisée");
+
+    // 6️⃣ Présentation de la PaymentSheet
+    const paymentResult = await presentPaymentSheet();
+
+    if (paymentResult.error) {
+      // L'utilisateur a annulé ou le paiement a échoué
+      console.log("❌ Paiement annulé/échoué:", paymentResult.error.message);
+      throw new Error(paymentResult.error.message);
+    }
+
+    console.log("✅ Paiement Stripe réussi");
+
+    // 7️⃣ MAINTENANT : Confirmer la réservation (status: pending -> confirmed)
+    console.log("🔄 Confirmation de la réservation...");
+    
+    const confirmedBooking = await service_booking.confirm_booking_after_payment(booking_id);
+    
+    console.log("✅ Réservation confirmée:", confirmedBooking);
+
+    // 8️⃣ Succès total
     Alert.alert(
-      'Paiement réussi 🎉',
-      'Votre réservation a été confirmée. Un email de confirmation vous sera envoyé.',
+      "Paiement réussi 🎉",
+      "Votre réservation est confirmée. Un reçu a été envoyé par email.",
       [
         {
-          text: 'OK',
-          onPress: () =>
-            navigation.navigate('BookingConfirmation', {
-              trip: tripDetails, // Utiliser les détails complets
-              seats,
-              selectedStop,
-              total: chargedNow.toFixed(2),
-              bookingId: bookingResult.id,
-              bookingData: bookingResult
-            }),
+          text: "OK",
+          onPress: () => {
+           navigation.navigate("ClientTabs", {screen:"MesTrajetsTab"}, {
+  trip,
+  seats,
+  selectedStop,
+  total: totalAmount,
+  bookingId: confirmedBooking.id,
+  bookingData: confirmedBooking,
+});
+
+          },
         },
       ]
     );
 
   } catch (error) {
-    console.error('Erreur lors de la réservation:', error);
+    console.error("❌ Erreur paiement:", error);
     
-    let errorMessage = 'La réservation a échoué. Veuillez réessayer.';
-    if (error.message.includes('422')) {
-      errorMessage = 'Format de données incorrect.';
-    } else if (error.message.includes('409')) {
-      errorMessage = 'Vous avez déjà une réservation sur ce trajet.';
-    } else if (error.message.includes('400')) {
-      errorMessage = 'Trajet non disponible ou places insuffisantes.';
-    } else if (error.message.includes('driver_id')) {
-      errorMessage = 'Erreur de chargement des informations du trajet.';
+    let errorMessage = "Le paiement a échoué. Veuillez réessayer.";
+    
+    if (error.message?.includes("canceled")) {
+      errorMessage = "Paiement annulé";
+    } else if (error.message?.includes("network")) {
+      errorMessage = "Erreur de connexion. Vérifiez votre internet.";
+    } else if (error.response?.status === 409) {
+      errorMessage = "Cette réservation a déjà été confirmée";
     }
     
-    Alert.alert('Erreur', errorMessage);
+    Alert.alert("Erreur", errorMessage);
+    
   } finally {
     setIsProcessing(false);
   }
 };
-  // Fonction pour simuler le traitement de paiement (à remplacer par ton vrai système)
-  const processPayment = async (amount, cardNumber, expiry, cvv, postalCode) => {
-    // Simulation de délai de traitement
-    await new Promise(resolve => setTimeout(resolve, 2000));
+
+ 
+// const handlePayment = async () => {
+//   try {
+//     setIsProcessing(true);
+
+//     // 1️⃣ Vérification utilisateur
+//     if (!user?.id) {
+//       Alert.alert("Erreur", "Utilisateur non connecté");
+//       return;
+//     }
+
+//     // 2️⃣ Vérifier qu'on a bien un booking pending
+//     const booking_id = booking?.id;
     
-    // ICI TU INTÉGRERAS TON SYSTÈME DE PAIEMENT (Stripe, etc.)
-    // Exemple avec Stripe:
-    // const paymentIntent = await stripe.confirmPayment(...);
+//     if (!booking_id) {
+//       Alert.alert("Erreur", "Réservation introuvable. Veuillez recommencer.");
+//       navigation.goBack();
+//       return;
+//     }
+
+//     console.log("💳 Paiement pour booking:", booking_id);
+
+//     // 3️⃣ Calcul du driver_payable selon la méthode de paiement
+//     const driver_payable = paymentMode === 'cash' ? 0 : base; // Si cash, driver reçoit en main propre
     
-    return { success: true, transactionId: 'txn_' + Math.random().toString(36).substr(2, 9) };
-  };
+//     // 4️⃣ Construire la route
+//     const departure_city = trip?.departure || "Ville départ";
+//     const destination_city = selectedStop?.location || trip?.arrival || "Ville arrivée";
+    
+//     // 5️⃣ Date/heure du trip (format ISO)
+//     let trip_departure_date = null;
+//     if (trip?.date && trip?.time) {
+//       // Combiner date et heure : "2025-11-15" + "16:13" -> "2025-11-15T16:13:00"
+//       trip_departure_date = `${trip.date}T${trip.time}:00`;
+//     } else if (trip?.date) {
+//       trip_departure_date = `${trip.date}T00:00:00`;
+//     }
+
+//     // 6️⃣ Nom du passager
+//     const passenger_name = user.first_name && user.last_name 
+//       ? `${user.first_name} ${user.last_name}` 
+//       : user.first_name || user.last_name || `User ${user.id}`;
+
+//     // 7️⃣ Préparation du payload COMPLET (Solution 2)
+//     const paymentPayload = {
+//       user_id: user.id,
+//       driver_id: trip.driver_id,
+//       trip_id: trip.id,
+//       booking_id: booking_id,
+      
+//       // Montants
+//       amount: parseFloat(chargedNow.toFixed(2)), // Total à capturer par Stripe
+//       currency: "CAD",
+//       fee: parseFloat((seats * BOOKING_FEE_PER_SEAT).toFixed(2)),
+//       tax_rate: TAX_RATE_NB,
+//       tax_region: "HST-NB",
+//       payment_method: "card",
+      
+//       // 🆕 DÉNORMALISATION : Infos du booking
+//       chauffeur_payment_method: paymentMode === 'cash' ? 'cash' : 'virement',
+//       driver_payable: parseFloat(driver_payable.toFixed(2)),
+      
+//       // 🆕 DÉNORMALISATION : Infos du trip
+//       trip_departure_city: departure_city,
+//       trip_destination_city: destination_city,
+//       trip_departure_date: trip_departure_date,
+      
+//       // 🆕 DÉNORMALISATION : Info passager
+//       passenger_name: passenger_name,
+//     };
+
+//     console.log("📦 Payload envoyé:", JSON.stringify(paymentPayload, null, 2));
+
+//     // 8️⃣ Appel backend -> création du PaymentIntent Stripe
+//     console.log("📡 Création PaymentIntent Stripe...");
+//     const response = await service_payment.createPaymentIntent(paymentPayload);
+
+//     if (!response?.client_secret) {
+//       throw new Error("Impossible d'obtenir le client_secret Stripe");
+//     }
+
+//     console.log("✅ PaymentIntent créé");
+
+//     // 9️⃣ Initialisation de la PaymentSheet Stripe
+//     const initResponse = await initPaymentSheet({
+//       paymentIntentClientSecret: response.client_secret,
+//       merchantDisplayName: "MoVa by Core Technologies",
+//       defaultBillingDetails: {
+//         name: passenger_name,
+//         email: user.email,
+//       },
+//       style: "automatic",
+//     });
+
+//     if (initResponse.error) {
+//       throw new Error(`Erreur initPaymentSheet: ${initResponse.error.message}`);
+//     }
+
+//     console.log("✅ PaymentSheet initialisée");
+
+//     // 🔟 Présentation de la PaymentSheet
+//     const paymentResult = await presentPaymentSheet();
+
+//     if (paymentResult.error) {
+//       console.log("❌ Paiement annulé/échoué:", paymentResult.error.message);
+//       throw new Error(paymentResult.error.message);
+//     }
+
+//     console.log("✅ Paiement Stripe réussi");
+
+//     // 1️⃣1️⃣ MAINTENANT : Confirmer la réservation (pending -> confirmed)
+//     console.log("🔄 Confirmation de la réservation...");
+    
+//     const confirmedBooking = await service_booking.confirm_booking_after_payment(booking_id);
+    
+//     console.log("✅ Réservation confirmée:", confirmedBooking);
+
+//     // 1️⃣2️⃣ Succès total
+//     Alert.alert(
+//       "Paiement réussi 🎉",
+//       paymentMode === 'cash' 
+//         ? `Votre réservation est confirmée. N'oubliez pas de remettre ${base.toFixed(2)}$ en espèces au chauffeur.`
+//         : "Votre réservation est confirmée. Un reçu a été envoyé par email.",
+//       [
+//         {
+//           text: "OK",
+//           onPress: () => {
+//             navigation.navigate("ClientTabs", {
+//               screen: "MesTrajetsTab"
+//             }, {
+//               trip,
+//               seats,
+//               selectedStop,
+//               total: chargedNow.toFixed(2),
+//               bookingId: confirmedBooking.id,
+//               bookingData: confirmedBooking,
+//             });
+//           },
+//         },
+//       ]
+//     );
+
+//   } catch (error) {
+//     console.error("❌ Erreur paiement:", error);
+    
+//     let errorMessage = "Le paiement a échoué. Veuillez réessayer.";
+    
+//     if (error.message?.includes("canceled")) {
+//       errorMessage = "Paiement annulé";
+//     } else if (error.message?.includes("network")) {
+//       errorMessage = "Erreur de connexion. Vérifiez votre internet.";
+//     } else if (error.response?.status === 409) {
+//       errorMessage = "Cette réservation a déjà été confirmée";
+//     } else if (error.response?.status === 422) {
+//       // Erreur de validation côté backend
+//       errorMessage = "Données invalides. Veuillez vérifier les informations.";
+//       console.error("Détails 422:", error.response?.data);
+//     }
+    
+//     Alert.alert("Erreur", errorMessage);
+    
+//   } finally {
+//     setIsProcessing(false);
+//   }
+// };
+
+
 
   /* ============================== Rendu ============================== */
   return (
@@ -352,64 +579,16 @@ const handlePayment = async () => {
         </View>
 
         {/* Informations carte */}
-        <View style={styles.cardSection}>
-          <Text style={styles.sectionTitle}>Informations de paiement</Text>
+<TouchableOpacity
+  style={[styles.payButton, isProcessing && styles.disabledButton]}
+  onPress={handlePayment}
+  disabled={isProcessing}
+>
+  <Text style={styles.payButtonText}>
+    {isProcessing ? "Paiement en cours..." : `Payer ${chargedNow.toFixed(2)} $`}
+  </Text>
+</TouchableOpacity> 
 
-          <View style={styles.cardInputContainer}>
-            <TextInput
-              style={styles.cardInput}
-              placeholder="1234 5678 9012 3456"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="number-pad"
-              value={formattedCardNumber}
-              onChangeText={formatCardNumber}
-              maxLength={19}
-            />
-            {cardType && <Image source={CARD_TYPES[cardType]} style={styles.cardLogo} />}
-          </View>
-
-          <View style={styles.cardRow}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Date d'expiration</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="MM/AA"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-                value={expiry}
-                onChangeText={formatExpiry}
-                maxLength={5}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>CVV</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={cardType === 'amex' ? '1234' : '123'}
-                placeholderTextColor="#9CA3AF"
-                keyboardType="numeric"
-                value={cvv}
-                onChangeText={formatCvv}
-                secureTextEntry
-                maxLength={cardType === 'amex' ? 4 : 3}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Code postal</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="A1A 1A1"
-              placeholderTextColor="#9CA3AF"
-              value={postalCode}
-              onChangeText={formatPostalCode}
-              autoCapitalize="characters"
-              maxLength={7}
-            />
-          </View>
-        </View>
 
         {/* Sécurité */}
         <View style={styles.securityNotice}>
@@ -431,28 +610,7 @@ const handlePayment = async () => {
       </ScrollView>
 
       {/* Footer bouton */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.payButton, (!isFormValid || isProcessing) && styles.disabledButton]}
-          onPress={handlePayment}
-          disabled={!isFormValid || isProcessing}
-        >
-          {isProcessing ? (
-            <View style={styles.processingContainer}>
-              <MaterialIcons name="hourglass-empty" size={20} color="#fff" />
-              <Text style={styles.payButtonText}>Traitement en cours...</Text>
-            </View>
-          ) : (
-            <View style={styles.payButtonContainer}>
-              <Text style={styles.payButtonText}>Confirmer le paiement</Text>
-              <View style={styles.payButtonAmount}>
-                <Text style={styles.payButtonAmountText}>{chargedNow.toFixed(2)}$</Text>
-                <Ionicons name="lock-closed" size={18} color="#fff" />
-              </View>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+
     </SafeAreaView>
   );
 }

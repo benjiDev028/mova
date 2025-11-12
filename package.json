@@ -47,7 +47,8 @@
     "@expo/vector-icons": "^15.0.2",
     "expo-asset": "~12.0.8",
     "expo-font": "~14.0.8",
-    "expo-dev-client": "~6.0.12"
+    "expo-dev-client": "~6.0.12",
+    "@stripe/stripe-react-native": "0.50.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

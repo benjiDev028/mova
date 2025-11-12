@@ -1,5 +1,5 @@
 // EncaissementScreen.js
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,42 +10,20 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../../hooks/useAuth';
+import service_driver_earning from '../../../services/service_payment/service_driver_earning';
 
 // --------- Utils d'affichage ---------
 const fmtMoney = (n) => `${Number(n || 0).toFixed(2)}$`;
+
 const fmtDate = (iso) => {
+  if (!iso) return '—';
   const d = new Date(iso);
   return d.toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' });
 };
-const addBusinessDays = (date, days) => {
-  let d = new Date(date);
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-    if (!isWeekend) added++;
-  }
-  return d;
-};
-const randomRef = () => 'TRF-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-
-// --------- Données factices (exemples) ---------
-const seedPayments = [
-  // Payables (méthode virement => encaisser possible)
-  { id: 't1', trip_id: 'f3cf...', date: '2025-08-29T17:00:00Z', amount: 70, method: 'virement', status: 'payable', passenger: 'Alex P.', city: 'Montréal → Ottawa' },
-  { id: 't2', trip_id: 'e48...',  date: '2025-08-30T13:00:00Z', amount: 45, method: 'virement', status: 'payable', passenger: 'Yara C.', city: 'Montréal → Gatineau' },
-
-  // En transfert (processing)
-  { id: 't3', trip_id: 'a12...', date: '2025-08-22T10:00:00Z', amount: 60, method: 'virement', status: 'processing', requested_at: '2025-08-23T09:00:00Z', eta: '2025-08-28T09:00:00Z', transfer_ref: 'TRF-9J4K2X', passenger: 'Marc D.', city: 'Québec → Montréal' },
-
-  // Payés (historique)
-  { id: 't4', trip_id: 'b77...', date: '2025-08-12T18:00:00Z', amount: 30, method: 'virement', status: 'paid', paid_at: '2025-08-15T11:22:00Z', transfer_ref: 'TRF-7AD1QH', passenger: 'Sofia M.', city: 'Laval → Montréal' },
-
-  // Non éligibles (cash / carte versé instant à toi, donc pas d'encaissement via app)
-  { id: 't5', trip_id: 'c55...', date: '2025-08-20T19:00:00Z', amount: 25, method: 'cash', status: 'paid', passenger: 'Invité', city: 'Longueuil → Montréal' },
-];
 
 const badge = (status) => {
   switch (status) {
@@ -59,95 +37,97 @@ const badge = (status) => {
 };
 
 const EncaissementScreen = () => {
-  const [refreshing, setRefreshing] = useState(false);
-  const [rows, setRows] = useState(seedPayments);
+  const { user } = useAuth();
   const now = useMemo(() => new Date(), []);
 
-  // Agrégats
-  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const rowsThisMonth = useMemo(
-    () => rows.filter(r => {
-      const d = new Date(r.date);
-      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      return k === monthKey;
-    }),
-    [rows, monthKey]
-  );
+  // États
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [summary, setSummary] = useState({
+    total_month: 0,
+    amount_payable: 0,
+    count_payable: 0,
+    amount_processing: 0,
+    count_processing: 0,
+    amount_paid_total: 0,
+    payable_earnings: [],
+    processing_earnings: [],
+  });
 
-  const totalMonth = useMemo(
-    () => rowsThisMonth.reduce((s, r) => s + (r.amount || 0), 0),
-    [rowsThisMonth]
-  );
+  // ========== CHARGEMENT INITIAL ==========
+  useEffect(() => {
+    if (user?.id) {
+      loadData();
+    }
+  }, [user?.id]);
 
-  const payableRows = useMemo(
-    () => rows.filter(r => r.method === 'virement' && r.status === 'payable'),
-    [rows]
-  );
-  const processingRows = useMemo(
-    () => rows.filter(r => r.method === 'virement' && (r.status === 'requested' || r.status === 'processing')),
-    [rows]
-  );
-  const historyRows = useMemo(
-    () => rows
-      .filter(r => r.method === 'virement' && (r.status === 'paid' || r.status === 'failed'))
-      .sort((a, b) => new Date(b.date) - new Date(a.date)),
-    [rows]
-  );
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await service_driver_earning.getDriverEarningsSummary(user.id);
+      setSummary(data);
+    } catch (error) {
+      console.error('❌ Erreur chargement données:', error);
+      Alert.alert(
+        'Erreur',
+        'Impossible de charger les données d\'encaissement. Vérifiez votre connexion.',
+        [{ text: 'Réessayer', onPress: loadData }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const amountToTransfer = useMemo(
-    () => payableRows.reduce((s, r) => s + (r.amount || 0), 0),
-    [payableRows]
-  );
+  // ========== REFRESH ==========
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const data = await service_driver_earning.refresh(user.id);
+      setSummary(data);
+    } catch (error) {
+      console.error('❌ Erreur refresh:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [user?.id]);
 
-  const amountProcessing = useMemo(
-    () => processingRows.reduce((s, r) => s + (r.amount || 0), 0),
-    [processingRows]
-  );
-
-  const amountPaidTotal = useMemo(
-    () => rows.filter(r => r.status === 'paid' && r.method === 'virement').reduce((s, r) => s + (r.amount || 0), 0),
-    [rows]
-  );
-
-  // Simule un encaissement "bulk" (toutes les lignes payables)
-  const handleEncaisserTout = useCallback(() => {
-    if (payableRows.length === 0) {
+  // ========== ENCAISSEMENT GLOBAL ==========
+  const handleEncaisserTout = useCallback(async () => {
+    if (summary.payable_earnings.length === 0) {
       Alert.alert('Info', 'Aucun montant éligible à encaisser pour le moment.');
       return;
     }
 
     Alert.alert(
       'Confirmer l\'encaissement',
-      `Vous allez demander le transfert de ${fmtMoney(amountToTransfer)} (virement).`,
+      `Vous allez demander le transfert de ${fmtMoney(summary.amount_payable)}.`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Confirmer',
-          onPress: () => {
-            const now = new Date();
-            const eta = addBusinessDays(now, Math.floor(Math.random() * 4) + 2);
-            const ref = randomRef();
-
-            setRows(prev =>
-              prev.map(r =>
-                r.method === 'virement' && r.status === 'payable'
-                  ? { ...r, status: 'processing', requested_at: now.toISOString(), eta: eta.toISOString(), transfer_ref: ref }
-                  : r
-              )
-            );
-
-            Alert.alert(
-              'Transfert en cours',
-              'Votre encaissement a été demandé. Le virement est en cours de traitement (2–5 jours ouvrables).'
-            );
+          onPress: async () => {
+            try {
+              const earningIds = summary.payable_earnings.map(e => e.id);
+              
+              await service_driver_earning.requestPayout(user.id, earningIds);
+              
+              Alert.alert(
+                'Transfert en cours',
+                'Votre encaissement a été demandé. Le virement est en cours de traitement (2–5 jours ouvrables).',
+                [{ text: 'OK', onPress: loadData }]
+              );
+            } catch (error) {
+              console.error('❌ Erreur encaissement:', error);
+              Alert.alert('Erreur', 'Impossible de traiter la demande. Veuillez réessayer.');
+            }
           },
         },
       ]
     );
-  }, [payableRows, amountToTransfer]);
+  }, [summary.payable_earnings, summary.amount_payable, user?.id]);
 
-  // Simule un encaissement ligne par ligne
-  const handleEncaisserOne = useCallback((id, amount) => {
+  // ========== ENCAISSEMENT INDIVIDUEL ==========
+  const handleEncaisserOne = useCallback(async (earningId, amount) => {
     Alert.alert(
       'Encaisser cette course',
       `Demander le virement de ${fmtMoney(amount)} ?`,
@@ -155,58 +135,43 @@ const EncaissementScreen = () => {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Confirmer',
-          onPress: () => {
-            const now = new Date();
-            const eta = addBusinessDays(now, Math.floor(Math.random() * 4) + 2);
-            const ref = randomRef();
-
-            setRows(prev =>
-              prev.map(r =>
-                r.id === id
-                  ? { ...r, status: 'processing', requested_at: now.toISOString(), eta: eta.toISOString(), transfer_ref: ref }
-                  : r
-              )
-            );
-
-            Alert.alert('Transfert en cours', 'Virement demandé. 2–5 jours ouvrables.');
+          onPress: async () => {
+            try {
+              await service_driver_earning.requestPayout(user.id, [earningId]);
+              
+              Alert.alert(
+                'Transfert en cours',
+                'Virement demandé. 2–5 jours ouvrables.',
+                [{ text: 'OK', onPress: loadData }]
+              );
+            } catch (error) {
+              console.error('❌ Erreur encaissement:', error);
+              Alert.alert('Erreur', 'Impossible de traiter la demande.');
+            }
           },
         },
       ]
     );
-  }, []);
+  }, [user?.id]);
 
-  // Simule la réception (pour démo)
-  const markAsPaid = useCallback((id) => {
-    const paidAt = new Date().toISOString();
-    setRows(prev =>
-      prev.map(r =>
-        r.id === id ? { ...r, status: 'paid', paid_at: paidAt } : r
-      )
-    );
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 600);
-  }, []);
-
+  // ========== COMPOSANTS UI ==========
   const Summary = () => (
     <View style={styles.summary}>
       <View style={styles.summaryItem}>
         <Text style={styles.summaryLabel}>Total ce mois</Text>
-        <Text style={styles.summaryValue}>{fmtMoney(totalMonth)}</Text>
+        <Text style={styles.summaryValue}>{fmtMoney(summary.total_month)}</Text>
       </View>
       <View style={styles.summaryItem}>
         <Text style={styles.summaryLabel}>À encaisser</Text>
-        <Text style={styles.summaryValue}>{fmtMoney(amountToTransfer)}</Text>
+        <Text style={styles.summaryValue}>{fmtMoney(summary.amount_payable)}</Text>
       </View>
       <View style={styles.summaryItem}>
         <Text style={styles.summaryLabel}>En transfert</Text>
-        <Text style={styles.summaryValue}>{fmtMoney(amountProcessing)}</Text>
+        <Text style={styles.summaryValue}>{fmtMoney(summary.amount_processing)}</Text>
       </View>
       <View style={styles.summaryItem}>
         <Text style={styles.summaryLabel}>Versé (total)</Text>
-        <Text style={styles.summaryValue}>{fmtMoney(amountPaidTotal)}</Text>
+        <Text style={styles.summaryValue}>{fmtMoney(summary.amount_paid_total)}</Text>
       </View>
     </View>
   );
@@ -227,29 +192,22 @@ const EncaissementScreen = () => {
     return (
       <View style={styles.row}>
         <View style={styles.rowLeft}>
-          <Text style={styles.rowDate}>{fmtDate(item.date)}</Text>
-          <Text style={styles.rowCity}>{item.city}</Text>
-          <Text style={styles.rowPassenger}>Passager: {item.passenger || '—'}</Text>
+          <Text style={styles.rowDate}>{fmtDate(item.trip_date)}</Text>
+          <Text style={styles.rowCity}>{item.route || 'Trajet'}</Text>
+          <Text style={styles.rowPassenger}>Passager: {item.passenger_name || '—'}</Text>
           <View style={[styles.chip, { backgroundColor: b.bg }]}>
             <Text style={[styles.chipText, { color: b.color }]}>{b.label}</Text>
           </View>
-          {item.status === 'processing' && (
-            <Text style={styles.rowEta}>
-              Réf: {item.transfer_ref || '—'} • Arrivée estimée: {item.eta ? fmtDate(item.eta) : '2–5 jours ouvrables'}
-            </Text>
-          )}
-          {item.status === 'paid' && (
-            <Text style={styles.rowEta}>
-              Réf: {item.transfer_ref || '—'} • Reçu le {item.paid_at ? fmtDate(item.paid_at) : '—'}
-            </Text>
-          )}
         </View>
         <View style={styles.rowRight}>
           <Text style={styles.rowAmount}>{fmtMoney(item.amount)}</Text>
-          <Text style={styles.rowMethod}>{item.method === 'virement' ? 'Virement' : item.method}</Text>
+          <Text style={styles.rowMethod}>Virement</Text>
 
           {item.status === 'payable' && (
-            <TouchableOpacity style={styles.primaryBtnSm} onPress={() => handleEncaisserOne(item.id, item.amount)}>
+            <TouchableOpacity 
+              style={styles.primaryBtnSm} 
+              onPress={() => handleEncaisserOne(item.id, item.amount)}
+            >
               <Text style={styles.primaryBtnSmText}>Encaisser</Text>
             </TouchableOpacity>
           )}
@@ -260,18 +218,25 @@ const EncaissementScreen = () => {
               <Text style={styles.processingText}>En cours</Text>
             </View>
           )}
-
-          {/* Bouton démo pour marquer payé */}
-          {item.status === 'processing' && (
-            <TouchableOpacity style={styles.linkBtn} onPress={() => markAsPaid(item.id)}>
-              <Text style={styles.linkBtnText}>Marquer "reçu" (démo)</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     );
   };
 
+  // ========== ÉCRAN DE CHARGEMENT ==========
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#003366" />
+          <Text style={styles.loadingText}>Chargement...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ========== RENDU PRINCIPAL ==========
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
@@ -294,26 +259,29 @@ const EncaissementScreen = () => {
             <SectionHeader
               icon="payments"
               title="À encaisser"
-              count={payableRows.length}
+              count={summary.count_payable}
               right={
                 <TouchableOpacity
                   onPress={handleEncaisserTout}
-                  disabled={payableRows.length === 0}
-                  style={[styles.primaryBtn, payableRows.length === 0 && { backgroundColor: '#9CA3AF' }]}
+                  disabled={summary.count_payable === 0}
+                  style={[
+                    styles.primaryBtn, 
+                    summary.count_payable === 0 && { backgroundColor: '#9CA3AF' }
+                  ]}
                 >
                   <MaterialIcons name="bolt" size={16} color="#fff" />
                   <Text style={styles.primaryBtnText}>Encaisser maintenant</Text>
                 </TouchableOpacity>
               }
             />
-            {payableRows.length === 0 ? (
+            {summary.count_payable === 0 ? (
               <View style={styles.emptyBox}>
                 <MaterialIcons name="info-outline" size={18} color="#6B7280" />
                 <Text style={styles.emptyText}>Aucun montant éligible à l'encaissement.</Text>
               </View>
             ) : (
               <FlatList
-                data={payableRows}
+                data={summary.payable_earnings}
                 keyExtractor={(it) => it.id}
                 renderItem={({ item }) => <Row item={item} />}
                 scrollEnabled={false}
@@ -323,33 +291,19 @@ const EncaissementScreen = () => {
             )}
 
             {/* Section Transferts en cours */}
-            <SectionHeader icon="local-shipping" title="Transferts en cours" count={processingRows.length} />
-            {processingRows.length === 0 ? (
+            <SectionHeader 
+              icon="local-shipping" 
+              title="Transferts en cours" 
+              count={summary.count_processing} 
+            />
+            {summary.count_processing === 0 ? (
               <View style={styles.emptyBox}>
                 <MaterialIcons name="check-circle" size={18} color="#059669" />
                 <Text style={styles.emptyText}>Aucun transfert en attente.</Text>
               </View>
             ) : (
               <FlatList
-                data={processingRows}
-                keyExtractor={(it) => it.id}
-                renderItem={({ item }) => <Row item={item} />}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-                contentContainerStyle={styles.listContent}
-              />
-            )}
-
-            {/* Section Historique (payés/échoués) */}
-            <SectionHeader icon="history" title="Historique des virements" count={historyRows.length} />
-            {historyRows.length === 0 ? (
-              <View style={styles.emptyBox}>
-                <MaterialIcons name="hourglass-empty" size={18} color="#6B7280" />
-                <Text style={styles.emptyText}>Aucun virement pour le moment.</Text>
-              </View>
-            ) : (
-              <FlatList
-                data={historyRows}
+                data={summary.processing_earnings}
                 keyExtractor={(it) => it.id}
                 renderItem={({ item }) => <Row item={item} />}
                 scrollEnabled={false}
@@ -366,19 +320,41 @@ const EncaissementScreen = () => {
                 confirmation avec la référence du transfert.
               </Text>
             </View>
+
+            {/* Note paiements cash */}
+            <View style={[styles.noteBox, { backgroundColor: '#EFF6FF', borderColor: '#DBEAFE' }]}>
+              <MaterialIcons name="info-outline" size={18} color="#0284c7" />
+              <Text style={[styles.noteText, { color: '#1E3A8A' }]}>
+                💡 Les trajets payés en <Text style={{fontWeight: 'bold'}}>cash</Text> ne sont pas listés ici 
+                car vous recevez directement l'argent du passager.
+              </Text>
+            </View>
           </>
         }
         renderItem={null}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         contentContainerStyle={{ paddingBottom: 24 }}
       />
     </SafeAreaView>
   );
 };
 
-/* ------------------- Styles ------------------- */
+/* ------------------- Styles (identiques) ------------------- */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8F9FA' },
+  
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6B7280',
+  },
 
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -425,7 +401,6 @@ const styles = StyleSheet.create({
 
   chip: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, marginTop: 6 },
   chipText: { fontSize: 11, fontWeight: '700' },
-  rowEta: { color: '#6B7280', fontSize: 12, marginTop: 6 },
 
   primaryBtnSm: {
     backgroundColor: '#003366', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 10, marginTop: 6,
@@ -437,9 +412,6 @@ const styles = StyleSheet.create({
     borderRadius: 999, marginTop: 6,
   },
   processingText: { color: '#0284c7', fontWeight: '700', fontSize: 12 },
-
-  linkBtn: { marginTop: 8 },
-  linkBtnText: { color: '#2563eb', fontSize: 12, textDecorationLine: 'underline' },
 
   emptyBox: {
     marginHorizontal: 16, marginBottom: 8, padding: 12, backgroundColor: '#fff',

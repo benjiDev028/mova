@@ -1,9 +1,13 @@
 import React, { useState ,useMemo} from "react";
 import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, ScrollView, Image, Alert} from "react-native";
 import { MaterialIcons, Ionicons, FontAwesome } from "@expo/vector-icons";
+import  service_booking  from "../../../services/service_booking/service_booking";
+import service_trip from "../../../services/service_trip/service_trip";
+import { useAuth } from "../../../hooks/useAuth";
 
 export default function TripDetailScreen({ route, navigation }) {
   const { trip: initialTrip } = route.params || {};
+  const { user } = useAuth();
   
   const trip = useMemo(()=>({
     ...initialTrip,
@@ -49,22 +53,107 @@ const totalPrice = useMemo(() => {
   return (selectedStop?.price * seats + 3.5).toFixed(2);
 }, [selectedStop, seats]);
 
-const handleConfirm = () => {
+// Dans TripDetailScreen.js, remplace handleConfirm par :
+
+const handleConfirm = async () => {
   if (!selectedStop || trip.availableSeats === 0) return;
   if (seats > trip.availableSeats) return;
-  const newReservedSeats = (trip.totalSeats - trip.availableSeats) + seats;
-  
-  navigation.navigate("PayBooking", { 
-    trip: {
-      ...trip,
-      selectedStop,
-      seats,
-      totalPrice,
-      availableSeats: trip.availableSeats - seats,
-      reservedSeats: newReservedSeats
+
+  try {
+    // 1️⃣ Calculer la date d'annulation gratuite (24h avant le départ)
+    const calculateFreeCancellationUntil = () => {
+      if (!trip?.departure_date || !trip?.departure_time) {
+        // Si pas de date, mettre 24h à partir de maintenant
+        const now = new Date();
+        return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      }
+      
+      const departureDate = new Date(`${trip.departure_date}T${trip.departure_time}`);
+      const freeCancellationDate = new Date(departureDate.getTime() - 24 * 60 * 60 * 1000);
+      return freeCancellationDate.toISOString();
+    };
+
+    // 2️⃣ Récupérer le driver_id (depuis trip ou via API)
+    let driverId = trip?.driver_id || trip?.driverId;
+    
+    if (!driverId) {
+      console.log("⚠️ driver_id manquant, tentative de récupération via API...");
+      try {
+        const tripDetails = await service_trip.get_trip_by_id(trip.id);
+        driverId = tripDetails?.driver_id;
+        console.log("✅ driver_id récupéré:", driverId);
+      } catch (error) {
+        console.error("❌ Impossible de récupérer driver_id:", error);
+        Alert.alert("Erreur", "Impossible de récupérer les informations du conducteur");
+        return;
+      }
     }
-  });
+
+    if (!driverId) {
+      Alert.alert("Erreur", "Informations du conducteur manquantes");
+      return;
+    }
+
+    // 3️⃣ Créer une réservation en statut "pending"
+    const bookingPayload = {
+      id_user: user.id,
+      id_trip: trip.id,
+      id_driver: driverId, // ✅ driver_id présent
+      id_stop: selectedStop?.id || null,
+      number_of_seats: seats,
+      price_per_seat: selectedStop.price,
+      reservation_fee_per_seat: 3.50,
+      currency: "CAD",
+      tax_rate: 0.15,
+      tax_region: "HST-NB",
+      chauffeur_payment_method: trip?.paymentMode || "virement",
+      payment_method_used: "card",
+      free_cancellation_until: calculateFreeCancellationUntil(), // ✅ date calculée
+    };
+
+    console.log("🟡 Création réservation PENDING...", bookingPayload);
+
+    const bookingResult = await service_booking.create_booking_pending(bookingPayload);
+
+    console.log("✅ Réservation PENDING créée:", bookingResult);
+
+    // 4️⃣ Naviguer vers PayBooking avec le booking_id
+    navigation.navigate("PayBooking", {
+      trip: {
+        ...trip,
+        driver_id: driverId, // Passer le driver_id
+        seats,
+        selectedStop,
+        paymentMode: trip?.paymentMode || "virement",
+      },
+      booking: bookingResult, // ✅ Passe toute la réservation avec son ID
+    });
+
+  } catch (error) {
+    console.error("❌ Erreur création réservation PENDING:", error);
+    
+    let errorMessage = "Impossible de créer la réservation";
+    
+    if (error.response?.data) {
+      console.error("Détails erreur:", error.response.data);
+      
+      if (Array.isArray(error.response.data)) {
+        const missingFields = error.response.data
+          .filter(e => e.type === "missing")
+          .map(e => e.loc[e.loc.length - 1]);
+        
+        if (missingFields.length > 0) {
+          errorMessage = `Champs manquants: ${missingFields.join(", ")}`;
+        }
+      }
+    }
+    
+    Alert.alert("Erreur", errorMessage);
+  }
 };
+
+
+
   const renderStopOption = (stop, index) => {
     const isSelected = selectedStop?.id === stop.id;
     const isDestination = index === trip.stops.length - 1;

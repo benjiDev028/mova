@@ -1,15 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  RefreshControl,
-  Alert,
-  FlatList,
+import {View,Text,StyleSheet,ScrollView,TouchableOpacity,SafeAreaView,StatusBar,RefreshControl,Alert,FlatList,
   Linking,
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
@@ -33,16 +23,16 @@ const PREFERENCES_CONFIG = {
 const MesTrajetsScreen = ({ navigation }) => {
   // États principaux
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('driver'); // 'driver' ou 'passenger'
-  const [trips, setTrips] = useState([]); // Trajets en tant que conducteur
-  const [bookings, setBookings] = useState([]); // Réservations en tant que passager
-  const [refreshing, setRefreshing] = useState(false); // État de rafraîchissement
-  const [loading, setLoading] = useState(true); // État de chargement initial
-  const [lastUpdated, setLastUpdated] = useState(null); // Dernière mise à jour
+  const [activeTab, setActiveTab] = useState('driver');
+  const [trips, setTrips] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   // États pour la gestion des passagers
-  const [passengersByTrip, setPassengersByTrip] = useState({}); // Passagers par trajet
-  const [expandedTrips, setExpandedTrips] = useState({}); // Trajets dépliés
+  const [passengersByTrip, setPassengersByTrip] = useState({});
+  const [expandedTrips, setExpandedTrips] = useState({});
 
   // Cache pour les voitures
   const carCacheRef = useRef(new Map());
@@ -55,7 +45,6 @@ const MesTrajetsScreen = ({ navigation }) => {
     
     const cacheKey = String(carId).trim();
     
-    // Retourne depuis le cache si disponible
     if (carCacheRef.current.has(cacheKey)) {
       return carCacheRef.current.get(cacheKey);
     }
@@ -63,12 +52,11 @@ const MesTrajetsScreen = ({ navigation }) => {
     try {
       const carData = await service_vehicule.getCarById(encodeURIComponent(cacheKey));
       
-      // Normalise les données de la voiture
       const normalizedCar = carData && typeof carData === 'object' ? {
         id: carData.id || cacheKey,
         brand: carData.brand || carData.marque || '',
         model: carData.model || carData.modele || '',
-        date_of_car: carData.date_of_car || carData.year || data.annee || '',
+        date_of_car: carData.date_of_car || carData.year || carData.annee || '',
         color: carData.color || carData.couleur || '',
       } : null;
 
@@ -91,7 +79,6 @@ const MesTrajetsScreen = ({ navigation }) => {
     const [hours, minutes] = time.split(':').map(Number);
     const [year, month, day] = trip.departure_date.split('-').map(Number);
     
-    // CORRECTION : Utiliser la date locale pour la comparaison
     const tripDate = new Date(year, month - 1, day, hours || 0, minutes || 0);
     const now = new Date();
     
@@ -127,7 +114,6 @@ const MesTrajetsScreen = ({ navigation }) => {
     if (!dateString) return '--';
     
     try {
-      // CORRECTION : Utiliser la date locale pour l'affichage
       const [year, month, day] = dateString.split('-').map(Number);
       const date = new Date(year, month - 1, day);
       
@@ -165,7 +151,90 @@ const MesTrajetsScreen = ({ navigation }) => {
   };
 
   /**
-   * Charge les trajets où l'utilisateur est conducteur
+   * NOUVEAU : Charge les passagers pour un trajet spécifique
+   * Filtre automatiquement les réservations annulées
+   */
+  const loadPassengersForTrip = useCallback(async (trip) => {
+    const tripId = trip?.id;
+    if (!tripId) return [];
+
+    try {
+      console.log(`Chargement des passagers pour le trajet ${tripId}`);
+      
+      const passengersResponse = await service_booking.get_passengers_by_trip(tripId);
+      
+      let passengers = [];
+      if (Array.isArray(passengersResponse)) {
+        passengers = passengersResponse;
+      } else if (passengersResponse && typeof passengersResponse === 'object') {
+        passengers = passengersResponse.data || passengersResponse.passengers || passengersResponse.items || [];
+      }
+      
+      // FILTRE : Exclure les réservations annulées
+      const activePassengers = passengers.filter(passenger => 
+        passenger.status !== 'cancelled'
+      );
+      
+      console.log(`Passagers actifs trouvés: ${activePassengers.length} (total: ${passengers.length})`);
+
+      // Enrichissement des passagers
+      const enrichedPassengers = await Promise.all(
+        activePassengers.map(async (passenger) => {
+          try {
+            let userData = null;
+            if (passenger?.id_user) {
+              try {
+                userData = await user_services.getUserById(passenger.id_user);
+              } catch (userError) {
+                console.warn(`Erreur récupération utilisateur ${passenger.id_user}:`, userError.message);
+                userData = {
+                  first_name: passenger.first_name,
+                  last_name: passenger.last_name,
+                  phone_number: passenger.phone_number
+                };
+              }
+            }
+            
+            let stopInfo = null;
+            if (passenger?.id_stop && Array.isArray(trip.stops)) {
+              stopInfo = trip.stops.find(stop => 
+                String(stop.id) === String(passenger.id_stop) ||
+                String(stop._id) === String(passenger.id_stop)
+              );
+            }
+            
+            return { 
+              ...passenger, 
+              user: userData,
+              stop: stopInfo,
+              first_name: passenger.first_name || userData?.first_name,
+              last_name: passenger.last_name || userData?.last_name,
+              phone_number: passenger.phone_number || userData?.phone_number
+            };
+          } catch (error) {
+            console.error(`Erreur enrichissement passager ${passenger?.id}:`, error);
+            return { 
+              ...passenger, 
+              user: null,
+              stop: null,
+              first_name: passenger.first_name,
+              last_name: passenger.last_name,
+              phone_number: passenger.phone_number
+            };
+          }
+        })
+      );
+
+      return enrichedPassengers;
+    } catch (error) {
+      console.error(`Erreur chargement passagers pour trajet ${tripId}:`, error);
+      return [];
+    }
+  }, []);
+
+  /**
+   * MODIFIÉ : Charge les trajets où l'utilisateur est conducteur
+   * Charge automatiquement les passagers pour chaque trajet
    */
   const loadDriverTrips = useCallback(async () => {
     if (!user?.id) return [];
@@ -174,10 +243,24 @@ const MesTrajetsScreen = ({ navigation }) => {
       const driverTrips = await service_trip.get_trip_by_driver_id(user.id);
       if (!driverTrips || driverTrips.length === 0) return [];
 
-      // Enrichit chaque trajet avec les infos de la voiture
+      // Enrichit chaque trajet avec les infos de la voiture ET les passagers
       const enrichedTrips = await Promise.all(
         driverTrips.map(async (trip) => {
-          const carInfo = await getCarInfo(trip.car_id);
+          const [carInfo, passengers] = await Promise.all([
+            getCarInfo(trip.car_id),
+            loadPassengersForTrip(trip)
+          ]);
+          
+          // Stocke les passagers dans l'état
+          setPassengersByTrip(prev => ({
+            ...prev,
+            [trip.id]: {
+              loading: false,
+              error: null,
+              items: passengers
+            }
+          }));
+          
           return { ...trip, carInfo };
         })
       );
@@ -187,7 +270,7 @@ const MesTrajetsScreen = ({ navigation }) => {
       console.error('Erreur chargement trajets conducteur:', error);
       return [];
     }
-  }, [user?.id, getCarInfo]);
+  }, [user?.id, getCarInfo, loadPassengersForTrip]);
 
   /**
    * Charge les réservations où l'utilisateur est passager
@@ -198,7 +281,6 @@ const MesTrajetsScreen = ({ navigation }) => {
     try {
       const userBookings = await service_booking.get_bookings_by_user_id(user.id);
       
-      // Enrichit chaque réservation avec les détails du trajet et du conducteur
       const enrichedBookings = await Promise.all(
         (userBookings || []).map(async (booking) => {
           if (!booking?.id_trip) return booking;
@@ -264,118 +346,16 @@ const MesTrajetsScreen = ({ navigation }) => {
   }, [loadAllData]);
 
   /**
-   * Charge les passagers d'un trajet quand on le déplie
+   * MODIFIÉ : Toggle pour déplier/replier la liste des passagers
+   * Les passagers sont déjà chargés, on fait juste afficher/masquer
    */
-/**
- * Charge les passagers d'un trajet quand on le déplie
- */
-/**
- * Charge les passagers d'un trajet quand on le déplie
- */
-const toggleTripExpansion = useCallback(async (trip) => {
-  const tripId = trip?.id;
-  if (!tripId) return;
-
-  const isExpanding = !expandedTrips[tripId];
-  setExpandedTrips(prev => ({ ...prev, [tripId]: isExpanding }));
-
-  if (!isExpanding) return;
-
-  setPassengersByTrip(prev => ({
-    ...prev,
-    [tripId]: { loading: true, error: null, items: prev[tripId]?.items || [] },
-  }));
-
-  try {
-    console.log(`Chargement des passagers pour le trajet ${tripId}`);
-    
-    const passengersResponse = await service_booking.get_passengers_by_trip(tripId);
-    console.log('Réponse passagers:', passengersResponse);
-    
-    let passengers = [];
-    if (Array.isArray(passengersResponse)) {
-      passengers = passengersResponse;
-    } else if (passengersResponse && typeof passengersResponse === 'object') {
-      passengers = passengersResponse.data || passengersResponse.passengers || passengersResponse.items || [];
-    }
-    
-    console.log(`Nombre de passagers trouvés: ${passengers.length}`);
-
-    // CORRECTION : Meilleure gestion des erreurs pour l'enrichissement
-    const enrichedPassengers = await Promise.all(
-      passengers.map(async (passenger) => {
-        try {
-          let userData = null;
-          // Essayer de récupérer les infos utilisateur, mais continuer même en cas d'erreur
-          if (passenger?.id_user) {
-            try {
-              userData = await user_services.getUserById(passenger.id_user);
-            } catch (userError) {
-              console.warn(`Erreur récupération utilisateur ${passenger.id_user}:`, userError.message);
-              // Utiliser les données de base du passager si disponibles
-              userData = {
-                first_name: passenger.first_name,
-                last_name: passenger.last_name,
-                phone_number: passenger.phone_number
-              };
-            }
-          }
-          
-          // Recherche d'arrêt avec plus de flexibilité
-          let stopInfo = null;
-          if (passenger?.id_stop && Array.isArray(trip.stops)) {
-            stopInfo = trip.stops.find(stop => 
-              String(stop.id) === String(passenger.id_stop) ||
-              String(stop._id) === String(passenger.id_stop)
-            );
-          }
-          
-          return { 
-            ...passenger, 
-            user: userData,
-            stop: stopInfo,
-            // CORRECTION : Ajouter les champs directement accessibles
-            first_name: passenger.first_name || userData?.first_name,
-            last_name: passenger.last_name || userData?.last_name,
-            phone_number: passenger.phone_number || userData?.phone_number
-          };
-        } catch (error) {
-          console.error(`Erreur enrichissement passager ${passenger?.id}:`, error);
-          return { 
-            ...passenger, 
-            user: null,
-            stop: null,
-            first_name: passenger.first_name,
-            last_name: passenger.last_name,
-            phone_number: passenger.phone_number
-          };
-        }
-      })
-    );
-
-    setPassengersByTrip(prev => ({
-      ...prev,
-      [tripId]: { 
-        loading: false, 
-        error: null, 
-        items: enrichedPassengers 
-      },
+  const toggleTripExpansion = useCallback((tripId) => {
+    setExpandedTrips(prev => ({ 
+      ...prev, 
+      [tripId]: !prev[tripId] 
     }));
-    
-    console.log(`Passagers enrichis pour ${tripId}:`, enrichedPassengers.length);
-    
-  } catch (error) {
-    console.error('Erreur chargement passagers:', error);
-    setPassengersByTrip(prev => ({
-      ...prev,
-      [tripId]: { 
-        loading: false, 
-        error: error?.message || 'Erreur de chargement des passagers', 
-        items: [] 
-      },
-    }));
-  }
-}, [expandedTrips]);
+  }, []);
+
   /**
    * Fonctions de contact
    */
@@ -400,61 +380,55 @@ const toggleTripExpansion = useCallback(async (trip) => {
   };
 
   /**
-   * Composant pour afficher un passager avec nom complet et destination
+   * Composant pour afficher un passager
    */
-/**
- * Composant pour afficher un passager avec nom complet et destination
- */
-const PassengerItem = ({ passenger, trip }) => {
-  // CORRECTION : Accéder directement aux champs du passager puisque user_services.getUserById échoue
-  const fullName = `${passenger?.first_name || ''} ${passenger?.last_name || ''}`.trim() || 'Passager';
-  const phone = passenger?.phone_number || passenger?.user?.phone_number || '';
-  const seats = passenger?.number_of_seats || 1;
-  
-  // Détermine la destination du passager
-  const getPassengerDestination = () => {
-    if (passenger?.stop) {
-      return passenger.stop.destination_city;
-    }
-    // Si pas d'arrêt spécifique, destination finale du trajet
-    return trip?.destination_city || 'Destination inconnue';
+  const PassengerItem = ({ passenger, trip }) => {
+    const fullName = `${passenger?.first_name || ''} ${passenger?.last_name || ''}`.trim() || 'Passager';
+    const phone = passenger?.phone_number || passenger?.user?.phone_number || '';
+    const seats = passenger?.number_of_seats || 1;
+    
+    const getPassengerDestination = () => {
+      if (passenger?.stop) {
+        return passenger.stop.destination_city;
+      }
+      return trip?.destination_city || 'Destination inconnue';
+    };
+
+    const passengerDestination = getPassengerDestination();
+
+    return (
+      <TouchableOpacity
+        onLongPress={() => Alert.alert(
+          `Contacter ${fullName}`,
+          `Destination: ${passengerDestination}\nSièges réservés: ${seats}`,
+          [
+            { text: '📞 Appeler', onPress: () => callPhone(phone) },
+            { text: '💬 SMS', onPress: () => sendSMS(phone) },
+            { text: 'Fermer', style: 'cancel' }
+          ]
+        )}
+        style={styles.passengerItem}
+      >
+        <View style={styles.passengerAvatar}>
+          <FontAwesome name="user" size={12} color="#fff" />
+        </View>
+        
+        <View style={styles.passengerInfo}>
+          <Text style={styles.passengerName}>{fullName}</Text>
+          <Text style={styles.passengerDetails}>
+            → {passengerDestination} • {seats} siège{seats > 1 ? 's' : ''}
+          </Text>
+        </View>
+        
+        <View style={styles.passengerStatus}>
+          <View style={[
+            styles.statusIndicator, 
+            { backgroundColor: getStatusInfo(passenger.status).color }
+          ]} />
+        </View>
+      </TouchableOpacity>
+    );
   };
-
-  const passengerDestination = getPassengerDestination();
-
-  return (
-    <TouchableOpacity
-      onLongPress={() => Alert.alert(
-        `Contacter ${fullName}`,
-        `Destination: ${passengerDestination}\nSièges réservés: ${seats}`,
-        [
-          { text: '📞 Appeler', onPress: () => callPhone(phone) },
-          { text: '💬 SMS', onPress: () => sendSMS(phone) },
-          { text: 'Fermer', style: 'cancel' }
-        ]
-      )}
-      style={styles.passengerItem}
-    >
-      <View style={styles.passengerAvatar}>
-        <FontAwesome name="user" size={12} color="#fff" />
-      </View>
-      
-      <View style={styles.passengerInfo}>
-        <Text style={styles.passengerName}>{fullName}</Text>
-        <Text style={styles.passengerDetails}>
-          → {passengerDestination} • {seats} siège{seats > 1 ? 's' : ''}
-        </Text>
-      </View>
-      
-      <View style={styles.passengerStatus}>
-        <View style={[
-          styles.statusIndicator, 
-          { backgroundColor: getStatusInfo(passenger.status).color }
-        ]} />
-      </View>
-    </TouchableOpacity>
-  );
-};
 
   /**
    * Affiche les préférences sous forme de chips
@@ -470,7 +444,6 @@ const PassengerItem = ({ passenger, trip }) => {
         contentContainerStyle={styles.preferencesContent}
       >
         {Object.entries(preferences).map(([key, value]) => {
-          // Ignore certains champs
           if (key === 'mode_payment' || key === 'id' || !value) return null;
           
           const config = PREFERENCES_CONFIG[key] || { 
@@ -518,6 +491,10 @@ const PassengerItem = ({ passenger, trip }) => {
     const isExpanded = !!expandedTrips[trip.id];
     const statusInfo = getStatusInfo(trip.status);
     const stops = Array.isArray(trip.stops) ? trip.stops : [];
+    
+    // Récupère les passagers depuis l'état
+    const passengersData = passengersByTrip[trip.id] || { loading: false, error: null, items: [] };
+    const activePassengersCount = passengersData.items.length;
 
     return (
       <TouchableOpacity
@@ -561,7 +538,6 @@ const PassengerItem = ({ passenger, trip }) => {
 
         {/* Itinéraire */}
         <View style={styles.routeContainer}>
-          {/* Départ */}
           <View style={styles.locationRow}>
             <View style={styles.departureDot} />
             <Text style={styles.locationText}>
@@ -570,7 +546,6 @@ const PassengerItem = ({ passenger, trip }) => {
           </View>
           <View style={styles.routeLine} />
 
-          {/* Arrêts intermédiaires */}
           {stops.map((stop, index) => (
             <View key={stop.id || `stop-${index}`}>
               <View style={styles.stopRow}>
@@ -586,7 +561,6 @@ const PassengerItem = ({ passenger, trip }) => {
             </View>
           ))}
 
-          {/* Destination finale */}
           <View style={styles.locationRow}>
             <View style={styles.destinationDot} />
             <Text style={styles.destinationText}>
@@ -648,15 +622,15 @@ const PassengerItem = ({ passenger, trip }) => {
         {/* Préférences */}
         {renderPreferenceChips(trip.preferences)}
 
-        {/* Section passagers */}
+        {/* Section passagers - MODIFIÉE */}
         <View style={styles.passengersSection}>
           <TouchableOpacity
             style={styles.passengersToggle}
-            onPress={() => toggleTripExpansion(trip)}
+            onPress={() => toggleTripExpansion(trip.id)}
           >
             <MaterialIcons name="group" size={18} color="#003366" />
             <Text style={styles.passengersToggleText}>
-              Passagers ({passengersByTrip[trip.id]?.items?.length || 0})
+              Passagers ({activePassengersCount})
             </Text>
             <MaterialIcons 
               name={isExpanded ? 'expand-less' : 'expand-more'} 
@@ -667,17 +641,17 @@ const PassengerItem = ({ passenger, trip }) => {
 
           {isExpanded && (
             <View style={styles.passengersList}>
-              {passengersByTrip[trip.id]?.loading ? (
+              {passengersData.loading ? (
                 <View style={styles.loadingContainer}>
                   <MaterialIcons name="autorenew" size={16} color="#6B7280" />
                   <Text style={styles.loadingText}>Chargement des passagers…</Text>
                 </View>
-              ) : passengersByTrip[trip.id]?.error ? (
-                <Text style={styles.errorText}>{passengersByTrip[trip.id].error}</Text>
-              ) : (passengersByTrip[trip.id]?.items || []).length === 0 ? (
-                <Text style={styles.emptyText}>Aucun passager pour ce trajet</Text>
+              ) : passengersData.error ? (
+                <Text style={styles.errorText}>{passengersData.error}</Text>
+              ) : activePassengersCount === 0 ? (
+                <Text style={styles.emptyText}>Aucun passager actif pour ce trajet</Text>
               ) : (
-                (passengersByTrip[trip.id]?.items || []).map((passenger) => (
+                passengersData.items.map((passenger) => (
                   <PassengerItem 
                     key={passenger.id} 
                     passenger={passenger}
@@ -689,7 +663,6 @@ const PassengerItem = ({ passenger, trip }) => {
           )}
         </View>
 
-        {/* Indication d'action longue */}
         <View style={styles.hintContainer}>
           <Text style={styles.hintText}>Appuyez longuement pour plus d'actions</Text>
         </View>
@@ -705,20 +678,18 @@ const PassengerItem = ({ passenger, trip }) => {
     const driver = booking.driver;
     const statusInfo = getStatusInfo(booking.status);
 
-    // Annuler une réservation
     const cancelBooking = async () => {
       try {
         await service_booking.cancel_booking(booking.id);
-        // Recharge les données
+        console.log('Réservation annulée:', booking.id);
         loadAllData();
         Alert.alert('Succès', 'Votre réservation a été annulée');
       } catch (error) {
         console.error('Erreur annulation réservation:', error);
-        Alert.alert('Erreur', 'Impossible d\'annuler la réservation');
+        Alert.alert('Erreur', booking.id);
       }
     };
 
-    // Afficher les détails de la réservation
     const showBookingDetails = () => {
       Alert.alert(
         'Détails de la réservation',
@@ -733,7 +704,6 @@ const PassengerItem = ({ passenger, trip }) => {
       );
     };
 
-    // Actions disponibles pour la réservation
     const handleBookingActions = () => {
       const actions = [
         { 
@@ -742,7 +712,6 @@ const PassengerItem = ({ passenger, trip }) => {
         },
       ];
 
-      // Ajouter l'annulation seulement si le statut le permet
       if (booking.status === 'pending' || booking.status === 'confirmed') {
         actions.push({
           text: '❌ Annuler', 
@@ -769,7 +738,6 @@ const PassengerItem = ({ passenger, trip }) => {
       );
     };
 
-    // Détermine la destination à afficher
     const getDestinationDisplay = () => {
       if (booking?.id_stop && Array.isArray(trip?.stops)) {
         const matchedStop = trip.stops.find(stop => stop.id === booking.id_stop);
@@ -798,7 +766,6 @@ const PassengerItem = ({ passenger, trip }) => {
           Chauffeur: {driver ? `${driver.first_name} ${driver.last_name}` : 'Non spécifié'}
         </Text>
         
-        {/* Informations rapides de la réservation */}
         <View style={styles.bookingQuickInfo}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Places:</Text>
@@ -821,7 +788,6 @@ const PassengerItem = ({ passenger, trip }) => {
             <Text style={styles.statusText}>{statusInfo.text}</Text>
           </View>
           
-          {/* Indication des actions disponibles */}
           <Text style={styles.actionHint}>
             Tap pour détails • Long press pour actions
           </Text>
@@ -1035,7 +1001,7 @@ const PassengerItem = ({ passenger, trip }) => {
   );
 };
 
-// Styles (conservés identiques)
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -1446,7 +1412,6 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
-  // Styles pour les réservations (passager)
   routeTitle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -1502,7 +1467,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  // État vide
   emptyState: {
     alignItems: 'center',
     paddingVertical: 40,
@@ -1521,12 +1485,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,
-  },
-  stopInfo: {
-    color: '#8B5CF6',
-    fontSize: 13,
-    marginBottom: 4,
-    fontStyle: 'italic',
   },
 });
 

@@ -72,6 +72,8 @@ export const create_car = async (user_id, brand, model, seats, color, license_pl
   }
 };
 
+
+
 // Export par défaut pour compat avec les imports existants
 export default {
   getCarById,
