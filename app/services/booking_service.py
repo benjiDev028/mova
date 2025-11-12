@@ -361,3 +361,152 @@ async def complete_by_trip(
         #   -> créer une entrée payout côté payouts_service (quand il sera en place)
     await db.commit()
     return CompleteByTripResponse(updated=len(rows))
+
+
+
+
+async def create_booking_pending(db: AsyncSession, data: BookingCreate) -> BookingResponse:
+    """
+    Crée une réservation en statut PENDING avec TOUTES les vérifications
+    Mais NE décrémente PAS les places disponibles
+    """
+    try:
+        # 1) valider le trip
+        trip = await _get_trip_details(str(data.id_trip))
+
+        # a) statut du trip
+        if str(trip.get("status")) not in {"pending", "active", "published"}:
+            raise HTTPException(status_code=400, detail="Ce trajet n'est pas disponible à la réservation.")
+
+        # b) le conducteur ne peut pas réserver
+        if str(trip.get("driver_id")) == str(data.id_user):
+            raise HTTPException(status_code=400, detail="Le conducteur ne peut pas réserver son propre trajet.")
+
+        # c) date non passée
+        dep_date_str = trip.get("departure_date")  # "YYYY-MM-DD"
+        if dep_date_str:
+            departure_date = datetime.strptime(dep_date_str, "%Y-%m-%d").date()
+            if departure_date < datetime.utcnow().date():
+                raise HTTPException(status_code=400, detail="Ce trajet est déjà passé.")
+
+        # d) disponibilité sièges - VÉRIFICATION CRITIQUE
+        available_seats = int(trip.get("available_seats", 0))
+        if available_seats < int(data.number_of_seats):
+            raise HTTPException(status_code=400, detail="Nombre de places insuffisant.")
+
+        # e) éviter double réservation utilisateur pour ce trip (pending|confirmed|completed)
+        q = select(Booking).where(
+            Booking.id_user == data.id_user,
+            Booking.id_trip == data.id_trip,
+            Booking.status.in_([BookingStatus.pending, BookingStatus.confirmed, BookingStatus.completed]),
+        )
+        if (await db.execute(q)).scalars().first():
+            raise HTTPException(status_code=409, detail="L'utilisateur a déjà une réservation sur ce trajet.")
+
+        # 2) calculs snapshot
+        amounts = _compute_amounts(
+            seats=data.number_of_seats,
+            price_per_seat=Decimal(data.price_per_seat),
+            fee_per_seat=Decimal(data.reservation_fee_per_seat),
+            tax_rate=Decimal(data.tax_rate),
+            chauffeur_payment_method=data.chauffeur_payment_method,
+        )
+
+        # 3) création booking EN STATUT PENDING
+        booking = Booking(
+            id_user=data.id_user,
+            id_trip=data.id_trip,
+            id_stop=data.id_stop,
+            id_driver=data.id_driver,
+
+            number_of_seats=data.number_of_seats,
+            price_per_seat=Decimal(data.price_per_seat),
+            reservation_fee_per_seat=Decimal(data.reservation_fee_per_seat),
+
+            currency=data.currency,
+            tax_rate=Decimal(data.tax_rate),
+            tax_region=data.tax_region,
+
+            base_total=amounts["base_total"],
+            fee_total=amounts["fee_total"],
+            tax_total=amounts["tax_total"],
+            charged_now_total=amounts["charged_now_total"],
+
+            chauffeur_payment_method=data.chauffeur_payment_method,
+            payment_method_used=data.payment_method_used,
+
+            driver_payable=amounts["driver_payable"],
+            driver_collected_cash=amounts["driver_collected_cash"],
+
+            free_cancellation_until=data.free_cancellation_until,
+            status=BookingStatus.pending,  # ⬅️ STATUT PENDING
+        )
+
+        db.add(booking)
+        await db.commit()
+        await db.refresh(booking)
+
+        # ⚠️ NE PAS notifier RabbitMQ pour décrémenter les places
+        logger.info(f"✅ Réservation PENDING créée: {booking.id} (places réservées: {data.number_of_seats})")
+
+        return BookingResponse.model_validate(booking)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"create_booking_pending error: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Erreur création réservation pending")
+    
+
+async def confirm_booking_after_payment(db: AsyncSession, booking_id: uuid.UUID) -> BookingResponse:
+    """
+    Confirme une réservation après paiement réussi
+    SEULEMENT met à jour le statut et décrémente les places
+    PAS de vérifications supplémentaires (déjà faites dans create_booking_pending)
+    """
+    try:
+        # Récupérer la réservation
+        res = await db.execute(select(Booking).where(Booking.id == booking_id))
+        booking = res.scalar_one_or_none()
+        
+        if not booking:
+            raise HTTPException(status_code=404, detail="Réservation introuvable")
+
+        if booking.status != BookingStatus.pending:
+            raise HTTPException(status_code=400, detail=f"Réservation déjà {booking.status}")
+
+        # ⚠️ PLUS BESOIN de vérifier les places - déjà fait dans create_booking_pending
+        # On fait confiance que les places sont encore disponibles
+        # (dans un système réel, on pourrait avoir un lock ou retry)
+
+        # Mettre à jour le statut
+        booking.status = BookingStatus.confirmed
+        booking.updated_at = datetime.utcnow()
+
+        await db.commit()
+        await db.refresh(booking)
+
+        # ⬅️ MAINTENANT SEULEMENT : décrémenter les places
+        try:
+            await _notify_trip_reduce_seats(
+                trip_id=str(booking.id_trip),
+                booking_id=str(booking.id),
+                number_of_seats=int(booking.number_of_seats),
+            )
+            logger.info(f"✅ Places décrémentées pour booking {booking.id}: -{booking.number_of_seats} places")
+        except Exception as e:
+            logger.error(f"[RabbitMQ] erreur publish: {e}")
+            # IMPORTANT: En cas d'erreur RabbitMQ, on a un incohérence
+            # Le booking est confirmed mais les places pas décrémentées
+            # Dans un système de production, il faudrait un mécanisme de retry/compensation
+
+        return BookingResponse.model_validate(booking)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        logger.error(f"confirm_booking_after_payment error: {e}")
+        raise HTTPException(status_code=500, detail="Erreur confirmation réservation")

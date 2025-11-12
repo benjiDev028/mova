@@ -10,6 +10,7 @@ from app.db.base import Base
 
 # États minimalistes
 class BookingStatus(str, Enum):
+    pending = "pending"     # initial
     confirmed = "confirmed"   # créé après paiement OK
     cancelled = "cancelled"
     completed = "completed"
@@ -58,7 +59,7 @@ class Booking(Base):
     payment_method_used      = Column(String(32), nullable=False)             # card|interac|...
 
     # Statut & audit
-    status     = Column(SAEnum(BookingStatus), nullable=False, default=BookingStatus.confirmed)
+    status     = Column(SAEnum(BookingStatus), nullable=False, default=BookingStatus.pending)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

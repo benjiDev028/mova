@@ -8,7 +8,7 @@ from app.db.database import get_db
 from app.db.schemas.booking import BookingCreate, BookingResponse
 from app.services.booking_service import (create_booking,get_booking_by_user,get_passengers_by_trip,)
 from app.db.schemas.booking import (    BookingCreate, BookingResponse,  BookingCancelRequest, BookingCancelResponse,  CompleteByTripRequest, CompleteByTripResponse,)
-from app.services.booking_service import (create_booking,get_booking_by_user,get_passengers_by_trip,get_booking_by_id,list_bookings_by_driver,cancel_booking,complete_by_trip,)
+from app.services.booking_service import (create_booking,get_booking_by_user,get_passengers_by_trip,get_booking_by_id,list_bookings_by_driver,cancel_booking,complete_by_trip,create_booking_pending,confirm_booking_after_payment,)
 
 router = APIRouter()
 
@@ -59,3 +59,28 @@ async def cancel_booking_endpoint(booking_id: UUID,body: BookingCancelRequest,db
 async def complete_by_trip_endpoint(trip_id: UUID,body: CompleteByTripRequest,db: AsyncSession = Depends(get_db),):
     
     return await complete_by_trip(db, trip_id, body)
+
+@router.post("/create-pending", response_model=BookingResponse)
+async def create_booking_pending_endpoint(data: BookingCreate, db: AsyncSession = Depends(get_db)):
+    """
+    🆕 NOUVEAU ENDPOINT
+    Crée une réservation en statut PENDING (avant paiement)
+    - Vérifie la disponibilité des places
+    - Empêche les doublons
+    - NE décrémente PAS les places disponibles
+    """
+    return await create_booking_pending(db, data)
+
+@router.post("/{booking_id}/confirm-after-payment", response_model=BookingResponse)
+async def confirm_booking_after_payment_endpoint(
+    booking_id: UUID, 
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    🆕 NOUVEAU ENDPOINT  
+    Confirme une réservation après paiement réussi
+    - Met à jour le statut: PENDING → CONFIRMED
+    - Décrémente les places disponibles
+    - Appelé uniquement après succès du paiement Stripe
+    """
+    return await confirm_booking_after_payment(db, booking_id)
